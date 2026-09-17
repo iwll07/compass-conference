@@ -1,6 +1,7 @@
 # COMPASS working log
 
 ## Current state
+- Hero redesigned (commit `4e263c2`, pushed): full-bleed `public/college.jpeg` (800x533, user-supplied), compass plate removed, text centered; scrims are tokens `--hero-scrim`/`--hero-ink`/`--hero-muted` in `app/theme.css` (light: navy 0.55, dark: near-black 0.68). Verified with screenshots (light/dark/mobile) + 12 computed-style assertions (`scripts/hero-def-check.mjs`).
 - LIVE on Cloudflare Workers (static assets): https://compass-conference.iwllwill01.workers.dev/ — full 46-assertion QA suite passed against production (BASE_URL env var in scripts/qa-assert.mjs).
 - Deploy model: Cloudflare Workers build pipeline (not classic Pages) — build command `npm run build`, deploy command `npx wrangler deploy`, config in `wrangler.jsonc` (assets.directory=./out, not_found_handling=404-page). Verified locally via clean-clone build + `wrangler deploy --dry-run` before push.
 - Code pushed to GitHub: https://github.com/iwll07/compass-conference (origin/master, tracking, in sync).
