@@ -1,7 +1,8 @@
 # COMPASS working log
 
 ## Current state
-- Repository started empty on 2026-09-17 (master, no commits).
+- Committed through `9ffa89c` "Build COMPASS static site: 7 pages, theme layer, countdown, print agenda, QA suites" (root commit, working tree clean at commit time).
+- Full verification suite green: lint, typecheck, 6 countdown unit tests, 46 browser assertions, 8-route static build.
 - Setup and minimal Next.js 16.3.5 App Router static-export scaffold complete.
 - User approved static export instead of the deprecated adapter, and chose to WAIT for exact registration fields (no form/schema until supplied).
 - `npm install` succeeded (0 vulnerabilities); `npx next build`, `npm run lint`, and `npm run typecheck` passed. `out/index.html` and static 404 output verified. This is local export verification, NOT live Cloudflare deployment.
