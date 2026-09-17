@@ -1,8 +1,10 @@
 # COMPASS working log
 
 ## Current state
+- Code pushed to GitHub: https://github.com/iwll07/compass-conference (origin/master, tracking, in sync).
 - Committed through `9ffa89c` "Build COMPASS static site: 7 pages, theme layer, countdown, print agenda, QA suites" (root commit, working tree clean at commit time).
 - Full verification suite green: lint, typecheck, 6 countdown unit tests, 46 browser assertions, 8-route static build.
+- Git identity: iwll07 <iwllwill01@gmail.com> (repo-local). Note: Windows credential manager previously held a different GitHub account (bmsadev); resolved via `git credential-manager github login` as iwll07.
 - Setup and minimal Next.js 16.3.5 App Router static-export scaffold complete.
 - User approved static export instead of the deprecated adapter, and chose to WAIT for exact registration fields (no form/schema until supplied).
 - `npm install` succeeded (0 vulnerabilities); `npx next build`, `npm run lint`, and `npm run typecheck` passed. `out/index.html` and static 404 output verified. This is local export verification, NOT live Cloudflare deployment.
