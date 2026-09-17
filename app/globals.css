@@ -35,18 +35,27 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .icon-button { display: inline-flex; justify-content: center; align-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); }
 .nav-register { display: flex; align-items: center; gap: 14px; font-size: 12px; font-weight: 600; text-decoration: none; min-height: 44px; }
 .menu-toggle, .mobile-nav { display: none; }
-.hero { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1.08fr 1fr; padding: 0 5vw; min-height: 570px; }
-.hero-copy { padding: 58px 16px 44px 0; position: relative; z-index: 1; }
+.hero { position: relative; display: flex; align-items: center; justify-content: center; }
+.hero-photo { min-height: min(860px, 92dvh); padding: 60px 5vw; text-align: center; color: var(--hero-ink); overflow: hidden; }
+.hero-bg { position: absolute; inset: 0; background-size: cover; background-position: center 40%; }
+.hero-bg::after { content: ""; position: absolute; inset: 0; background: var(--hero-scrim); }
+.hero-copy { position: relative; z-index: 1; }
+.hero-photo .hero-copy { display: flex; flex-direction: column; align-items: center; max-width: 780px; }
 .hero h1 { max-width: 650px; font-size: clamp(3.6rem, 5.7vw, 5.45rem); }
 .hero h1 em { color: var(--accent); }
+.hero-photo h1 em { color: var(--panel-accent); }
 .hero-copy > p { max-width: 430px; margin-top: 26px; font-size: 16px; color: var(--muted); line-height: 1.7; }
+.hero-photo .hero-copy > p { max-width: 46ch; color: var(--hero-muted); }
 .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 26px; margin-top: 31px; }
+.hero-photo .hero-actions { justify-content: center; }
+.hero-link { color: var(--hero-ink); }
 .button { display: inline-flex; align-items: center; justify-content: space-between; gap: 25px; min-height: 50px; padding: 12px 23px; text-decoration: none; background: var(--button); color: var(--button-ink); border: 1px solid var(--button); border-radius: 2px; font-size: 13px; font-weight: 600; transition: transform 160ms cubic-bezier(.23,1,.32,1), background-color 160ms; }
 .button:active, .icon-button:active { transform: scale(.97); }
 .button-secondary { background: transparent; color: var(--ink); border-color: var(--line); }
 .text-link { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; font-size: 13px; font-weight: 600; text-decoration: none; }
 .text-link:hover { text-decoration: underline; }
 .hero-definition { margin-top: 41px; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.hero-photo .hero-definition { color: var(--hero-muted); }
 .compass-plate { position: relative; color: var(--diagram); background: var(--hero); display: flex; align-items: center; margin-left: 26px; overflow: hidden; }
 .compass-plate > svg { width: 115%; max-width: none; margin-left: -7%; }
 .contours { opacity: .38; }
