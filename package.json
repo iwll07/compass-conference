@@ -34,6 +34,7 @@
     "eslint-config-next": "16.3.5",
     "serve": "^14.2.6",
     "tsx": "^4.23.13",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "wrangler": "^4.133.0"
   }
 }
