@@ -1,0 +1,16 @@
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+node_modules/
+.next/
+out/
+.env*
+!.env.example
+*.tsbuildinfo
+.wrangler/
+.vercel/
+playwright-report/
+test-results/
+.impeccable/
+.agents/
+.claude/
+
