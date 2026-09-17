@@ -1,6 +1,8 @@
 # COMPASS working log
 
 ## Current state
+- LIVE on Cloudflare Workers (static assets): https://compass-conference.iwllwill01.workers.dev/ — full 46-assertion QA suite passed against production (BASE_URL env var in scripts/qa-assert.mjs).
+- Deploy model: Cloudflare Workers build pipeline (not classic Pages) — build command `npm run build`, deploy command `npx wrangler deploy`, config in `wrangler.jsonc` (assets.directory=./out, not_found_handling=404-page). Verified locally via clean-clone build + `wrangler deploy --dry-run` before push.
 - Code pushed to GitHub: https://github.com/iwll07/compass-conference (origin/master, tracking, in sync).
 - Committed through `9ffa89c` "Build COMPASS static site: 7 pages, theme layer, countdown, print agenda, QA suites" (root commit, working tree clean at commit time).
 - Full verification suite green: lint, typecheck, 6 countdown unit tests, 46 browser assertions, 8-route static build.
@@ -33,7 +35,14 @@
 - [x] Countdown: timezone-aware (Intl validation), live/upcoming/ended/unannounced states, 6 unit tests pass, updates without refresh, no negative values.
 - [x] Desktop/mobile screenshots throughout completed units (scripts/qa.mjs + .playwright-cli/qa/).
 - [x] Lint/typecheck/tests pass; 46 browser assertions pass (scripts/qa-assert.mjs); static export builds all 8 routes.
-- [ ] Live Cloudflare Pages deployment and runtime verification.
+- [x] Live Workers deployment and runtime verification (46/46 against https://compass-conference.iwllwill01.workers.dev/).
+
+## Remaining (awaiting user input)
+- [ ] Registration form + Supabase schema/RLS: WAITING on exact fields/payment/capacity decisions (user explicitly chose to wait).
+- [ ] Conference date/time (then wire into lib/event.ts conferenceWindow + countdown).
+- [ ] Real content: speakers, agenda sessions, sponsors, posters (fill typed arrays in lib/content.ts).
+- [ ] Logo files: COMPASS mark, BSNU, faculty (placeholder slots in place).
+- [ ] Optional: NODE_VERSION=22.14.0 env var in CF dashboard to silence engine warnings.
 
 ## Key findings and decisions pending
 - Requested `@cloudflare/next-on-pages` 1.13.16 is deprecated. Its npm peer range is Next.js >=14.3.0 <=15.5.2; current Next.js reported by npm is 16.3.5. Do not silently downgrade Next.js or change the requested adapter.
