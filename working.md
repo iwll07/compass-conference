@@ -1,18 +1,16 @@
 # COMPASS working log
 
 ## Current state
-- Hero redesigned (commit `4e263c2`, pushed): full-bleed `public/college.jpeg` (800x533, user-supplied), compass plate removed, text centered; scrims are tokens `--hero-scrim`/`--hero-ink`/`--hero-muted` in `app/theme.css` (light: navy 0.55, dark: near-black 0.68). Verified with screenshots (light/dark/mobile) + 12 computed-style assertions (`scripts/hero-def-check.mjs`).
+- Conference date SET (commit `02391b2`): November 20, 2026, 09:00–17:00 Africa/Cairo (+02:00), one-day event. Countdown now live on homepage. `lib/event.ts` conferenceWindow populated; typecheck + 6 unit tests pass.
+- Hero redesigned (commit `4e263c2`, pushed): full-bleed `public/college.jpeg` (800x533, user-supplied), compass plate removed, text centered; scrims are tokens `--hero-scrim`/`--hero-ink`/`--hero-muted` in `app/theme.css` (light: navy 0.68, dark: near-black 0.78, deepened in `e9e07ff`). Verified with screenshots (light/dark/mobile) + 12 computed-style assertions (`scripts/hero-def-check.mjs`).
 - LIVE on Cloudflare Workers (static assets): https://compass-conference.iwllwill01.workers.dev/ — full 46-assertion QA suite passed against production (BASE_URL env var in scripts/qa-assert.mjs).
 - Deploy model: Cloudflare Workers build pipeline (not classic Pages) — build command `npm run build`, deploy command `npx wrangler deploy`, config in `wrangler.jsonc` (assets.directory=./out, not_found_handling=404-page). Verified locally via clean-clone build + `wrangler deploy --dry-run` before push.
 - Code pushed to GitHub: https://github.com/iwll07/compass-conference (origin/master, tracking, in sync).
-- Committed through `9ffa89c` "Build COMPASS static site: 7 pages, theme layer, countdown, print agenda, QA suites" (root commit, working tree clean at commit time).
 - Full verification suite green: lint, typecheck, 6 countdown unit tests, 46 browser assertions, 8-route static build.
 - Git identity: iwll07 <iwllwill01@gmail.com> (repo-local). Note: Windows credential manager previously held a different GitHub account (bmsadev); resolved via `git credential-manager github login` as iwll07.
 - Setup and minimal Next.js 16.3.5 App Router static-export scaffold complete.
 - User approved static export instead of the deprecated adapter, and chose to WAIT for exact registration fields (no form/schema until supplied).
-- `npm install` succeeded (0 vulnerabilities); `npx next build`, `npm run lint`, and `npm run typecheck` passed. `out/index.html` and static 404 output verified. This is local export verification, NOT live Cloudflare deployment.
 - Native Node remains 22.6.0; `.nvmrc` requests 22.14.0. Engine warnings remain until the actual runtime is upgraded.
-- Build timeout was only the combined install/check command; separate commands succeeded.
 
 ## Checklist
 - [x] Inspect actual git state and root (no previous working.md existed).
@@ -40,7 +38,6 @@
 
 ## Remaining (awaiting user input)
 - [ ] Registration form + Supabase schema/RLS: WAITING on exact fields/payment/capacity decisions (user explicitly chose to wait).
-- [ ] Conference date/time (then wire into lib/event.ts conferenceWindow + countdown).
 - [ ] Real content: speakers, agenda sessions, sponsors, posters (fill typed arrays in lib/content.ts).
 - [ ] Logo files: COMPASS mark, BSNU, faculty (placeholder slots in place).
 - [ ] Optional: NODE_VERSION=22.14.0 env var in CF dashboard to silence engine warnings.

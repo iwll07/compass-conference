@@ -51,10 +51,12 @@ for (const route of ["/agenda/", "/speakers/", "/posters/", "/sponsors/"]) {
   check(`${route} has intentional empty state`, main.includes("coming soon") || main.includes("to be announced"), main.slice(0, 80));
 }
 
-// 6. Countdown: unannounced state renders honestly, no negative numbers anywhere
+// 6. Countdown: upcoming state renders (date set: Nov 20 2026 Cairo), no negative numbers
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 const heroText = await page.locator(".event-strip").textContent();
-check("countdown unannounced state", heroText?.includes("to be announced") === true, heroText?.slice(0, 80));
+check("countdown timer rendered", await page.locator('.event-strip [role="timer"]').count() === 1);
+check("countdown shows all four units", ["days", "hours", "minutes", "seconds"].every((u) => heroText?.includes(u) === true), heroText?.slice(0, 120));
+check("countdown shows event date", heroText?.includes("November") === true, heroText?.slice(0, 120));
 check("no negative countdown values", !/-\d/.test(heroText ?? ""));
 
 // 7. Agenda print stylesheet: in print media, header/footer/nav hidden, print-only visible
