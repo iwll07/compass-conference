@@ -92,7 +92,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .institution-marks { display: flex; gap: 32px; align-items: center; }
 .institution-slot { display: flex; align-items: center; gap: 12px; font-size: 10px; line-height: 1.45; }
 .institution-slot small { display: block; font-size: 8px; margin-top: 6px; color: var(--muted); }
-.seal-placeholder { width: 51px; height: 60px; display: grid; place-items: center; border: 1px dashed var(--line); font-size: 10px; color: var(--muted); }
+.seal-logo { width: 54px; height: 54px; object-fit: contain; }
 .footer-bottom { display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); padding-top: 17px; font-size: 9px; color: var(--muted); }
 .footer-bottom a { display: flex; align-items: center; gap: 8px; text-decoration: none; }
 .page-shell { max-width: 1260px; margin: 0 auto; padding: 66px 0 90px; min-height: 65vh; }
