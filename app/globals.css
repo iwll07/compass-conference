@@ -7,7 +7,8 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scrollbar-color: var(--accent) var(--bg); }
-body { margin: 0; color: var(--ink); background: var(--bg); font-family: "Public Sans", sans-serif; font-size: 16px; line-height: 1.65; }
+body { margin: 0; color: var(--ink); background: var(--bg); font-family: "Public Sans", sans-serif; font-size: 16px; line-height: 1.65; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+main { flex: 1; }
 ::selection { background: var(--selection); color: var(--ink); }
 a { color: inherit; text-underline-offset: .25em; }
 button, input { font: inherit; }
@@ -95,9 +96,8 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .institution-slot { display: flex; align-items: center; gap: 12px; font-size: 10px; line-height: 1.45; }
 .institution-slot small { display: block; font-size: 8px; margin-top: 6px; color: var(--muted); }
 .seal-logo { width: 54px; height: 54px; object-fit: contain; }
-.footer-bottom { display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); padding-top: 17px; font-size: 9px; color: var(--muted); }
-.footer-bottom a { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-.credit-bar { display: flex; align-items: center; justify-content: space-between; gap: 28px; margin-top: 22px; padding: 22px 26px; background: var(--panel); color: var(--panel-ink); }
+.credit-bar { margin: 22px calc(50% - 50vw) -18px; background: var(--panel); color: var(--panel-ink); }
+.credit-inner { max-width: 1260px; margin: 0 auto; padding: 22px max(5vw, calc((100vw - 1260px)/2)); display: flex; align-items: center; justify-content: space-between; gap: 28px; }
 .credit-text p { font-size: 11px; line-height: 1.7; color: var(--panel-muted); max-width: 90ch; }
 .credit-text p strong { color: var(--panel-ink); }
 .credit-email { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--panel-accent); text-decoration: none; }
@@ -175,8 +175,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .institution-marks { gap: 20px; flex-wrap: wrap; }
   .institution-slot { font-size: 9px; }
   .institution-slot small { max-width: 14ch; }
-  .footer-bottom { flex-direction: column; gap: 10px; }
-  .credit-bar { flex-direction: column; align-items: center; text-align: center; gap: 16px; padding: 20px; }
+  .credit-inner { flex-direction: column; align-items: center; text-align: center; gap: 16px; padding: 20px; }
   .page-shell { padding-top: 35px; padding-bottom: 55px; }
   .page-heading { grid-template-columns: 1fr; gap: 25px; padding-bottom: 32px; }
   .page-heading h1 { font-size: 48px; }

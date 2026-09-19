@@ -34,7 +34,8 @@ async function creditShot(tag, width) {
       logoH: Math.round(lr.height),
       logoNatural: logo.naturalWidth,
       sealsIntact: document.querySelectorAll(".seal-logo").length,
-      footerBottomIntact: !!document.querySelector(".footer-bottom"),
+      footerBottomGone: !document.querySelector(".footer-bottom"),
+      footerMainIntact: !!document.querySelector(".footer-main"),
     };
   });
   check(`${tag} ${width}: credit text present`, bar.text.includes("Website developed by"));
@@ -42,7 +43,7 @@ async function creditShot(tag, width) {
   check(`${tag} ${width}: mailto`, bar.emailHref === "mailto:MoodITBusiness@gmail.com" && bar.emailText === "MoodITBusiness@gmail.com", bar.emailHref);
   check(`${tag} ${width}: fb link`, bar.fbHref === "https://www.facebook.com/share/1F8HS7QUMD/" && bar.fbTarget === "_blank" && bar.fbRel === "noopener noreferrer", `${bar.fbHref} ${bar.fbTarget}`);
   check(`${tag} ${width}: logo 54px`, bar.logoW === 54 && bar.logoH === 54 && bar.logoNatural === 487, `${bar.logoW}x${bar.logoH} natural ${bar.logoNatural}`);
-  check(`${tag} ${width}: existing footer intact`, bar.sealsIntact === 2 && bar.footerBottomIntact, `seals ${bar.sealsIntact}`);
+  check(`${tag} ${width}: footer-bottom removed, rest intact`, bar.footerBottomGone && bar.footerMainIntact && bar.sealsIntact === 2, `gone ${bar.footerBottomGone}, seals ${bar.sealsIntact}`);
   // Overlap check: credit text and logo boxes must not intersect
   const overlap = await page.evaluate(() => {
     const t = document.querySelector(".credit-text").getBoundingClientRect();
