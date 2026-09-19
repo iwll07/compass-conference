@@ -6,7 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "COMPASS | Directing the Future of Healthcare",
   description: "Conference of Medical Practice and Scientific Studies at Beni Suef National University.",
-  icons: { icon: "/compass-logo.png", apple: "/compass-logo.png" },
+  icons: { icon: "/tab-compass.png", apple: "/tab-compass.png" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
