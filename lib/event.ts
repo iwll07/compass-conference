@@ -7,6 +7,20 @@ export const conferenceWindow: EventWindow | null = {
   timeZone: "Africa/Cairo",
 };
 
+export function formatEventWindow(event: EventWindow | null): string | null {
+  if (!event) return null;
+  const start = Date.parse(event.startsAt);
+  const end = Date.parse(event.endsAt);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+  try {
+    const date = new Intl.DateTimeFormat("en-GB", { timeZone: event.timeZone, dateStyle: "long" }).format(new Date(start));
+    const time = new Intl.DateTimeFormat("en-GB", { timeZone: event.timeZone, hour: "2-digit", minute: "2-digit" });
+    return `${date}, ${time.format(new Date(start))}–${time.format(new Date(end))} ${event.timeZone}`;
+  } catch {
+    return null;
+  }
+}
+
 export function getEventState(event: EventWindow | null, now: number): EventState {
   if (!event || !Number.isFinite(now)) return { phase: "unannounced" };
   const zoned = /(?:Z|[+-]\d{2}:\d{2})$/;

@@ -3,11 +3,15 @@ import Link from "next/link";
 import { Compass } from "@phosphor-icons/react/dist/ssr";
 import { PrintButton } from "@/components/print-button";
 import { schedule, type Session } from "@/lib/content";
+import { conferenceWindow, formatEventWindow } from "@/lib/event";
+
+const eventLine = formatEventWindow(conferenceWindow);
 
 export const metadata: Metadata = {
   title: "Agenda | COMPASS",
-  description:
-    "Program updates and a printable agenda for COMPASS at the Faculty of Medicine and Surgery, BSNU. Conference date and times to be announced.",
+  description: eventLine
+    ? `Program updates and a printable agenda for COMPASS at the Faculty of Medicine and Surgery, BSNU. ${eventLine}.`
+    : "Program updates and a printable agenda for COMPASS at the Faculty of Medicine and Surgery, BSNU. Conference date and times to be announced.",
 };
 
 const kindLabels: Record<Session["kind"], string> = {
@@ -31,7 +35,7 @@ export default function AgendaPage() {
 
       <div className="page-body">
         <div>
-          <p className="status-line">Conference date and time: to be announced</p>
+          <p className="status-line">{eventLine ?? "Conference date and time: to be announced"}</p>
           <p className="print-only">COMPASS · Faculty of Medicine and Surgery, BSNU</p>
           <PrintButton />
         </div>

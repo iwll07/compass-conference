@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { getEventState, type EventWindow } from "../lib/event.ts";
+import { formatEventWindow, getEventState, type EventWindow } from "../lib/event.ts";
 
 const window: EventWindow = {
   startsAt: "2026-10-01T09:00:00+02:00",
@@ -31,6 +31,19 @@ test("during event reports live regardless of client timezone", () => {
 
 test("after end reports ended", () => {
   assert.equal(getEventState(window, Date.parse("2026-10-01T18:00:00+02:00")).phase, "ended");
+});
+
+test("formatEventWindow renders date, time range and zone", () => {
+  assert.equal(
+    formatEventWindow({ startsAt: "2026-11-20T09:00:00+02:00", endsAt: "2026-11-20T17:00:00+02:00", timeZone: "Africa/Cairo" }),
+    "20 November 2026, 09:00–17:00 Africa/Cairo"
+  );
+});
+
+test("formatEventWindow returns null without a usable window", () => {
+  assert.equal(formatEventWindow(null), null);
+  assert.equal(formatEventWindow({ ...window, timeZone: "Not/AZone" }), null);
+  assert.equal(formatEventWindow({ ...window, endsAt: "2026-10-01T08:00:00+02:00" }), null);
 });
 
 test("offsets without timezone names still resolve", () => {
