@@ -27,5 +27,5 @@ export function ThemeToggle() {
     try { localStorage.setItem("compass-theme", theme); } catch {}
     window.dispatchEvent(new Event("compass-theme"));
   }
-  return <button className="icon-button" onClick={toggle} aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}>{dark ? <SunIcon size={21} aria-hidden="true" /> : <MoonIcon size={21} aria-hidden="true" />}</button>;
+  return <button className="icon-button" onClick={toggle} aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}><span className={dark ? "icon-swap icon-swap-alt" : "icon-swap"} aria-hidden="true"><MoonIcon size={21} className="icon-base" /><SunIcon size={21} className="icon-alt" /></span></button>;
 }

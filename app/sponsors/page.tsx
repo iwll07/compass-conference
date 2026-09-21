@@ -15,8 +15,8 @@ export default function SponsorsPage() {
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
-        <h1>Sponsors &amp; partners</h1>
-        <p>Support for a student-led space to learn, share research, and ask better questions.</p>
+        <h1 className="reveal">Sponsors &amp; partners</h1>
+        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>Support for a student-led space to learn, share research, and ask better questions.</p>
       </header>
 
       {sponsors.length > 0 ? (
@@ -50,7 +50,7 @@ export default function SponsorsPage() {
           ))}
         </div>
       ) : (
-        <section className="empty-state" aria-labelledby="sponsors-coming-soon">
+        <section className="empty-state reveal" aria-labelledby="sponsors-coming-soon">
           <h2 id="sponsors-coming-soon">Our supporters, soon.</h2>
           <p>
             Sponsors and partners have not been announced. Confirmed organizations will appear
@@ -59,7 +59,7 @@ export default function SponsorsPage() {
         </section>
       )}
 
-      <section className="prose" aria-labelledby="partnership-heading">
+      <section className="prose reveal" aria-labelledby="partnership-heading">
         <h2 id="partnership-heading" className="section-heading">Supporting COMPASS</h2>
         <p>
           COMPASS is student-led at the Faculty of Medicine and Surgery, Beni Suef National

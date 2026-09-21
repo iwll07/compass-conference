@@ -13,8 +13,8 @@ export default function SpeakersPage() {
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
-        <h1>Speakers</h1>
-        <p>Meet the people behind the ideas, and take a closer look at what they will share.</p>
+        <h1 className="reveal">Speakers</h1>
+        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>Meet the people behind the ideas, and take a closer look at what they will share.</p>
       </header>
 
       {speakers.length > 0 ? (
@@ -63,7 +63,7 @@ export default function SpeakersPage() {
         </div>
       ) : (
         <div className="page-body">
-          <section className="empty-state" aria-labelledby="speakers-coming-soon">
+          <section className="empty-state reveal" aria-labelledby="speakers-coming-soon">
             <h2 id="speakers-coming-soon">Introductions are coming soon.</h2>
             <p>
               The speaker lineup has not been announced yet. Confirmed speakers will be listed

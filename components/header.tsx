@@ -12,15 +12,17 @@ const links = [["/", "Home"], ["/about", "About"], ["/agenda", "Agenda"], ["/spe
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  // trailingSlash:true makes usePathname() return "/about/" while links are "/about" — normalize before comparing
+  const currentPath = pathname.replace(/\/+$/, "") || "/";
   return (
     <header className="site-header">
       <div className="institution-bar"><span>Faculty of Medicine and Surgery</span><span>Beni Suef National University</span></div>
       <div className="nav-shell">
         <Link className="wordmark" href="/" aria-label="COMPASS home" onClick={() => setOpen(false)}><Image src="/compass-logo.png" alt="COMPASS" width={1127} height={213} className="brand-logo" priority /></Link>
-        <nav aria-label="Main navigation" className="desktop-nav">{links.map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}</nav>
-        <div className="nav-actions"><ThemeToggle /><Link href="/registration" className="nav-register">Registration <ArrowUpRightIcon size={16} aria-hidden="true" /></Link><button className="icon-button menu-toggle" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}>{open ? <XIcon size={24} /> : <ListIcon size={24} />}</button></div>
+        <nav aria-label="Main navigation" className="desktop-nav">{links.map(([href, label]) => <Link key={href} href={href} className="link-underline" aria-current={currentPath === href ? "page" : undefined}>{label}</Link>)}</nav>
+        <div className="nav-actions"><ThemeToggle /><Link href="/registration" className="nav-register">Registration <ArrowUpRightIcon size={16} aria-hidden="true" /></Link><button className="icon-button menu-toggle" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}><span className={open ? "icon-swap icon-swap-alt" : "icon-swap"} aria-hidden="true"><ListIcon size={24} className="icon-base" /><XIcon size={24} className="icon-alt" /></span></button></div>
       </div>
-      {open && <nav id="mobile-nav" className="mobile-nav" aria-label="Mobile navigation" onKeyDown={(event) => { if (event.key === "Escape") { setOpen(false); document.querySelector<HTMLButtonElement>(".menu-toggle")?.focus(); } }}>{[...links, ["/registration", "Registration"]].map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} onClick={() => setOpen(false)}>{label}<ArrowUpRightIcon size={18} aria-hidden="true" /></Link>)}</nav>}
+      <nav id="mobile-nav" className={open ? "mobile-nav mobile-nav-open" : "mobile-nav"} aria-label="Mobile navigation" onKeyDown={(event) => { if (event.key === "Escape") { setOpen(false); document.querySelector<HTMLButtonElement>(".menu-toggle")?.focus(); } }}>{[...links, ["/registration", "Registration"]].map(([href, label]) => <Link key={href} href={href} aria-current={currentPath === href ? "page" : undefined} onClick={() => setOpen(false)}><span className="link-underline">{label}</span><ArrowUpRightIcon size={18} aria-hidden="true" /></Link>)}</nav>
     </header>
   );
 }

@@ -29,11 +29,11 @@ export default function AgendaPage() {
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
-        <h1>Agenda</h1>
-        <p>Your guide to COMPASS, with sessions and timings in one place once the program is confirmed.</p>
+        <h1 className="reveal">Agenda</h1>
+        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>Your guide to COMPASS, with sessions and timings in one place once the program is confirmed.</p>
       </header>
 
-      <div className="page-body">
+      <div className="page-body reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>
         <div>
           <p className="status-line">{eventLine ?? "Conference date and time: to be announced"}</p>
           <p className="print-only">COMPASS · Faculty of Medicine and Surgery, BSNU</p>
@@ -72,7 +72,7 @@ export default function AgendaPage() {
           ))}
         </div>
       ) : (
-        <section className="empty-state" aria-labelledby="agenda-coming-soon">
+        <section className="empty-state reveal" aria-labelledby="agenda-coming-soon">
           <Compass className="empty-mark" size={64} weight="light" aria-hidden="true" />
           <h2 id="agenda-coming-soon">The program is coming soon.</h2>
           <p>

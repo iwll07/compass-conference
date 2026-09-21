@@ -12,12 +12,12 @@ export default function AboutPage() {
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
-        <h1>About COMPASS</h1>
-        <p>A medical conference shaped by students, for the questions that keep us curious.</p>
+        <h1 className="reveal">About COMPASS</h1>
+        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>A medical conference shaped by students, for the questions that keep us curious.</p>
       </header>
 
       <div className="page-body">
-        <div className="prose">
+        <div className="prose reveal">
           <h2 className="section-heading">Learning starts with a question.</h2>
           <p>
             Studying medicine means having questions. Some begin in a lecture; others stay with us
@@ -33,7 +33,7 @@ export default function AboutPage() {
             is a good place to begin.
           </p>
         </div>
-        <aside className="margin-note" aria-labelledby="about-details">
+        <aside className="margin-note reveal" aria-labelledby="about-details" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>
           <h2 id="about-details" className="section-heading">As details take shape</h2>
           <p>
             The program and speaker announcements will be published when confirmed.
@@ -42,7 +42,7 @@ export default function AboutPage() {
         </aside>
       </div>
 
-      <section aria-labelledby="committee-heading">
+      <section aria-labelledby="committee-heading" className="reveal">
         <h2 id="committee-heading" className="section-heading">The people behind COMPASS</h2>
         {committee.length > 0 ? (
           <dl className="content-grid">

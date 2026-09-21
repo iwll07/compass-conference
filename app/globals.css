@@ -30,8 +30,8 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .brand-logo { height: 34px; width: auto; }
 .brand-logo-footer { height: 30px; }
 .desktop-nav { display: flex; gap: 23px; align-items: center; }
-.desktop-nav a { font-size: 12px; font-weight: 600; text-decoration: none; padding: 7px 0; border-bottom: 1px solid transparent; }
-.desktop-nav a[aria-current], .desktop-nav a:hover { border-color: var(--accent); color: var(--accent); }
+.desktop-nav a { font-size: 12px; font-weight: 600; text-decoration: none; padding: 7px 0; }
+.desktop-nav a[aria-current], .desktop-nav a:hover { color: var(--accent); }
 .nav-actions { display: flex; gap: 16px; align-items: center; }
 .icon-button { display: inline-flex; justify-content: center; align-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); }
 .nav-register { display: flex; align-items: center; gap: 14px; font-size: 12px; font-weight: 600; text-decoration: none; min-height: 44px; }
@@ -50,11 +50,56 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 26px; margin-top: 31px; }
 .hero-photo .hero-actions { justify-content: center; }
 .hero-link { color: var(--hero-ink); }
-.button { display: inline-flex; align-items: center; justify-content: space-between; gap: 25px; min-height: 50px; padding: 12px 23px; text-decoration: none; background: var(--button); color: var(--button-ink); border: 1px solid var(--button); border-radius: 2px; font-size: 13px; font-weight: 600; transition: transform 160ms cubic-bezier(.23,1,.32,1), background-color 160ms; }
-.button:active, .icon-button:active { transform: scale(.97); }
+.button { display: inline-flex; align-items: center; justify-content: space-between; gap: 25px; min-height: 50px; padding: 12px 23px; text-decoration: none; background: var(--button); color: var(--button-ink); border: 1px solid var(--button); border-radius: 2px; font-size: 13px; font-weight: 600; transition: transform 160ms cubic-bezier(.23,1,.32,1), background-color 160ms, box-shadow 160ms; }
 .button-secondary { background: transparent; color: var(--ink); border-color: var(--line); }
 .text-link { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; font-size: 13px; font-weight: 600; text-decoration: none; }
 .text-link:hover { text-decoration: underline; }
+
+/* ---- Motion (reveal, hover treatments, icon swaps) -------------------- */
+/* Reference feel: 160ms cubic-bezier(.23,1,.32,1), same curve as .button.
+   All hover effects are gated behind (hover: hover) so touch devices never
+   get sticky hover states. */
+
+/* Scroll reveal — hidden state only applies when JS is running (html.js is
+   set by the inline script in app/layout.tsx; components/scroll-reveal.tsx
+   adds .reveal-visible on intersection and never removes it).
+   Stagger siblings with inline style={{ "--reveal-delay": "80ms" }}. */
+.js .reveal { opacity: 0; transform: translateY(16px); }
+.reveal { transition: opacity 520ms ease-out, transform 520ms ease-out; transition-delay: var(--reveal-delay, 0ms); }
+.js .reveal.reveal-visible { opacity: 1; transform: none; }
+
+/* Hover-lift: -3px rise + soft shadow. Reserved for buttons, cards, and
+   logos — plain text links get .link-underline instead, so the two hover
+   styles stay visually distinct.
+   NOTE: reuse this class on the Speakers/Sponsors/Posters cards once real
+   content replaces those empty states. */
+.hover-lift { transition: transform 160ms cubic-bezier(.23,1,.32,1), box-shadow 160ms cubic-bezier(.23,1,.32,1), background-color 160ms; }
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift:hover, .button:hover { transform: translateY(-3px); box-shadow: 0 10px 22px var(--shadow); }
+}
+/* Press state overrides the lift while held (kept after the hover rule so it wins). */
+.button:active, .icon-button:active { transform: scale(.97); box-shadow: none; }
+
+/* Animated underline for plain text links: line grows in from the left. */
+.link-underline { position: relative; }
+.link-underline::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left center; transition: transform 160ms cubic-bezier(.23,1,.32,1); }
+.desktop-nav .link-underline::after { bottom: 2px; }
+.explore-list h3.link-underline { display: inline-block; }
+@media (hover: hover) and (pointer: fine) {
+  .link-underline:hover::after,
+  .mobile-nav a:hover .link-underline::after,
+  .explore-list > a:hover .link-underline::after { transform: scaleX(1); }
+}
+.link-underline[aria-current]::after, .mobile-nav a[aria-current] .link-underline::after { transform: scaleX(1); }
+
+/* Icon swap: cross-fade + quarter turn for hamburger/theme-toggle icons.
+   Both icons stay mounted; .icon-swap-alt selects the second. */
+.icon-swap { position: relative; display: inline-flex; }
+.icon-swap svg { transition: opacity 160ms cubic-bezier(.23,1,.32,1), transform 160ms cubic-bezier(.23,1,.32,1); }
+.icon-swap .icon-alt { position: absolute; inset: 0; opacity: 0; transform: rotate(-90deg); }
+.icon-swap.icon-swap-alt .icon-base { opacity: 0; transform: rotate(90deg); }
+.icon-swap.icon-swap-alt .icon-alt { opacity: 1; transform: none; }
+/* ---------------------------------------------------------------------- */
 .hero-definition { margin-top: 41px; font-size: 11px; line-height: 1.5; color: var(--muted); }
 .hero-photo .hero-definition { color: var(--hero-muted); }
 .compass-plate { position: relative; color: var(--diagram); background: var(--hero); display: flex; align-items: center; margin-left: 26px; overflow: hidden; }
@@ -140,7 +185,11 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .nav-shell { padding-top: 19px; padding-bottom: 19px; }
   .desktop-nav { display: none; }
   .menu-toggle { display: inline-flex; }
-  .mobile-nav { display: grid; padding: 0 5vw 20px; border-bottom: 1px solid var(--line); }
+  /* Panel stays mounted and transitions open/closed. max-height collapses it so the
+     closed panel takes no space; padding-bottom and the border live on the open state
+     so they cannot peek out while collapsed. */
+  .mobile-nav { display: grid; padding: 0 5vw; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: max-height 240ms ease-out, opacity 200ms ease-out, transform 220ms ease-out, visibility 0s linear 240ms; }
+  .mobile-nav.mobile-nav-open { max-height: 430px; padding-bottom: 20px; border-bottom: 1px solid var(--line); opacity: 1; visibility: visible; transform: none; transition: max-height 240ms ease-out, opacity 200ms ease-out, transform 220ms ease-out; }
   .mobile-nav a { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; text-decoration: none; border-top: 1px solid var(--line); }
   .mobile-nav a[aria-current] { color: var(--accent); }
   .hero { grid-template-columns: 1fr; min-height: auto; }
@@ -185,7 +234,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .empty-mark { width: 45px; margin-left: 18px; }
   .agenda-item { grid-template-columns: 1fr; gap: 7px; }
 }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } .js .reveal { opacity: 1 !important; transform: none !important; } }
 @media (forced-colors: active) { .button, .icon-button { border: 1px solid ButtonText; } .status-dot { background: CanvasText; } }
 @media print {
   @page { size: A4; margin: 18mm; }
@@ -193,6 +242,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
   body { font-size: 11pt; background: white; color: black; }
   .site-header, .site-footer, .skip-link, button, .no-print, .empty-mark, .margin-note, .text-link { display: none !important; }
   .print-only { display: block; }
+  .js .reveal { opacity: 1 !important; transform: none !important; }
   .page-shell { max-width: none; margin: 0; padding: 0; }
   .page-heading { display: block; padding-bottom: 7mm; }
   .page-heading h1 { font-size: 30pt; }

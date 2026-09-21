@@ -11,10 +11,10 @@ export default function RegistrationPage() {
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
-        <h1>Registration</h1>
-        <p>Your place at COMPASS starts here, once registration opens.</p>
+        <h1 className="reveal">Registration</h1>
+        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>Your place at COMPASS starts here, once registration opens.</p>
       </header>
-      <section className="empty-state" aria-labelledby="registration-coming-soon">
+      <section className="empty-state reveal" aria-labelledby="registration-coming-soon">
         <Compass className="empty-mark" size={72} weight="light" aria-hidden="true" />
         <h2 id="registration-coming-soon">Coming soon.</h2>
         <p>

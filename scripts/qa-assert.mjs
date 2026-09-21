@@ -91,6 +91,8 @@ for (const label of ["About", "Agenda", "Speakers", "Posters", "Sponsors", "Regi
 }
 await mpage.click('#mobile-nav a[href="/about/"]');
 await mpage.waitForURL("**/about/");
+// close transition holds visibility:visible for 240ms before flipping to hidden - poll instead of instant check
+await mpage.waitForFunction(() => { const n = document.querySelector("#mobile-nav"); return n && getComputedStyle(n).visibility === "hidden"; }, null, { timeout: 3000 }).catch(() => {});
 check("mobile: navigate closes menu", await mpage.locator("#mobile-nav").count() === 0 || await mpage.locator("#mobile-nav").isHidden());
 
 // 10. Icon-only buttons have accessible names

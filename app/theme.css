@@ -19,6 +19,7 @@
   --button: #082e4c;
   --button-ink: #ffffff;
   --selection: #b5e0d6;
+  --shadow: rgba(8, 42, 75, 0.14);
 }
 
 :root[data-theme="dark"] {
@@ -42,4 +43,5 @@
   --button: #8cddcb;
   --button-ink: #102932;
   --selection: #315e62;
+  --shadow: rgba(0, 0, 0, 0.45);
 }

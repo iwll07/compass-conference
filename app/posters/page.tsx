@@ -14,8 +14,8 @@ export default function PostersPage() {
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
-        <h1>Poster gallery</h1>
-        <p>A place to spend time with the questions, methods, and findings behind the research.</p>
+        <h1 className="reveal">Poster gallery</h1>
+        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>A place to spend time with the questions, methods, and findings behind the research.</p>
       </header>
 
       {posters.length > 0 ? (
@@ -53,7 +53,7 @@ export default function PostersPage() {
           ))}
         </section>
       ) : (
-        <section className="empty-state" aria-labelledby="posters-coming-soon">
+        <section className="empty-state reveal" aria-labelledby="posters-coming-soon">
           <Compass className="empty-mark" size={80} weight="light" aria-hidden="true" />
           <h2 id="posters-coming-soon">Research deserves a closer look.</h2>
           <p className="status-line">Poster gallery coming soon</p>
@@ -64,7 +64,7 @@ export default function PostersPage() {
         </section>
       )}
 
-      <aside className="margin-note" aria-labelledby="poster-submissions">
+      <aside className="margin-note reveal" aria-labelledby="poster-submissions">
         <h2 id="poster-submissions" className="section-heading">Thinking about sharing your work?</h2>
         <p>Submission guidelines and deadlines are coming soon. Submissions are not open on this website.</p>
       </aside>
