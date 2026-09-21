@@ -38,6 +38,26 @@ check("registration CTA in header", await page.locator(".nav-register").getByTex
 check("BSNU placeholder slot", await page.locator(".institution-slot", { hasText: "Beni Suef" }).count() >= 1);
 check("Faculty placeholder slot", await page.locator(".institution-slot", { hasText: "Faculty of Medicine" }).count() >= 1);
 
+// 3b. Institutional social links: correct hrefs/targets/labels + "Business contact:" label
+await page.goto(BASE + "/", { waitUntil: "networkidle" });
+const socialSpecs = [
+  ["Beni Suef National University on Facebook", "https://www.facebook.com/share/1CLMS28whQ/"],
+  ["Faculty of Medicine and Surgery on Facebook", "https://www.facebook.com/share/18ymt75c2C/"],
+  ["Faculty of Medicine and Surgery on TikTok", "https://www.tiktok.com/@bsnu.medvibes"],
+];
+for (const [label, href] of socialSpecs) {
+  const link = page.locator(`.social-links a[aria-label="${label}"]`);
+  check(`social link "${label}" exists`, await link.count() === 1);
+  check(`social link "${label}" href`, await link.getAttribute("href") === href, await link.getAttribute("href"));
+  check(`social link "${label}" opens in new tab`, (await link.getAttribute("target")) === "_blank" && ((await link.getAttribute("rel")) ?? "").includes("noopener"));
+  check(`social link "${label}" has hover-lift`, (await link.getAttribute("class"))?.split(" ").includes("hover-lift") === true);
+  check(`social link "${label}" renders an svg icon`, await link.locator("svg").count() === 1);
+}
+const business = (await page.locator(".credit-contact").textContent()) ?? "";
+check("business contact label before email", business.includes("Business contact:") && business.includes("MoodITBusiness@gmail.com"), business.slice(0, 80));
+check("email link itself unchanged", await page.locator(".credit-contact a.credit-email").getAttribute("href") === "mailto:MoodITBusiness@gmail.com");
+
+
 // 4. Registration page: coming soon, and NO form fields anywhere
 await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 const formControls = await page.locator("input, select, textarea, form").count();

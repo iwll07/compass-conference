@@ -141,6 +141,10 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .footer-main p { font-family: "Source Serif 4", Georgia, serif; font-size: 18px; margin-top: 5px; }
 .footer-small { color: var(--muted); font-size: 10px; }
 .institution-marks { display: flex; gap: 32px; align-items: center; }
+/* Institutional social links: own row below the seal pair, same side padding as
+   .footer-main so it lines up; icon-only links inherit --ink via currentColor. */
+.social-links { display: flex; gap: 32px; align-items: center; padding: 0 max(5vw, calc((100vw - 1260px)/2)) 35px; }
+.social-links a { display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; text-decoration: none; color: inherit; }
 .institution-slot { display: flex; align-items: center; gap: 12px; font-size: 10px; line-height: 1.45; }
 .institution-slot small { display: block; font-size: 8px; margin-top: 6px; color: var(--muted); }
 .seal-logo { width: 54px; height: 54px; object-fit: contain; }
@@ -148,7 +152,8 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .credit-inner { max-width: 1260px; margin: 0 auto; padding: 22px max(5vw, calc((100vw - 1260px)/2)); display: flex; align-items: center; justify-content: space-between; gap: 28px; }
 .credit-text p { font-size: 11px; line-height: 1.7; color: var(--panel-muted); max-width: 90ch; }
 .credit-text p strong { color: var(--panel-ink); }
-.credit-email { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--panel-accent); text-decoration: none; }
+.credit-contact { display: block; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--panel-muted); }
+.credit-email { display: inline-block; margin-left: 6px; font-size: 12px; font-weight: 600; color: var(--panel-accent); text-decoration: none; }
 .credit-email:hover { text-decoration: underline; }
 .credit-logo { width: 54px; height: 54px; object-fit: contain; flex-shrink: 0; }
 .page-shell { max-width: 1260px; margin: 0 auto; padding: 66px 0 90px; min-height: 65vh; }
@@ -225,6 +230,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .sponsor-strip h2 { font-size: 26px; }
   .footer-main { flex-direction: column; gap: 28px; }
   .institution-marks { gap: 20px; flex-wrap: wrap; }
+  .social-links { gap: 20px; flex-wrap: wrap; }
   .institution-slot { font-size: 9px; }
   .institution-slot small { max-width: 14ch; }
   .credit-inner { flex-direction: column; align-items: center; text-align: center; gap: 16px; padding: 20px; }
