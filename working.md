@@ -11,7 +11,7 @@
 - Event-strip location links to Google Maps (unpushed): homepage `event-place` is now an external link to the user-supplied Maps URL (new tab, noopener, aria-label), same visual styling with underline on hover. Verified href/target/rel in browser (`scripts/maps-check.mjs`); 48/48 QA suite still green.
 - Conference date SET (commit `02391b2`): November 20, 2026, 09:00–17:00 Africa/Cairo (+02:00), one-day event. Countdown now live on homepage. `lib/event.ts` conferenceWindow populated; typecheck + 6 unit tests pass.
 - Hero redesigned (commit `4e263c2`, pushed): full-bleed `public/college.jpeg` (800x533, user-supplied), compass plate removed, text centered; scrims are tokens `--hero-scrim`/`--hero-ink`/`--hero-muted` in `app/theme.css` (light: navy 0.68, dark: near-black 0.78, deepened in `e9e07ff`). Verified with screenshots (light/dark/mobile) + 12 computed-style assertions (`scripts/hero-def-check.mjs`).
-- LIVE on Cloudflare Workers (static assets): https://compass-conference.iwllwill01.workers.dev/ — full 46-assertion QA suite passed against production (BASE_URL env var in scripts/qa-assert.mjs).
+- LIVE on Cloudflare Workers (static assets): https://compass.bsnu.workers.dev/ — worker renamed to `compass` on the `bsnu` account subdomain (wrangler.jsonc name aligned; old compass-conference.iwllwill01.workers.dev no longer resolves). Full QA suite passed against production (BASE_URL env var in scripts/qa-assert.mjs).
 - Deploy model: Cloudflare Workers build pipeline (not classic Pages) — build command `npm run build`, deploy command `npx wrangler deploy`, config in `wrangler.jsonc` (assets.directory=./out, not_found_handling=404-page). Verified locally via clean-clone build + `wrangler deploy --dry-run` before push.
 - Code pushed to GitHub: https://github.com/iwll07/compass-conference (origin/master, tracking, in sync).
 - Full verification suite green: lint, typecheck, 6 countdown unit tests, 46 browser assertions, 8-route static build.
@@ -42,7 +42,7 @@
 - [x] Countdown: timezone-aware (Intl validation), live/upcoming/ended/unannounced states, 6 unit tests pass, updates without refresh, no negative values.
 - [x] Desktop/mobile screenshots throughout completed units (scripts/qa.mjs + .playwright-cli/qa/).
 - [x] Lint/typecheck/tests pass; 46 browser assertions pass (scripts/qa-assert.mjs); static export builds all 8 routes.
-- [x] Live Workers deployment and runtime verification (46/46 against https://compass-conference.iwllwill01.workers.dev/).
+- [x] Live Workers deployment and runtime verification (against https://compass.bsnu.workers.dev/).
 
 ## Remaining (awaiting user input)
 - [ ] Registration form + Supabase schema/RLS: WAITING on exact fields/payment/capacity decisions (user explicitly chose to wait).
