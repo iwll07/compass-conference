@@ -7,7 +7,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scrollbar-color: var(--accent) var(--bg); }
-body { margin: 0; color: var(--ink); background: var(--bg); font-family: "Public Sans", sans-serif; font-size: 16px; line-height: 1.65; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+body { margin: 0; color: var(--ink); background: var(--bg); font-family: "Public Sans", sans-serif; font-size: 16px; line-height: 1.65; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; overflow-x: clip; }
 main { flex: 1; }
 ::selection { background: var(--selection); color: var(--ink); }
 a { color: inherit; text-underline-offset: .25em; }
@@ -132,8 +132,11 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .sponsor-strip { max-width: 1260px; margin: auto; padding: 57px 0; display: flex; justify-content: space-between; gap: 32px; align-items: center; }
 .sponsor-strip h2 { font-size: 26px; }
 .sponsor-strip p { margin-top: 12px; font-size: 13px; color: var(--muted); }
-.site-footer { border-top: 1px solid var(--line); padding: 44px max(5vw, calc((100vw - 1260px)/2)) 18px; }
-.footer-main { display: flex; justify-content: space-between; gap: 40px; padding-bottom: 35px; }
+/* Side padding lives on .footer-main (not the footer) so .credit-bar can be
+   full-bleed at exactly body width — a vw-based breakout would overflow by the
+   scrollbar width on desktop and cause horizontal scrolling. */
+.site-footer { border-top: 1px solid var(--line); padding: 44px 0 0; }
+.footer-main { display: flex; justify-content: space-between; gap: 40px; padding: 0 max(5vw, calc((100vw - 1260px)/2)) 35px; }
 .footer-brand { display: inline-block; line-height: 1; text-decoration: none; }
 .footer-main p { font-family: "Source Serif 4", Georgia, serif; font-size: 18px; margin-top: 5px; }
 .footer-small { color: var(--muted); font-size: 10px; }
@@ -141,7 +144,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .institution-slot { display: flex; align-items: center; gap: 12px; font-size: 10px; line-height: 1.45; }
 .institution-slot small { display: block; font-size: 8px; margin-top: 6px; color: var(--muted); }
 .seal-logo { width: 54px; height: 54px; object-fit: contain; }
-.credit-bar { margin: 22px calc(50% - 50vw) -18px; background: var(--panel); color: var(--panel-ink); }
+.credit-bar { margin: 22px 0 0; background: var(--panel); color: var(--panel-ink); }
 .credit-inner { max-width: 1260px; margin: 0 auto; padding: 22px max(5vw, calc((100vw - 1260px)/2)); display: flex; align-items: center; justify-content: space-between; gap: 28px; }
 .credit-text p { font-size: 11px; line-height: 1.7; color: var(--panel-muted); max-width: 90ch; }
 .credit-text p strong { color: var(--panel-ink); }
