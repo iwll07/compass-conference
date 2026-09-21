@@ -47,10 +47,11 @@ function check(name, pass, detail = "") { results.push({ name, pass: !!pass, det
   await seal.hover();
   await page.waitForTimeout(250);
   check("footer seal lifts on hover", /matrix\(1, 0, 0, 1, 0, -3\)/.test(await seal.evaluate((el) => getComputedStyle(el).transform)));
-  const creditLogo = page.locator(".credit-inner > a.hover-lift");
+  // Mood Digital logo is intentionally static (user request): no hover-lift class, no movement.
+  const creditLogo = page.locator(".credit-inner > a");
   await creditLogo.hover();
   await page.waitForTimeout(250);
-  check("credit logo link lifts on hover", /matrix\(1, 0, 0, 1, 0, -3\)/.test(await creditLogo.evaluate((el) => getComputedStyle(el).transform)));
+  check("credit logo stays static on hover", (await creditLogo.getAttribute("class")) === null && (await creditLogo.evaluate((el) => getComputedStyle(el).transform)) === "none");
   await context.close();
 }
 
