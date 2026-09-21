@@ -143,8 +143,12 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .institution-marks { display: flex; gap: 32px; align-items: center; }
 /* Institutional social links: own row below the seal pair, same side padding as
    .footer-main so it lines up; icon-only links inherit --ink via currentColor. */
-.social-links { display: flex; gap: 32px; align-items: center; padding: 0 max(5vw, calc((100vw - 1260px)/2)) 35px; }
-.social-links a { display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; text-decoration: none; color: inherit; }
+.social-links { display: flex; gap: 90px; align-items: center; padding: 0 max(5vw, calc((100vw - 1260px)/2)) 35px; }
+.social-links .institution-slot { gap: 16px; }
+.social-links a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; text-decoration: none; color: inherit; }
+/* The lift's rectangular box-shadow reads as an artifact square behind a small
+   round icon — icon links get the -3px lift only. */
+.social-links a:hover { box-shadow: none; }
 .institution-slot { display: flex; align-items: center; gap: 12px; font-size: 10px; line-height: 1.45; }
 .institution-slot small { display: block; font-size: 8px; margin-top: 6px; color: var(--muted); }
 .seal-logo { width: 54px; height: 54px; object-fit: contain; }
@@ -230,7 +234,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .sponsor-strip h2 { font-size: 26px; }
   .footer-main { flex-direction: column; gap: 28px; }
   .institution-marks { gap: 20px; flex-wrap: wrap; }
-  .social-links { gap: 20px; flex-wrap: wrap; }
+  .social-links { gap: 32px; flex-wrap: wrap; }
   .institution-slot { font-size: 9px; }
   .institution-slot small { max-width: 14ch; }
   .credit-inner { flex-direction: column; align-items: center; text-align: center; gap: 16px; padding: 20px; }
