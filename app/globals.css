@@ -149,6 +149,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
 /* The lift's rectangular box-shadow reads as an artifact square behind a small
    round icon — icon links get the -3px lift only. */
 .social-links a:hover { box-shadow: none; }
+/* Same artifact on the seal pair: the slot's box-shadow spans a rectangle behind
+   the round seal + text together — slots keep the -3px lift, minus the box. */
+.institution-marks .institution-slot:hover { box-shadow: none; }
 .institution-slot { display: flex; align-items: center; gap: 12px; font-size: 10px; line-height: 1.45; }
 .institution-slot small { display: block; font-size: 8px; margin-top: 6px; color: var(--muted); }
 .seal-logo { width: 54px; height: 54px; object-fit: contain; }
