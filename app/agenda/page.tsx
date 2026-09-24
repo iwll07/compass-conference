@@ -10,8 +10,8 @@ const eventLine = formatEventWindow(conferenceWindow);
 export const metadata: Metadata = {
   title: "Agenda | COMPASS",
   description: eventLine
-    ? `Program updates and a printable agenda for COMPASS at the Faculty of Medicine and Surgery, BSNU. ${eventLine}.`
-    : "Program updates and a printable agenda for COMPASS at the Faculty of Medicine and Surgery, BSNU. Conference date and times to be announced.",
+    ? `Program updates and a printable agenda for COMPASS at the Faculty of Medicine, BSNU. ${eventLine}.`
+    : "Program updates and a printable agenda for COMPASS at the Faculty of Medicine, BSNU. Conference date and times to be announced.",
 };
 
 const kindLabels: Record<Session["kind"], string> = {
@@ -36,7 +36,7 @@ export default function AgendaPage() {
       <div className="page-body reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>
         <div>
           <p className="status-line">{eventLine ?? "Conference date and time: to be announced"}</p>
-          <p className="print-only">COMPASS · Faculty of Medicine and Surgery, BSNU</p>
+          <p className="print-only">COMPASS · Faculty of Medicine, BSNU</p>
           <PrintButton />
         </div>
         <aside className="margin-note">

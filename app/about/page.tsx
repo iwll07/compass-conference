@@ -5,7 +5,7 @@ import { committee } from "@/lib/content";
 export const metadata: Metadata = {
   title: "About | COMPASS",
   description:
-    "Meet COMPASS, a student-led medical conference at the Faculty of Medicine and Surgery, Beni Suef National University (BSNU).",
+    "Meet COMPASS, a student-led medical conference at the Faculty of Medicine, Beni Suef National University (BSNU).",
 };
 
 export default function AboutPage() {
@@ -24,7 +24,7 @@ export default function AboutPage() {
             long after we close a textbook. There is value in making room to ask them together.
           </p>
           <p>
-            COMPASS is a student-led medical conference at the Faculty of Medicine and Surgery,
+            COMPASS is a student-led medical conference at the Faculty of Medicine,
             Beni Suef National University (BSNU). We want it to be a place to share ideas, listen
             carefully, and learn from one another.
           </p>

@@ -1,6 +1,7 @@
 # COMPASS working log
 
 ## Current state
+- Institution name shortened sitewide (user request): every visible, human-readable "Faculty of Medicine and Surgery" is now "Faculty of Medicine" — header institution bar, footer seal caption + social-links label + credit-bar text ("Fourth-year student at the Faculty of Medicine…"), homepage event strip, about meta + body, agenda meta (both) + print-only line, registration/speakers/sponsors/posters metas, sponsors body paragraph, and the product-truth line in `working.md`. Deliberately UNCHANGED: the seal image `alt="Faculty of Medicine and Surgery seal"` (describes the actual seal artwork) and the two social-link aria-labels (they must match the institutions' real names on the linked external pages). No test files referenced the old wording (verified across `tests/` and `scripts/` — only the social aria-label assertions in `qa-assert.mjs`, which stay correct). Verified: typecheck, 8/8 unit, 65/65 QA, 33/33 motion, 21/21 overflow.
 - Open Graph + Twitter Card metadata: `metadataBase` (https://compass.bsnu.workers.dev) plus `openGraph` (title/description/siteName COMPASS, `og:url` root, image `/compass-banner.jpg` at real 1280×853, `type: website`) and `twitter` (`summary_large_image` with matching title/description/image) added to the `metadata` export in `app/layout.tsx`. The banner was already URL-safe as `public/compass-banner.jpg`. Verified all 14 tags render as absolute URLs in the static `out/index.html` `<head>` (og:title/description/url/site_name/image+width/height/type + twitter:card/title/description/image); lint/typecheck/8 unit/65 QA green.
 - Sponsors empty-state copy shortened (user request): the "Our supporters, soon." paragraph now reads simply "Soon...". Verified lint/typecheck/8 unit/65 QA.
 - Mood Digital logo de-animated (user request): `hover-lift` class removed from the credit-bar logo link in `components/footer.tsx` — it is now completely static on hover. `scripts/motion-check.mjs` updated to assert the logo stays static (guards against re-adding movement); institution seals and social icons keep their lift.
@@ -65,7 +66,7 @@
 - No app lint/typecheck scripts exist yet.
 
 ## Product truth and constraints
-COMPASS: Conference of Medical Practice and Scientific Studies, student-led at Faculty of Medicine and Surgery, Beni Suef National University. Tagline: Directing the Future of Healthcare.
+COMPASS: Conference of Medical Practice and Scientific Studies, student-led at Faculty of Medicine, Beni Suef National University. Tagline: Directing the Future of Healthcare.
 Navy + teal logo supplied inline in chat, not as a local file. Preserve original artwork once available; do not claim a recreated mark is the supplied logo. BSNU/faculty institutional marks need clear placeholder slots until supplied.
 Design: asymmetric, editorial/institutional rather than SaaS; confident serif/slab headline with grotesque body; subtle compass/pulse geometry. No purple gradients, glass backgrounds, generic rounded card grids, Inter/Poppins defaults.
 Unknown dates, agenda, speakers, sponsors, posters must remain honestly unannounced. Registration details/payment/capacity/confirmation are TBD; do not invent final rules or open real registration prematurely.

@@ -6,7 +6,7 @@ import { speakers } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Speakers | COMPASS",
   description:
-    "Speaker announcements, full biographies, and session abstracts for COMPASS, the student-led medical conference at the Faculty of Medicine and Surgery, BSNU.",
+    "Speaker announcements, full biographies, and session abstracts for COMPASS, the student-led medical conference at the Faculty of Medicine, BSNU.",
 };
 
 export default function SpeakersPage() {

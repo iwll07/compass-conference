@@ -6,7 +6,7 @@ import { sponsors } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Sponsors | COMPASS",
   description:
-    "Sponsor announcements for COMPASS, the student-led medical conference at the Faculty of Medicine and Surgery, BSNU. Partnership details coming soon.",
+    "Sponsor announcements for COMPASS, the student-led medical conference at the Faculty of Medicine, BSNU. Partnership details coming soon.",
 };
 
 export default function SponsorsPage() {
@@ -61,7 +61,7 @@ export default function SponsorsPage() {
       <section className="prose reveal" aria-labelledby="partnership-heading">
         <h2 id="partnership-heading" className="section-heading">Supporting COMPASS</h2>
         <p>
-          COMPASS is student-led at the Faculty of Medicine and Surgery, Beni Suef National
+          COMPASS is student-led at the Faculty of Medicine, Beni Suef National
           University. Partnership information and a contact for sponsorship enquiries are coming soon.
         </p>
         <Link href="/about" className="text-link">About the conference</Link>

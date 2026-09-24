@@ -7,7 +7,7 @@ import { posters } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Posters | COMPASS",
   description:
-    "Explore the COMPASS research poster gallery at the Faculty of Medicine and Surgery, BSNU. Posters and submission details are coming soon.",
+    "Explore the COMPASS research poster gallery at the Faculty of Medicine, BSNU. Posters and submission details are coming soon.",
 };
 
 export default function PostersPage() {

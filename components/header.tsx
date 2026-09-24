@@ -16,7 +16,7 @@ export function Header() {
   const currentPath = pathname.replace(/\/+$/, "") || "/";
   return (
     <header className="site-header">
-      <div className="institution-bar"><span>Faculty of Medicine and Surgery</span><span>Beni Suef National University</span></div>
+      <div className="institution-bar"><span>Faculty of Medicine</span><span>Beni Suef National University</span></div>
       <div className="nav-shell">
         <Link className="wordmark" href="/" aria-label="COMPASS home" onClick={() => setOpen(false)}><Image src="/compass-logo.png" alt="COMPASS" width={1127} height={213} className="brand-logo" priority /></Link>
         <nav aria-label="Main navigation" className="desktop-nav">{links.map(([href, label]) => <Link key={href} href={href} className="link-underline" aria-current={currentPath === href ? "page" : undefined}>{label}</Link>)}</nav>

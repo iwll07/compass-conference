@@ -4,7 +4,7 @@ import { Compass } from "@phosphor-icons/react/dist/ssr";
 export const metadata: Metadata = {
   title: "Registration | COMPASS",
   description:
-    "Registration for COMPASS at the Faculty of Medicine and Surgery, BSNU is coming soon. Registration is not open yet.",
+    "Registration for COMPASS at the Faculty of Medicine, BSNU is coming soon. Registration is not open yet.",
 };
 
 export default function RegistrationPage() {
