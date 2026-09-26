@@ -34,6 +34,8 @@ test("after end reports ended", () => {
 });
 
 test("formatEventWindow renders date, time range and zone", () => {
+  // Fixture date is arbitrary: formatEventWindow is a pure formatter, so this
+  // intentionally does NOT need to match the real conferenceWindow date.
   assert.equal(
     formatEventWindow({ startsAt: "2026-11-20T09:00:00+02:00", endsAt: "2026-11-20T17:00:00+02:00", timeZone: "Africa/Cairo" }),
     "20 November 2026, 09:00–17:00 Africa/Cairo"

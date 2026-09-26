@@ -71,7 +71,7 @@ for (const route of ["/agenda/", "/speakers/", "/posters/", "/sponsors/"]) {
   check(`${route} has intentional empty state`, main.includes("coming soon") || main.includes("to be announced"), main.slice(0, 80));
 }
 
-// 6. Countdown: upcoming state renders (date set: Nov 20 2026 Cairo), no negative numbers
+// 6. Countdown: upcoming state renders (date set: Nov 25 2026 Cairo), no negative numbers
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 const heroText = await page.locator(".event-strip").textContent();
 check("countdown timer rendered", await page.locator('.event-strip [role="timer"]').count() === 1);
