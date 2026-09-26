@@ -13,8 +13,8 @@
     "test": "tsx --test tests/*.test.ts",
     "test:e2e": "playwright test",
     "preview": "serve out -l 3000",
-    "pages:preview": "wrangler pages dev out",
-    "pages:deploy": "wrangler pages deploy out"
+    "preview:headers": "wrangler pages dev out",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "@fontsource/public-sans": "^5.3.0",
