@@ -1,10 +1,11 @@
-# Verification-only safety net for the Cloudflare Workers Builds pipeline.
+# Quality gates for the Cloudflare Workers Builds pipeline.
 #
-# Cloudflare posts no commit status, so a failed build is completely invisible
-# from GitHub. This runs the same checks as the local cycle (lint -> typecheck
-# -> test -> build) so regressions are caught before a push ever reaches
-# Cloudflare. `npm run build` also chains `node scripts/csp-hashes.mjs`, so a
-# broken build — or one that fails to generate the CSP hashes — fails here too.
+# Cloudflare already reports a check run (`Workers Builds: compass`) per commit,
+# but it only builds and deploys — it runs none of the checks below. This
+# workflow therefore owns lint, typecheck and unit tests, the regressions that
+# would otherwise ship unreviewed. `npm run build` also chains
+# `node scripts/csp-hashes.mjs`, so a broken build — or one that fails to
+# generate the CSP hashes — fails here too.
 #
 # Deliberately NO deploy step: Cloudflare owns deployment, and this workflow
 # must not become a second, competing deploy path.
