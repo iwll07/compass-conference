@@ -2,8 +2,8 @@ export type EventWindow = { startsAt: string; endsAt: string; timeZone: string }
 export type EventState = { phase: "unannounced" } | { phase: "live" } | { phase: "ended" } | { phase: "upcoming"; days: number; hours: number; minutes: number; seconds: number };
 
 export const conferenceWindow: EventWindow | null = {
-  startsAt: "2026-11-20T09:00:00+02:00",
-  endsAt: "2026-11-20T17:00:00+02:00",
+  startsAt: "2026-11-25T09:00:00+02:00",
+  endsAt: "2026-11-25T17:00:00+02:00",
   timeZone: "Africa/Cairo",
 };
 
