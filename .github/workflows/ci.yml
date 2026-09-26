@@ -1,0 +1,36 @@
+# Verification-only safety net for the Cloudflare Workers Builds pipeline.
+#
+# Cloudflare posts no commit status, so a failed build is completely invisible
+# from GitHub. This runs the same checks as the local cycle (lint -> typecheck
+# -> test -> build) so regressions are caught before a push ever reaches
+# Cloudflare. `npm run build` also chains `node scripts/csp-hashes.mjs`, so a
+# broken build — or one that fails to generate the CSP hashes — fails here too.
+#
+# Deliberately NO deploy step: Cloudflare owns deployment, and this workflow
+# must not become a second, competing deploy path.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  verify:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # .nvmrc pins 22.14.0, the floor of engines (">=22.14.0 <23"), so CI
+          # resolves the same Node the project targets instead of drifting.
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run build
