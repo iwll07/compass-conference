@@ -32,7 +32,32 @@ await page.goto(BASE + "/", { waitUntil: "networkidle" });
 for (const label of ["About", "Agenda", "Speakers", "Posters", "Sponsors"]) {
   check(`nav link ${label}`, await page.locator(".desktop-nav").getByText(label, { exact: true }).count() === 1);
 }
-check("registration CTA in header", await page.locator(".nav-register").getByText("Registration", { exact: true }).count() === 1);
+// Registration is not open: the header CTA is inert, dimmed text — never a link.
+const navSoon = page.locator(".nav-register");
+check("header reads 'Registration soon'", (await navSoon.textContent())?.trim() === "Registration soon", (await navSoon.textContent())?.trim());
+check("header 'Registration soon' is not a link", await navSoon.evaluate((el) => el.tagName.toLowerCase()) === "span");
+check("header 'Registration soon' is aria-disabled", await navSoon.getAttribute("aria-disabled") === "true");
+check("header 'Registration soon' has no arrow icon", await navSoon.locator("svg").count() === 0);
+check("header 'Registration soon' is dimmed", (await navSoon.evaluate((el) => getComputedStyle(el).opacity)) === "0.55");
+check("no clickable registration link in header", await page.locator('.nav-actions a[href*="registration"]').count() === 0);
+
+// 2b. Hero CTAs: two equal-weight external call buttons, Discover COMPASS below them
+const callSpecs = [
+  ["Organization Call", "https://forms.example.com/organization-call"],
+  ["Speaker / Posters Call", "https://forms.example.com/speaker-posters-call"],
+];
+check("hero has exactly two CTA buttons", await page.locator(".hero-actions .button").count() === 2, `${await page.locator(".hero-actions .button").count()}`);
+for (const [label, href] of callSpecs) {
+  const cta = page.locator(".hero-cta-row a.button", { hasText: label });
+  check(`hero CTA "${label}" exists`, await cta.count() === 1);
+  check(`hero CTA "${label}" href`, await cta.getAttribute("href") === href, String(await cta.getAttribute("href")));
+  check(`hero CTA "${label}" opens in new tab`, (await cta.getAttribute("target")) === "_blank" && ((await cta.getAttribute("rel")) ?? "").includes("noopener"));
+  check(`hero CTA "${label}" has hover-lift`, ((await cta.getAttribute("class")) ?? "").split(" ").includes("hover-lift") === true);
+}
+const ctaRow = await page.locator(".hero-cta-row").boundingBox();
+const discover = await page.locator(".hero-actions .hero-link").boundingBox();
+check("Discover COMPASS sits below the CTA row", !!ctaRow && !!discover && discover.y > ctaRow.y + ctaRow.height - 1, JSON.stringify({ ctaRow, discover }));
+check("hero no longer links to /registration", await page.locator('.hero-actions a[href*="registration"]').count() === 0);
 
 // 3. Institutional logo placeholder slots exist (footer)
 check("BSNU placeholder slot", await page.locator(".institution-slot", { hasText: "Beni Suef" }).count() >= 1);
@@ -63,6 +88,13 @@ await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 const formControls = await page.locator("input, select, textarea, form").count();
 check("registration has no form controls yet", formControls === 0, `found ${formControls}`);
 check("registration announces coming soon", (await page.locator("main").textContent())?.toLowerCase().includes("coming soon") === true);
+const openCallLinks = await page.locator(".open-calls a").count();
+check("registration page points to both open calls", openCallLinks === 2, `found ${openCallLinks}`);
+for (const [label, href] of callSpecs) {
+  const link = page.locator(".open-calls a", { hasText: label });
+  check(`registration page links "${label}"`, await link.count() === 1 && await link.getAttribute("href") === href, String(await link.getAttribute("href")));
+  check(`registration page "${label}" opens in new tab`, (await link.getAttribute("target")) === "_blank" && ((await link.getAttribute("rel")) ?? "").includes("noopener"));
+}
 
 // 5. Empty states are intentional on agenda/speakers/posters/sponsors
 for (const route of ["/agenda/", "/speakers/", "/posters/", "/sponsors/"]) {
@@ -106,9 +138,19 @@ await mpage.goto(BASE + "/", { waitUntil: "networkidle" });
 check("mobile: desktop nav hidden", await mpage.locator(".desktop-nav").isHidden());
 await mpage.click(".menu-toggle");
 check("mobile: menu opens", await mpage.locator("#mobile-nav").isVisible());
-for (const label of ["About", "Agenda", "Speakers", "Posters", "Sponsors", "Registration"]) {
+for (const label of ["About", "Agenda", "Speakers", "Posters", "Sponsors", "Registration soon"]) {
   check(`mobile menu contains ${label}`, await mpage.locator("#mobile-nav").getByText(label, { exact: true }).count() === 1);
 }
+const mSoon = mpage.locator("#mobile-nav .nav-register-disabled");
+check("mobile menu 'Registration soon' is a span, not a link", await mSoon.evaluate((el) => el.tagName.toLowerCase()) === "span");
+check("mobile menu 'Registration soon' is aria-disabled", await mSoon.getAttribute("aria-disabled") === "true");
+check("mobile menu 'Registration soon' is dimmed", (await mSoon.evaluate((el) => getComputedStyle(el).opacity)) === "0.55");
+check("mobile menu has no registration link", await mpage.locator('#mobile-nav a[href*="registration"]').count() === 0);
+check("mobile menu 'Registration soon' is not focusable", await mSoon.evaluate((el) => el.tabIndex) === -1);
+// Hero CTAs must stack (not sit side by side) at 390px
+const mBox1 = await mpage.locator(".hero-cta-row a.button").nth(0).boundingBox();
+const mBox2 = await mpage.locator(".hero-cta-row a.button").nth(1).boundingBox();
+check("mobile: hero CTAs stack vertically", !!mBox1 && !!mBox2 && mBox2.y > mBox1.y + mBox1.height - 1, JSON.stringify({ mBox1, mBox2 }));
 await mpage.click('#mobile-nav a[href="/about/"]');
 await mpage.waitForURL("**/about/");
 // close transition holds visibility:visible for 240ms before flipping to hidden - poll instead of instant check

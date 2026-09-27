@@ -35,6 +35,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .nav-actions { display: flex; gap: 16px; align-items: center; }
 .icon-button { display: inline-flex; justify-content: center; align-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); }
 .nav-register { display: flex; align-items: center; gap: 14px; font-size: 12px; font-weight: 600; text-decoration: none; min-height: 44px; }
+/* Registration is not open yet: rendered as inert, dimmed text (aria-disabled)
+   in both the desktop pill and the mobile nav row, never as a link. */
+.nav-register-disabled { opacity: .55; cursor: default; }
 .menu-toggle, .mobile-nav { display: none; }
 .hero { position: relative; display: flex; align-items: center; justify-content: center; }
 .hero-photo { min-height: min(860px, 92dvh); padding: 60px 5vw; text-align: center; color: var(--hero-ink); overflow: hidden; }
@@ -47,8 +50,11 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .hero-photo h1 em { color: var(--panel-accent); }
 .hero-copy > p { max-width: 430px; margin-top: 26px; font-size: 16px; color: var(--muted); line-height: 1.7; }
 .hero-photo .hero-copy > p { max-width: 46ch; color: var(--hero-muted); }
-.hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 26px; margin-top: 31px; }
+.hero-actions { display: flex; flex-direction: column; align-items: center; gap: 22px; margin-top: 31px; }
 .hero-photo .hero-actions { justify-content: center; }
+/* Two equal-weight CTA buttons side by side, stacking when the row runs out
+   of room. The Discover COMPASS text link sits below this row. */
+.hero-cta-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .hero-link { color: var(--hero-ink); }
 .button { display: inline-flex; align-items: center; justify-content: space-between; gap: 25px; min-height: 50px; padding: 12px 23px; text-decoration: none; background: var(--button); color: var(--button-ink); border: 1px solid var(--button); border-radius: 2px; font-size: 13px; font-weight: 600; transition: transform 160ms cubic-bezier(.23,1,.32,1), background-color 160ms, box-shadow 160ms; }
 .button-secondary { background: transparent; color: var(--ink); border-color: var(--line); }
@@ -181,6 +187,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .empty-state h2 { font-size: clamp(1.8rem, 3vw, 2.7rem); max-width: 24ch; margin-bottom: 17px; }
 .empty-state p { max-width: 58ch; font-size: 14px; color: var(--muted); margin-bottom: 18px; }
 .empty-mark { float: right; margin: 10px 0 35px 30px; color: var(--accent); }
+/* Open-call links on the registration page (URLs live in lib/calls.ts). */
+.open-calls-lead { margin-bottom: 12px; }
+.open-calls { display: flex; flex-wrap: wrap; gap: 6px 34px; list-style: none; margin: 0; padding: 0; }
 .inline-notice { margin-top: 35px; padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 .section-heading { margin: 45px 0 25px; font-size: 32px; }
 .agenda-list { padding: 0; list-style: none; }
@@ -206,12 +215,15 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .mobile-nav { display: grid; padding: 0 5vw; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: max-height 240ms ease-out, opacity 200ms ease-out, transform 220ms ease-out, visibility 0s linear 240ms; }
   .mobile-nav.mobile-nav-open { max-height: 430px; padding-bottom: 20px; border-bottom: 1px solid var(--line); opacity: 1; visibility: visible; transform: none; transition: max-height 240ms ease-out, opacity 200ms ease-out, transform 220ms ease-out; }
   .mobile-nav a { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; text-decoration: none; border-top: 1px solid var(--line); }
+  /* Inert "Registration soon" row: same box as a link row, no underline, no arrow. */
+  .mobile-nav .nav-register-disabled { display: flex; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
   .mobile-nav a[aria-current] { color: var(--accent); }
   .hero { grid-template-columns: 1fr; min-height: auto; }
   .hero-copy { padding: 27px 0 29px; }
   .hero h1 { font-size: clamp(3rem, 10vw, 4.5rem); max-width: 13ch; }
   .hero-copy > p { margin-top: 21px; font-size: 15px; max-width: 36ch; }
-  .hero-actions { gap: 22px; margin-top: 25px; }
+  .hero-actions { gap: 18px; margin-top: 25px; }
+  .hero-cta-row { flex-direction: column; align-items: stretch; width: 100%; }
   .hero-definition { display: none; }
   .compass-plate { height: 285px; margin: 0; }
   .compass-plate > svg { width: 380px; margin: -55px auto; }

@@ -51,6 +51,9 @@ check("theme applied from external script on reload", earlyTheme === theme, `${e
 // Mobile menu (client component) works
 await page.setViewportSize({ width: 390, height: 844 });
 await page.click(".menu-toggle");
+// max-height animates 0 -> 430px over 240ms, so the box can still measure empty
+// immediately after the click; wait for the open state to settle before asserting.
+await page.waitForSelector("#mobile-nav.mobile-nav-open", { state: "visible", timeout: 5000 });
 check("mobile menu opens under CSP", await page.locator("#mobile-nav").isVisible());
 
 await browser.close();

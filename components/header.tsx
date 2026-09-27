@@ -20,9 +20,13 @@ export function Header() {
       <div className="nav-shell">
         <Link className="wordmark" href="/" aria-label="COMPASS home" onClick={() => setOpen(false)}><Image src="/compass-logo.png" alt="COMPASS" width={1100} height={192} className="brand-logo" priority /></Link>
         <nav aria-label="Main navigation" className="desktop-nav">{links.map(([href, label]) => <Link key={href} href={href} className="link-underline" aria-current={currentPath === href ? "page" : undefined}>{label}</Link>)}</nav>
-        <div className="nav-actions"><ThemeToggle /><Link href="/registration" className="nav-register">Registration <ArrowUpRightIcon size={16} aria-hidden="true" /></Link><button className="icon-button menu-toggle" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}><span className={open ? "icon-swap icon-swap-alt" : "icon-swap"} aria-hidden="true"><ListIcon size={24} className="icon-base" /><XIcon size={24} className="icon-alt" /></span></button></div>
+        <div className="nav-actions"><ThemeToggle /><span className="nav-register nav-register-disabled" aria-disabled="true">Registration soon</span><button className="icon-button menu-toggle" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}><span className={open ? "icon-swap icon-swap-alt" : "icon-swap"} aria-hidden="true"><ListIcon size={24} className="icon-base" /><XIcon size={24} className="icon-alt" /></span></button></div>
       </div>
-      <nav id="mobile-nav" className={open ? "mobile-nav mobile-nav-open" : "mobile-nav"} aria-label="Mobile navigation" onKeyDown={(event) => { if (event.key === "Escape") { setOpen(false); document.querySelector<HTMLButtonElement>(".menu-toggle")?.focus(); } }}>{[...links, ["/registration", "Registration"]].map(([href, label]) => <Link key={href} href={href} aria-current={currentPath === href ? "page" : undefined} onClick={() => setOpen(false)}><span className="link-underline">{label}</span><ArrowUpRightIcon size={18} aria-hidden="true" /></Link>)}</nav>
+      <nav id="mobile-nav" className={open ? "mobile-nav mobile-nav-open" : "mobile-nav"} aria-label="Mobile navigation" onKeyDown={(event) => { if (event.key === "Escape") { setOpen(false); document.querySelector<HTMLButtonElement>(".menu-toggle")?.focus(); } }}>{[...links, ["/registration", "Registration soon"]].map(([href, label]) => href === "/registration"
+    // Not a link on purpose: registration is not open, so this renders as inert
+    // text (aria-disabled) rather than a focusable, clickable control.
+    ? <span key={href} className="nav-register-disabled" aria-disabled="true">{label}</span>
+    : <Link key={href} href={href} aria-current={currentPath === href ? "page" : undefined} onClick={() => setOpen(false)}><span className="link-underline">{label}</span><ArrowUpRightIcon size={18} aria-hidden="true" /></Link>)}</nav>
     </header>
   );
 }

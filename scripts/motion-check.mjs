@@ -36,7 +36,7 @@ function check(name, pass, detail = "") { results.push({ name, pass: !!pass, det
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const page = await context.newPage();
   await page.goto(BASE + "/", { waitUntil: "networkidle" });
-  const button = page.locator(".hero-actions .button");
+  const button = page.locator(".hero-actions .button").first();
   await button.hover();
   await page.waitForTimeout(250);
   const after = await button.evaluate((el) => getComputedStyle(el).transform);
