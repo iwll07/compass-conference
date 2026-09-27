@@ -59,6 +59,53 @@ const discover = await page.locator(".hero-actions .hero-link").boundingBox();
 check("Discover COMPASS sits below the CTA row", !!ctaRow && !!discover && discover.y > ctaRow.y + ctaRow.height - 1, JSON.stringify({ ctaRow, discover }));
 check("hero no longer links to /registration", await page.locator('.hero-actions a[href*="registration"]').count() === 0);
 
+// 2c. "Last conference" callout (IMPACT): real URLs, not placeholders
+const lastConf = page.locator(".last-conference");
+check("last-conference section exists", await lastConf.count() === 1);
+check("last-conference has a heading", (await lastConf.locator("h2").textContent())?.trim() === "Check out our last conference");
+check("last-conference uses the scroll reveal", (await lastConf.getAttribute("class"))?.includes("reveal") === true);
+const impactSite = lastConf.locator("a[href='https://impactbsnu.vercel.app/']");
+check("IMPACT logo links to the real site", await impactSite.count() === 1);
+check("IMPACT logo has hover-lift", ((await impactSite.getAttribute("class")) ?? "").split(" ").includes("hover-lift") === true);
+check("IMPACT logo has an arrow icon", await impactSite.locator("svg").count() === 1);
+check("IMPACT logo image renders", await impactSite.locator("img").count() === 1);
+const relive = lastConf.locator("a.button", { hasText: "Relive the moment" });
+check("'Relive the moment' button exists", await relive.count() === 1);
+check("'Relive the moment' links to the Facebook video", await relive.getAttribute("href") === "https://www.facebook.com/share/v/1DLdXMJnb9/", String(await relive.getAttribute("href")));
+check("'Relive the moment' has hover-lift", ((await relive.getAttribute("class")) ?? "").split(" ").includes("hover-lift") === true);
+for (const [name, link] of [["IMPACT logo", impactSite], ["Relive button", relive]]) {
+  check(`${name} opens in new tab`, (await link.getAttribute("target")) === "_blank" && ((await link.getAttribute("rel")) ?? "").includes("noopener"));
+}
+check("no placeholder/example URLs in the callout", !/example\.com/.test((await lastConf.innerHTML()) ?? ""), "found a placeholder href");
+check("last-conference is separated by a hairline top border", (await lastConf.evaluate((el) => getComputedStyle(el).borderTopWidth)) === "1px" && (await lastConf.evaluate((el) => getComputedStyle(el).borderTopStyle)) === "solid");
+// The logo link has no background, so a box-shadow would draw a bare rectangle
+// around the wordmark on hover. The lift must stay; the shadow must not.
+await impactSite.hover();
+await page.waitForTimeout(260);
+const logoHover = await impactSite.evaluate((el) => ({ shadow: getComputedStyle(el).boxShadow, transform: getComputedStyle(el).transform }));
+check("IMPACT logo has no box-shadow on hover (no stray rectangle)", logoHover.shadow === "none", logoHover.shadow);
+check("IMPACT logo still lifts on hover", /matrix\(1, 0, 0, 1, 0, -3\)/.test(logoHover.transform), logoHover.transform);
+check("last-conference is the final section in main", await page.locator("main > section").last().evaluate((el) => el.className.includes("last-conference")));
+// Phone-only: the paragraph must be centred on screen, not just text-align:center.
+// A max-width block box with default side margins pins left of its wrapper, so
+// assert the measured centre offset is under 2px in both axes.
+await page.setViewportSize({ width: 390, height: 844 });
+await lastConf.scrollIntoViewIfNeeded();
+await page.waitForTimeout(250);
+const centred = await lastConf.evaluate((el) => {
+  const sec = el.getBoundingClientRect();
+  const mid = (sec.left + sec.right) / 2;
+  const delta = (sel) => {
+    const r = el.querySelector(sel).getBoundingClientRect();
+    return Math.round(Math.abs((r.left + r.right) / 2 - mid));
+  };
+  return { h2: delta("h2"), p: delta("p") };
+});
+check("phone: last-conference heading is centred", centred.h2 <= 2, `${centred.h2}px off centre`);
+check("phone: last-conference paragraph is centred", centred.p <= 2, `${centred.p}px off centre`);
+check("phone: paragraph is centred, not just its text", await lastConf.locator("p").evaluate((el) => getComputedStyle(el).marginLeft) !== "0px");
+await page.setViewportSize({ width: 1280, height: 950 });
+
 // 3. Institutional logo placeholder slots exist (footer)
 check("BSNU placeholder slot", await page.locator(".institution-slot", { hasText: "Beni Suef" }).count() >= 1);
 check("Faculty placeholder slot", await page.locator(".institution-slot", { hasText: "Faculty of Medicine" }).count() >= 1);

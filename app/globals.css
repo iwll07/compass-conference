@@ -150,6 +150,24 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .sponsor-strip { max-width: 1260px; margin: auto; padding: 57px 0; display: flex; justify-content: space-between; gap: 32px; align-items: center; }
 .sponsor-strip h2 { font-size: 26px; }
 .sponsor-strip p { margin-top: 12px; font-size: 13px; color: var(--muted); }
+
+/* ---- "Last conference" callout (IMPACT) ------------------------------- */
+/* Mirrors .sponsor-strip: two columns on desktop, stacked below 767px. The
+   section shares the strip's max-width/5vw gutters so the grid lines up.
+   The hairline top border (same token as the footer) separates this block
+   from the sponsor strip above it. */
+.last-conference { max-width: 1260px; margin: auto; padding: 45px 0 57px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 32px; }
+.last-conference h2 { font-size: 26px; max-width: 22ch; }
+.last-conference p { margin-top: 12px; font-size: 13px; color: var(--muted); max-width: 46ch; }
+.last-conference-media { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+/* Logo link + arrow. Arrow is decorative — the link carries the aria-label. */
+.impact-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.impact-logo img { width: 150px; height: auto; }
+.impact-logo svg { flex-shrink: 0; color: var(--muted); }
+/* This link has no background of its own, so the shared .hover-lift shadow
+   would draw a bare rectangle in mid-air around the wordmark. Keep the lift
+   and drop the shadow; the arrow carries the click affordance instead. */
+.impact-logo.hover-lift:hover { box-shadow: none; }
 /* Side padding lives on .footer-main (not the footer) so .credit-bar can be
    full-bleed at exactly body width — a vw-based breakout would overflow by the
    scrollbar width on desktop and cause horizontal scrolling. */
@@ -228,7 +246,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .speaker-entry img, .sponsor-entry img, .poster-entry img { max-width: 240px; height: auto; }
 .print-only { display: none; }
 @media (min-width: 1400px) { .nav-shell, .hero { padding-left: 70px; padding-right: 70px; } }
-@media (max-width: 1399px) { .event-strip, .home-intro, .sponsor-strip, .page-shell { margin-left: 5vw; margin-right: 5vw; } }
+@media (max-width: 1399px) { .event-strip, .home-intro, .sponsor-strip, .last-conference, .page-shell { margin-left: 5vw; margin-right: 5vw; } }
 @media (max-width: 1100px) { .desktop-nav { gap: 15px; } .nav-shell { gap: 20px; } .nav-actions { gap: 9px; } .nav-register { display: none; } .hero { min-height: 520px; } .hero h1 { font-size: 4rem; } .hero-copy { padding-top: 45px; } .compass-plate { margin-left: 5px; } .home-intro { gap: 50px; } .explore-section { gap: 40px; } .event-strip { flex-wrap: wrap; } .plate-caption { flex-direction: column; gap: 0; } }
 @media (max-width: 767px) {
   .institution-bar { font-size: 9px; padding-top: 8px; padding-bottom: 8px; }
@@ -284,6 +302,14 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .explore-list p { font-size: 12px; }
   .sponsor-strip { align-items: start; flex-direction: column; padding: 38px 0; gap: 12px; }
   .sponsor-strip h2 { font-size: 26px; }
+  /* Last-conference callout stacks the same way: copy on top, media below. */
+  .last-conference { align-items: center; flex-direction: column; text-align: center; padding: 32px 0 38px; gap: 24px; }
+  .last-conference h2 { max-width: none; }
+  /* margin-inline:auto is required, not cosmetic: the <p> is a block box with a
+     max-width, and .last-conference-copy is sized by the wider <h2>, so without
+     auto side margins the paragraph box pins to the left of that wrapper and
+     sits visibly off-centre even though text-align is already center. */
+  .last-conference p { max-width: 34ch; margin-inline: auto; }
   .footer-main { flex-direction: column; gap: 28px; }
   .institution-marks { gap: 20px; flex-wrap: wrap; }
   .social-links { gap: 32px; flex-wrap: wrap; }

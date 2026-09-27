@@ -31,3 +31,11 @@ export function formatCallDate(iso: string): string {
   if (Number.isNaN(parsed.getTime())) return iso;
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeZone: "UTC" }).format(parsed);
 }
+
+// Links to the previous conference (IMPACT), shown in the homepage "last
+// conference" callout. Kept here alongside the call links for the same reason:
+// one place to update a URL, rather than hardcoding it in the page.
+export const lastConference = {
+  site: "https://impactbsnu.vercel.app/",
+  highlights: "https://www.facebook.com/share/v/1DLdXMJnb9/",
+} as const;
