@@ -205,6 +205,10 @@ svg { flex-shrink: 0; vertical-align: middle; }
 /* Call-to-action button inside a margin-note (speakers/posters pages). */
 .call-button { margin: 16px 0 18px; }
 
+/* Agenda "Download agenda": dimmed + inert until the program is confirmed.
+   Not focusable, not a control — mirrors .nav-register-disabled. */
+.print-button-disabled { opacity: .55; cursor: default; }
+
 .inline-notice { margin-top: 35px; padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 .section-heading { margin: 45px 0 25px; font-size: 32px; }
 .agenda-list { padding: 0; list-style: none; }

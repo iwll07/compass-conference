@@ -146,8 +146,19 @@ await page.goto(BASE + "/agenda/", { waitUntil: "networkidle" });
 await page.emulateMedia({ media: "print" });
 check("print: site header hidden", await page.locator(".site-header").isHidden());
 check("print: footer hidden", await page.locator(".site-footer").isHidden());
-check("print: print button hidden", await page.locator("button").first().isHidden());
+check("print: print button hidden", await page.locator(".no-print").first().isHidden());
 await page.emulateMedia({ media: "screen" });
+
+// 7b. Agenda "Download agenda" is dimmed and inert (program not confirmed yet)
+const dl = page.locator(".print-button-disabled");
+check("agenda download affordance exists", await dl.count() === 1);
+check("agenda button reads 'Download agenda'", (await dl.textContent())?.trim() === "Download agenda", (await dl.textContent())?.trim());
+check("agenda button is a span, not a <button>", await dl.evaluate((el) => el.tagName.toLowerCase()) === "span");
+check("agenda button is aria-disabled", await dl.getAttribute("aria-disabled") === "true");
+check("agenda button is not focusable", await dl.evaluate((el) => el.tabIndex) === -1);
+check("agenda button is dimmed", (await dl.evaluate((el) => getComputedStyle(el).opacity)) === "0.55");
+check("no clickable button remains on the agenda", await page.locator(".page-body button").count() === 0);
+check("agenda no longer promises a print/PDF", ((await page.locator("main").textContent()) ?? "").includes("save this agenda as a PDF") === false);
 
 // 8. Theme: dark palette is a distinct token set, not inversion
 const themeProbe = await page.evaluate(() => {

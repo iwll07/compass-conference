@@ -40,7 +40,7 @@ export default function AgendaPage() {
           <PrintButton />
         </div>
         <aside className="margin-note">
-          <p>Use the print button to make a paper copy or save this agenda as a PDF through your browser.</p>
+          <p>A downloadable agenda will be published here once the program is confirmed.</p>
         </aside>
       </div>
 
