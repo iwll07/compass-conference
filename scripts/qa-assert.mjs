@@ -43,8 +43,8 @@ check("no clickable registration link in header", await page.locator('.nav-actio
 
 // 2b. Hero CTAs: two equal-weight external call buttons, Discover COMPASS below them
 const callSpecs = [
-  ["Organization Call", "https://forms.example.com/organization-call"],
-  ["Speaker / Posters Call", "https://forms.example.com/speaker-posters-call"],
+  ["Organization Call", "https://tally.so/r/Zjx190"],
+  ["Speaker / Posters Call", "https://tally.so/r/RGpJ7P"],
 ];
 check("hero has exactly two CTA buttons", await page.locator(".hero-actions .button").count() === 2, `${await page.locator(".hero-actions .button").count()}`);
 for (const [label, href] of callSpecs) {
@@ -126,7 +126,7 @@ check("event-strip place still opens in a new tab", (await place.getAttribute("t
 check("no negative countdown values", !/-\d/.test(heroText ?? ""));
 
 // 6b. Speakers + posters pages each surface the Speaker / Posters Call CTA
-const speakerPostersHref = "https://forms.example.com/speaker-posters-call";
+const speakerPostersHref = "https://tally.so/r/RGpJ7P";
 for (const [route, noteId] of [["/speakers/", "speakers-call"], ["/posters/", "poster-submissions"]]) {
   await page.goto(BASE + route, { waitUntil: "networkidle" });
   const note = page.locator(`[aria-labelledby="${noteId}"]`);
