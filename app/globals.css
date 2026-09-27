@@ -116,6 +116,18 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .event-clock { display: flex; align-items: center; gap: 13px; }
 .event-place { color: inherit; text-decoration: none; }
 .event-place:hover strong { text-decoration: underline; }
+/* External-link affordance: a small arrow after the place name, matching the
+   arrow used on the hero CTA buttons, so the link reads as clickable.
+   The icon is sized to sit UNDER the text, not above it — the place name drops
+   to 11px on mobile, so a fixed 13px arrow ended up 1.18x the text it followed
+   and read as crowding rather than as a separate affordance. */
+/* NOTE: `.event-clock strong, .event-place strong { display: block }` further down is
+   (0,1,1) and would beat a bare `.event-place-name` (0,1,0) into `display: block`,
+   where `gap` is inert — which is why this rule is qualified with `.event-place strong`
+   to win. Do not drop the descendant qualifier. */
+.event-place strong.event-place-name { display: flex; align-items: center; gap: 14px; }
+.event-place-name svg { width: 11px; height: 11px; flex-shrink: 0; opacity: .75; transition: transform 160ms cubic-bezier(.23,1,.32,1), opacity 160ms; }
+.event-place:hover .event-place-name svg { opacity: 1; transform: translate(1px, -1px); }
 .event-clock strong, .event-place strong { display: block; font-size: 12px; font-weight: 600; }
 .event-clock p, .event-place span { font-size: 11px; color: var(--muted); }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }

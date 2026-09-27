@@ -109,6 +109,20 @@ const heroText = await page.locator(".event-strip").textContent();
 check("countdown timer rendered", await page.locator('.event-strip [role="timer"]').count() === 1);
 check("countdown shows all four units", ["days", "hours", "minutes", "seconds"].every((u) => heroText?.includes(u) === true), heroText?.slice(0, 120));
 check("countdown shows event date", heroText?.includes("November") === true, heroText?.slice(0, 120));
+// Exact date, from conferenceWindow: homepage countdown + agenda status line + agenda meta
+check("countdown shows 24 November", heroText?.includes("24 November 2026") === true, heroText?.slice(0, 140));
+await page.goto(BASE + "/agenda/", { waitUntil: "networkidle" });
+const agendaStatus = (await page.locator(".page-body .status-line").first().textContent())?.trim();
+check("agenda status line shows 24 November 2026", agendaStatus === "24 November 2026, 09:00–17:00 Africa/Cairo", String(agendaStatus));
+const agendaMeta = (await page.locator('meta[name="description"]').getAttribute("content")) ?? "";
+check("agenda meta description shows 24 November 2026", agendaMeta.includes("24 November 2026, 09:00–17:00 Africa/Cairo"), agendaMeta.slice(0, 140));
+await page.goto(BASE + "/", { waitUntil: "networkidle" });
+// Event-strip place link: the arrow affordance is present and it is still a valid external link
+const place = page.locator("a.event-place");
+check("event-strip place has an arrow icon", await place.locator(".event-place-name svg").count() === 1);
+check("event-strip place icon is decorative", (await place.locator(".event-place-name svg").getAttribute("aria-hidden")) === "true");
+check("event-strip place keeps its accessible name", (await place.getAttribute("aria-label")) === "Beni Suef National University on Google Maps");
+check("event-strip place still opens in a new tab", (await place.getAttribute("target")) === "_blank" && ((await place.getAttribute("rel")) ?? "").includes("noopener"));
 check("no negative countdown values", !/-\d/.test(heroText ?? ""));
 
 // 6b. Speakers + posters pages each surface the Speaker / Posters Call CTA
