@@ -21,6 +21,19 @@ export function formatEventWindow(event: EventWindow | null): string | null {
   }
 }
 
+// Date only, no time range — used where a surface needs just the calendar day
+// (e.g. the presentation date on the speakers/posters call notes).
+export function formatEventDate(event: EventWindow | null): string | null {
+  if (!event) return null;
+  const start = Date.parse(event.startsAt);
+  if (!Number.isFinite(start)) return null;
+  try {
+    return new Intl.DateTimeFormat("en-GB", { timeZone: event.timeZone, dateStyle: "long" }).format(new Date(start));
+  } catch {
+    return null;
+  }
+}
+
 export function getEventState(event: EventWindow | null, now: number): EventState {
   if (!event || !Number.isFinite(now)) return { phase: "unannounced" };
   const zoned = /(?:Z|[+-]\d{2}:\d{2})$/;

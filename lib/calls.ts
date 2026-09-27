@@ -16,3 +16,18 @@ export const speakerPostersCall: CallForm = {
 };
 
 export const openCalls: CallForm[] = [organizationCall, speakerPostersCall];
+
+// Key dates for the Speaker / Posters call, exactly as stated on the form.
+// The presentation date is deliberately NOT stored here — it is derived from
+// `conferenceWindow` in lib/event.ts, so the call notes can never drift out of
+// sync with the conference date shown everywhere else on the site.
+export const callDeadlines = {
+  submissionDeadline: "2026-10-11",
+  notificationOfAcceptance: "2026-10-20",
+} as const;
+
+export function formatCallDate(iso: string): string {
+  const parsed = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeZone: "UTC" }).format(parsed);
+}

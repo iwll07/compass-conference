@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { speakers } from "@/lib/content";
 import { speakerPostersCall } from "@/lib/calls";
+import { CallDeadlines } from "@/components/call-deadlines";
 
 export const metadata: Metadata = {
   title: "Speakers | COMPASS",
@@ -87,6 +88,7 @@ export default function SpeakersPage() {
               {speakerPostersCall.label}
               <ArrowUpRightIcon size={19} aria-hidden="true" />
             </a>
+            <CallDeadlines />
             <p>Selected speakers will be announced here, with session details as the programme takes shape.</p>
           </aside>
         </div>

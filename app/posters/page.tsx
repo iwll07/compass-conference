@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Compass, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { posters } from "@/lib/content";
 import { speakerPostersCall } from "@/lib/calls";
+import { CallDeadlines } from "@/components/call-deadlines";
 
 export const metadata: Metadata = {
   title: "Posters | COMPASS",
@@ -72,7 +73,8 @@ export default function PostersPage() {
           {speakerPostersCall.label}
           <ArrowUpRightIcon size={19} aria-hidden="true" />
         </a>
-        <p>Guidelines and deadlines will be published here once they are confirmed.</p>
+        <CallDeadlines />
+        <p>Accepted work will be presented and published in the COMPASS Abstract Book.</p>
       </aside>
     </main>
   );

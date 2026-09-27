@@ -138,6 +138,19 @@ for (const [route, noteId] of [["/speakers/", "speakers-call"], ["/posters/", "p
   check(`${route} CTA is labelled`, (await cta.textContent())?.includes("Speaker / Posters Call") === true, (await cta.textContent())?.trim());
   // The old "not open on this website" copy must be gone now that the call is live.
   check(`${route} no longer claims submissions are closed`, ((await page.locator("main").textContent()) ?? "").toLowerCase().includes("not open on this website") === false);
+  // Key dates for the call, shared by both pages. The presentation date is
+  // derived from conferenceWindow, so this also guards against drift.
+  const dl = note.locator(".call-deadlines");
+  check(`${route} shows the call key dates`, await dl.count() === 1);
+  const dlText = ((await dl.textContent()) ?? "").replace(/\s+/g, " ");
+  for (const [label, value] of [
+    ["Submission deadline", "11 October 2026"],
+    ["Notification of acceptance", "20 October 2026"],
+    ["Presentation date", "24 November 2026"],
+  ]) {
+    check(`${route} shows ${label}`, dlText.includes(label) && dlText.includes(value), dlText.slice(0, 120));
+  }
+  check(`${route} no longer promises future deadlines`, ((await note.textContent()) ?? "").includes("once they are confirmed") === false);
 }
 
 
