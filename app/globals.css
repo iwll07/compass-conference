@@ -190,6 +190,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
 /* Open-call links on the registration page (URLs live in lib/calls.ts). */
 .open-calls-lead { margin-bottom: 12px; }
 .open-calls { display: flex; flex-wrap: wrap; gap: 6px 34px; list-style: none; margin: 0; padding: 0; }
+/* Call-to-action button inside a margin-note (speakers/posters pages). */
+.call-button { margin: 16px 0 18px; }
+
 .inline-notice { margin-top: 35px; padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 .section-heading { margin: 45px 0 25px; font-size: 32px; }
 .agenda-list { padding: 0; list-style: none; }

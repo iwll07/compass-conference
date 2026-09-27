@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Compass } from "@phosphor-icons/react/dist/ssr";
+import { Compass, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { posters } from "@/lib/content";
+import { speakerPostersCall } from "@/lib/calls";
 
 export const metadata: Metadata = {
   title: "Posters | COMPASS",
@@ -66,7 +67,12 @@ export default function PostersPage() {
 
       <aside className="margin-note reveal" aria-labelledby="poster-submissions">
         <h2 id="poster-submissions" className="section-heading">Thinking about sharing your work?</h2>
-        <p>Submission guidelines and deadlines are coming soon. Submissions are not open on this website.</p>
+        <p>Poster submissions are open now, and are handled through the call below.</p>
+        <a className="button hover-lift call-button" href={speakerPostersCall.href} target="_blank" rel="noopener noreferrer">
+          {speakerPostersCall.label}
+          <ArrowUpRightIcon size={19} aria-hidden="true" />
+        </a>
+        <p>Guidelines and deadlines will be published here once they are confirmed.</p>
       </aside>
     </main>
   );

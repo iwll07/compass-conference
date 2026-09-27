@@ -111,6 +111,22 @@ check("countdown shows all four units", ["days", "hours", "minutes", "seconds"].
 check("countdown shows event date", heroText?.includes("November") === true, heroText?.slice(0, 120));
 check("no negative countdown values", !/-\d/.test(heroText ?? ""));
 
+// 6b. Speakers + posters pages each surface the Speaker / Posters Call CTA
+const speakerPostersHref = "https://forms.example.com/speaker-posters-call";
+for (const [route, noteId] of [["/speakers/", "speakers-call"], ["/posters/", "poster-submissions"]]) {
+  await page.goto(BASE + route, { waitUntil: "networkidle" });
+  const note = page.locator(`[aria-labelledby="${noteId}"]`);
+  check(`${route} has a call-to-action note`, await note.count() === 1);
+  const cta = note.locator(`a.call-button[href="${speakerPostersHref}"]`);
+  check(`${route} CTA links the Speaker / Posters Call`, await cta.count() === 1, `${await cta.count()}`);
+  check(`${route} CTA opens in new tab`, (await cta.getAttribute("target")) === "_blank" && ((await cta.getAttribute("rel")) ?? "").includes("noopener"));
+  check(`${route} CTA has hover-lift`, ((await cta.getAttribute("class")) ?? "").split(" ").includes("hover-lift") === true);
+  check(`${route} CTA is labelled`, (await cta.textContent())?.includes("Speaker / Posters Call") === true, (await cta.textContent())?.trim());
+  // The old "not open on this website" copy must be gone now that the call is live.
+  check(`${route} no longer claims submissions are closed`, ((await page.locator("main").textContent()) ?? "").toLowerCase().includes("not open on this website") === false);
+}
+
+
 // 7. Agenda print stylesheet: in print media, header/footer/nav hidden, print-only visible
 await page.goto(BASE + "/agenda/", { waitUntil: "networkidle" });
 await page.emulateMedia({ media: "print" });

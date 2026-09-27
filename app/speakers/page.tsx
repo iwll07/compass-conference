@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { speakers } from "@/lib/content";
+import { speakerPostersCall } from "@/lib/calls";
 
 export const metadata: Metadata = {
   title: "Speakers | COMPASS",
@@ -74,6 +76,18 @@ export default function SpeakersPage() {
             <h2 id="speakers-program" className="section-heading">From the person to the session</h2>
             <p>Once published, the agenda will help you place each talk in the program.</p>
             <Link href="/agenda" className="text-link">Explore the agenda</Link>
+          </aside>
+          <aside className="margin-note" aria-labelledby="speakers-call">
+            <h2 id="speakers-call" className="section-heading">Want to speak at COMPASS?</h2>
+            <p>
+              Speaker proposals are open now. We are looking for students and faculty who want to
+              share work in progress, a case worth discussing, or a question the room should hear.
+            </p>
+            <a className="button hover-lift call-button" href={speakerPostersCall.href} target="_blank" rel="noopener noreferrer">
+              {speakerPostersCall.label}
+              <ArrowUpRightIcon size={19} aria-hidden="true" />
+            </a>
+            <p>Selected speakers will be announced here, with session details as the programme takes shape.</p>
           </aside>
         </div>
       )}
