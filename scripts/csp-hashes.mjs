@@ -56,12 +56,26 @@ if (hashes.size === 0) {
 }
 
 let template = readFileSync(TEMPLATE, "utf8");
-const marker = "script-src 'self';";
-if (!template.includes(marker)) {
-  throw new Error(`csp-hashes: expected marker "${marker}" not found in public/_headers`);
+
+// Match the script-src DIRECTIVE rather than an exact literal string. The
+// directive now also carries the Cloudflare beacon host, so a literal
+// "script-src 'self';" marker no longer exists and would throw. Capturing the
+// directive up to its terminating ';' lets us splice the hashes in while
+// preserving any other sources already listed (e.g. the analytics beacon).
+// The loud failure below is deliberate: if script-src is ever renamed or
+// dropped, a silently unhashed build would break hydration in production, so
+// this must keep failing loudly rather than degrade.
+const SCRIPT_SRC = /(script-src\s+)([^;]*)(;)/;
+if (!SCRIPT_SRC.test(template)) {
+  throw new Error(`csp-hashes: no "script-src" directive found in public/_headers — cannot inject inline script hashes`);
 }
 const sorted = [...hashes].sort().join(" ");
-template = template.replace(marker, `script-src 'self' ${sorted};`);
+template = template.replace(SCRIPT_SRC, (_match, directive, sources, terminator) => {
+  const existing = sources.trim();
+  // Hashes go after existing sources so the human-authored allowlist stays
+  // readable at the front of the directive.
+  return `${directive}${existing}${existing ? " " : ""}${sorted}${terminator}`;
+});
 
 writeFileSync(OUTPUT, template);
 console.log(`csp-hashes: ${blocks} inline blocks, ${hashes.size} unique hashes across ${pages} pages -> out/_headers`);

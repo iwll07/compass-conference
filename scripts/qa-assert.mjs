@@ -106,6 +106,25 @@ check("phone: last-conference paragraph is centred", centred.p <= 2, `${centred.
 check("phone: paragraph is centred, not just its text", await lastConf.locator("p").evaluate((el) => getComputedStyle(el).marginLeft) !== "0px");
 await page.setViewportSize({ width: 1280, height: 950 });
 
+// 2d. Cloudflare Web Analytics beacon + the CSP entries it depends on
+const beacon = page.locator('script[src="https://static.cloudflareinsights.com/beacon.min.js"]');
+check("cloudflare beacon script present in head", await beacon.count() === 1, `found ${await beacon.count()}`);
+check("beacon is a plain module script (not next/script bootstrap)", (await beacon.getAttribute("type")) === "module");
+const beaconData = await beacon.getAttribute("data-cf-beacon");
+check("beacon carries the site token", beaconData === JSON.stringify({ token: "21fb769a8dcc47c398c4d7df71518fd7" }), String(beaconData));
+check("beacon is in <head> so it loads on every page", await beacon.evaluate((el) => el.ownerDocument.head.contains(el)));
+// The whole point of the plain-tag choice: no next/script inline bootstrap, so
+// the inline-hash count must not have grown.
+const inlineScripts = await page.evaluate(() => [...document.querySelectorAll("script")].filter((s) => !s.src).map((s) => s.textContent).filter((t) => t.trim()).length);
+check("no next/script inline bootstrap added", inlineScripts === 2, `${inlineScripts} inline scripts (expected 2: theme-init via Next + RSC flight)`);
+// CSP (read from the served _headers template, which csp-hashes copies verbatim)
+const headers = (await import("node:fs")).readFileSync("public/_headers", "utf8");
+check("CSP script-src allows the beacon", /script-src[^;]*https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js/.test(headers));
+check("CSP connect-src allows cloudflareinsights.com", /connect-src[^;]*https:\/\/cloudflareinsights\.com/.test(headers));
+check("CSP referrer-policy still cross-origin (beacon needs the origin)", /Referrer-Policy: strict-origin-when-cross-origin/.test(headers));
+check("CSP keeps inline hashes working (script-src marker intact)", /script-src 'self'/.test(headers));
+
+
 // 3. Institutional logo placeholder slots exist (footer)
 check("BSNU placeholder slot", await page.locator(".institution-slot", { hasText: "Beni Suef" }).count() >= 1);
 check("Faculty placeholder slot", await page.locator(".institution-slot", { hasText: "Faculty of Medicine" }).count() >= 1);

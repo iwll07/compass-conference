@@ -9,11 +9,30 @@ const context = await browser.newContext({ viewport: { width: 1440, height: 900 
 const page = await context.newPage();
 const cspErrors = [];
 const consoleErrors = [];
+// Cloudflare Web Analytics beacon noise, expected on localhost.
+//
+// The beacon only reports for the hostname registered in the Cloudflare
+// dashboard, so on localhost its POST to https://cloudflareinsights.com/
+// cdn-cgi/rum is refused by a CORS preflight failure. That is NOT a CSP
+// violation — connect-src already allows the host — and it will not occur in
+// production. Scoped tightly to the RUM endpoint so real CORS/CSP errors on
+// any other origin still fail the run.
+const BEACON_RUM_NOISE = /cloudflareinsights\.com\/cdn-cgi\/rum/;
+const isBeaconNoise = (text) => BEACON_RUM_NOISE.test(text);
+
+// Registered before page.goto so the initial beacon fetch is captured.
+const beaconRequests = [];
+page.on("request", (r) => {
+  if (r.url().includes("static.cloudflareinsights.com/beacon.min.js")) beaconRequests.push(r.url());
+});
+
 page.on("console", (m) => {
+  const text = m.text();
+  if (isBeaconNoise(text)) return;
   // Bare resource-load failures carry no URL in the message; real 404s are
   // attributed with URLs via the response listener below instead.
-  if (m.type() === "error" && !/^Failed to load resource/.test(m.text())) consoleErrors.push(m.text().slice(0, 160));
-  if (/Content Security Policy|CSP|Refused to (execute|apply|load)/i.test(m.text())) cspErrors.push(m.text().slice(0, 200));
+  if (m.type() === "error" && !/^Failed to load resource/.test(text)) consoleErrors.push(text.slice(0, 160));
+  if (/Content Security Policy|CSP|Refused to (execute|apply|load)/i.test(text)) cspErrors.push(text.slice(0, 200));
 });
 page.on("response", (r) => {
   // Ignore pre-existing RSC-prefetch 404 noise (__PAGE__.txt URLs don't exist
@@ -26,6 +45,17 @@ await page.waitForTimeout(2500);
 
 check("no CSP violations in console", cspErrors.length === 0, JSON.stringify(cspErrors.slice(0, 3)));
 check("no page errors", consoleErrors.length === 0, JSON.stringify(consoleErrors.slice(0, 3)));
+
+// The beacon must be allowed by script-src and must actually load. The RUM
+// CORS filter above ignores the expected localhost POST rejection, so these
+// are what prove the beacon itself was not silently blocked by the policy.
+const beaconLoaded = await page.evaluate(() => {
+  const el = document.querySelector('script[src*="static.cloudflareinsights.com/beacon.min.js"]');
+  return { present: !!el, data: el?.getAttribute("data-cf-beacon") ?? null };
+});
+check("beacon script tag present in served page", beaconLoaded.present);
+check("beacon token delivered to the page", beaconLoaded.data?.includes("21fb769a8dcc47c398c4d7df71518fd7") === true, String(beaconLoaded.data));
+check("beacon script was actually fetched (allowed by script-src)", beaconRequests.length > 0, JSON.stringify(beaconRequests.slice(0, 2)));
 
 // Hydration proof: countdown ticks (static HTML shows "Preparing", hydrated shows live numbers)
 const t1 = await page.locator(".event-strip").textContent();

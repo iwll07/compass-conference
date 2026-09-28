@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { CLOUDFLARE_ANALYTICS_TOKEN } from "@/lib/analytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -33,6 +34,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {/* Render-blocking on purpose: sets the stored theme before first paint so dark-mode reloads don't flash. Verified by scripts/csp-check.mjs's no-flash assertion. */}
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script src="/theme-init.js" />
+        {/* Cloudflare Web Analytics. A PLAIN script tag on purpose: next/script
+            would inject its own inline bootstrap block, which would need a CSP
+            hash and would change per build. This form adds no inline script.
+            Token is public by design — see lib/analytics.ts. */}
+        <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: CLOUDFLARE_ANALYTICS_TOKEN })} />
       </head>
       <body><a href="#main-content" className="skip-link">Skip to content</a><Header />{children}<Footer /><ScrollReveal /></body>
     </html>
