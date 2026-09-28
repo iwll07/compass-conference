@@ -38,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             would inject its own inline bootstrap block, which would need a CSP
             hash and would change per build. This form adds no inline script.
             Token is public by design — see lib/analytics.ts. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts -- false positive: type="module" scripts are deferred by default, so this tag does not block parsing/rendering. The rule flags all non-async external scripts, and adding async/defer is deliberately avoided to keep the emitted HTML byte-identical. */}
         <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: CLOUDFLARE_ANALYTICS_TOKEN })} />
       </head>
       <body><a href="#main-content" className="skip-link">Skip to content</a><Header />{children}<Footer /><ScrollReveal /></body>
