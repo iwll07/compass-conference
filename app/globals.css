@@ -41,7 +41,12 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .menu-toggle, .mobile-nav { display: none; }
 .hero { position: relative; display: flex; align-items: center; justify-content: center; }
 .hero-photo { min-height: min(860px, 92dvh); padding: 60px 5vw; text-align: center; color: var(--hero-ink); overflow: hidden; }
-.hero-bg { position: absolute; inset: 0; background-size: cover; background-position: center 40%; }
+/* Hero photo is an <img> child of .hero-bg (see app/page.tsx) so the preload
+   scanner can discover it. object-fit/position reproduce the former
+   background-size: cover / background-position: center 40% exactly, and the
+   scrim below still works because it hangs off the wrapper div, not the image. */
+.hero-bg { position: absolute; inset: 0; }
+.hero-bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
 .hero-bg::after { content: ""; position: absolute; inset: 0; background: var(--hero-scrim); }
 .hero-copy { position: relative; z-index: 1; }
 .hero-photo .hero-copy { display: flex; flex-direction: column; align-items: center; max-width: 780px; }
