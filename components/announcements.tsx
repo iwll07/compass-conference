@@ -13,7 +13,7 @@ import {
 } from "@/lib/announcements";
 
 // How many announcements are shown before "show more" is offered.
-const COLLAPSED_COUNT = 3;
+const COLLAPSED_COUNT = 2;
 
 /**
  * Homepage announcements, rendered immediately after the hero.
