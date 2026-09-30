@@ -86,7 +86,10 @@ export default function AdminPage() {
     const { error: err } = await getSupabase().auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/admin`,
+        // Trailing slash REQUIRED: the app is built with `trailingSlash: true`,
+        // so /admin is canonical as /admin/ and Supabase would otherwise bounce
+        // the token through a 308 before the page ever sees it.
+        emailRedirectTo: `${window.location.origin}/admin/`,
         // Do not auto-provision accounts: only existing users can sign in, so
         // this form cannot be used to create accounts or probe which addresses
         // are registered.
