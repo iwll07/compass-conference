@@ -1,0 +1,22 @@
+Recentre announcements and make the link obvious
+
+Moves the section from between the hero and the event strip to below the event
+strip (under the countdown + location row), centres its content, and frames it
+with a hairline above and below.
+
+- The bare corner arrow was too easy to miss, so it is now a labelled
+  "Learn more ->" text-link, matching the "The program ->" link in the event
+  strip directly above. It also gives the link real text for screen readers
+  instead of relying on a generated aria-label. Still only rendered when the
+  item has a link.
+- margin-inline: auto on .announcement-meta is required, not cosmetic: the
+  global `p { max-width: 68ch }` makes it a ~340px box pinned to the section's
+  left edge, so text-align alone left the category label visibly off-centre.
+  Caught by screenshot after the title-only measurement reported 0px; the check
+  now measures every child against the section centre.
+- Dropped the obsolete .announcement-arrow rules and updated mobile overrides.
+
+Verified: typecheck, eslint incl. components/lib, static build, csp-check 9/9,
+0 CSP violations in Edge via wrangler pages dev, section order measured as
+[hero, event-strip, announcements, home-intro] with all four children 0px from
+centre, 158/158 QA, 33/33 motion, 21/21 overflow.

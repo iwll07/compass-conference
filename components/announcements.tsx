@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   ANNOUNCEMENT_COLUMNS,
@@ -125,13 +125,19 @@ export function Announcements() {
               <h3 className="announcement-title">{item.title}</h3>
               <p className="announcement-body">{item.body}</p>
               {href ? (
+                /* A labelled link, not a bare arrow. The corner-arrow-only
+                   affordance was too easy to miss, and a link with no text is
+                   also worse for screen readers. "Learn more" mirrors the
+                   existing "The program ->" text-link in the event strip above,
+                   so it reads as part of the same site rather than a new
+                   pattern. */
                 <a
-                  className="announcement-arrow"
+                  className="announcement-more"
                   href={href}
                   {...(href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  aria-label={`${item.title} — ${CATEGORY_LABELS[item.category]}`}
                 >
-                  <ArrowUpRightIcon size={20} aria-hidden="true" />
+                  Learn more
+                  <ArrowRightIcon size={17} aria-hidden="true" />
                 </a>
               ) : null}
             </article>

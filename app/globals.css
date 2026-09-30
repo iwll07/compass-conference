@@ -67,22 +67,30 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .text-link:hover { text-decoration: underline; }
 
 /* ---- Announcements (homepage) -------------------------------------------- */
-/* A quiet editorial list between the hero and the event strip: hairline rules
-   and type only, no cards, no chips. Gutters and max-width match .event-strip
-   above so the block's left edge lines up with the countdown beside it. */
-.announcements { max-width: 1260px; margin: 0 auto; padding: 52px 0 0; }
-.announcement { position: relative; padding: 26px 46px 26px 0; border-bottom: 1px solid var(--line); }
-.announcement:first-child { padding-top: 4px; }
-.announcement:last-child { border-bottom: 0; }
-.announcement-meta { font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
-.announcement-title { font-size: 25px; margin-top: 12px; max-width: 30ch; }
-.announcement-body { margin-top: 8px; font-size: 13px; color: var(--muted); max-width: 62ch; }
-/* Arrow sits top-right, aligned to the meta line. Rendered only when the item
-   actually has a link, so a no-link announcement has no dangling affordance. */
-.announcement-arrow { position: absolute; top: 24px; right: 0; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; color: var(--muted); text-decoration: none; transition: color 160ms cubic-bezier(.23,1,.32,1), transform 160ms cubic-bezier(.23,1,.32,1); }
-.announcement:first-child .announcement-arrow { top: 2px; }
-@media (hover: hover) and (pointer: fine) { .announcement-arrow:hover { color: var(--accent); transform: translate(2px, -2px); } }
-.announcements-toggle { margin-top: 18px; min-height: 44px; padding: 0; background: none; border: 0; color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: underline; text-underline-offset: .25em; }
+/* A quiet, centred editorial list between the event strip and the home intro,
+   framed by a hairline above and below. Gutters and max-width match
+   .event-strip above so the block's edges line up with the countdown. */
+.announcements { max-width: 1260px; margin: 0 auto; padding: 58px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: center; }
+/* The padding sits inside the borders, so a bare .announcements between two
+   bordered blocks would show a doubled rule — the home intro below has none of
+   its own, so the lower border here is the only separator. */
+.announcement { padding: 26px 0; border-bottom: 1px solid var(--line); }
+.announcement:first-child { padding-top: 0; }
+.announcement:last-child { border-bottom: 0; padding-bottom: 0; }
+/* margin-inline:auto is REQUIRED, not cosmetic: the global `p { max-width: 68ch }`
+   makes this a ~340px box pinned to the left edge of the section, so text-align
+   alone would centre the label inside that off-centre box and leave it visibly
+   left-aligned. Same class of bug as the .last-conference paragraph fix. */
+.announcement-meta { margin-inline: auto; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.announcement-title { font-size: 28px; margin-top: 12px; margin-inline: auto; max-width: 24ch; }
+.announcement-body { margin: 9px auto 0; font-size: 14px; color: var(--muted); max-width: 52ch; }
+/* Labelled link rather than a bare corner arrow, matching the "The program ->"
+   text-link in the event strip directly above. Hidden entirely when the item
+   has no link, so a no-link announcement shows no dangling affordance. */
+.announcement-more { display: inline-flex; align-items: center; gap: 11px; min-height: 44px; margin-top: 13px; padding: 0 4px; color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; }
+.announcement-more svg { transition: transform 160ms cubic-bezier(.23,1,.32,1); }
+@media (hover: hover) and (pointer: fine) { .announcement-more:hover { text-decoration: underline; } .announcement-more:hover svg { transform: translateX(3px); } }
+.announcements-toggle { display: block; margin: 22px auto 0; min-height: 44px; padding: 0 4px; background: none; border: 0; color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: underline; text-underline-offset: .25em; }
 /* Loading skeleton. A static --line block is used rather than a shimmer
    animation so prefers-reduced-motion needs no special case here. */
 .announcement-skeleton { display: flex; flex-direction: column; gap: 10px; }
@@ -363,9 +371,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .explore-list > a { gap: 20px; }
   .explore-detail { font-size: 0; }
   .explore-list p { font-size: 12px; }
-  .announcement { padding: 22px 38px 22px 0; }
-  .announcement-title { font-size: 21px; }
-  .announcement-arrow { width: 30px; height: 30px; }
+  .announcement { padding: 22px 0; }
+  .announcement-title { font-size: 23px; }
+  .announcements { padding: 44px 0; }
   .admin-list li { flex-direction: column; gap: 16px; }
   .admin-row-actions { justify-content: flex-start; width: 100%; }
   .sponsor-strip { align-items: start; flex-direction: column; padding: 38px 0; gap: 12px; }

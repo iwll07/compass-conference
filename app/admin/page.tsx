@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowUpRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   ANNOUNCEMENT_COLUMNS,
@@ -283,8 +283,9 @@ export default function AdminPage() {
                 <h3 className="announcement-title">{form.title || "Untitled announcement"}</h3>
                 <p className="announcement-body">{form.body || "One-line summary appears here."}</p>
                 {previewHref ? (
-                  <a className="announcement-arrow" href={previewHref} aria-label="Preview link">
-                    <ArrowUpRightIcon size={20} aria-hidden="true" />
+                  <a className="announcement-more" href={previewHref}>
+                    Learn more
+                    <ArrowRightIcon size={17} aria-hidden="true" />
                   </a>
                 ) : null}
               </article>
