@@ -71,26 +71,44 @@ create index announcement_log_created_at_idx on announcement_log (created_at des
 
 alter table announcement_log enable row level security;
 
--- Reads are limited to one named account. auth.jwt() ->> 'email' is a VERIFIED
--- claim from the signed token, not user_metadata (which the account owner can
--- edit), so this cannot be spoofed from the client.
+-- Reads are limited to one named account.
+--
+-- Uses json_extract_path_text rather than the `->>` operator because the SQL
+-- Editor HTML-escapes pasted arrow characters (both auth.jwt() ->> and
+-- current_setting(...)::json ->> arrive as `-&gt;&gt;`, a syntax error).
+-- request.jwt.claims holds the same verified, signed JWT payload, so this is
+-- just as trustworthy as auth.jwt() — and crucially it is NOT user_metadata,
+-- which the account owner can edit and so cannot be used for authorization.
 create policy "fares can read announcement history"
     on announcement_log for select
-    using (auth.jwt() ->> 'email') = 'fares9005@gmail.com';
+    using (json_extract_path_text(current_setting('request.jwt.claims', true)::json, 'email') = 'fares9005@gmail.com');
 
 create function log_announcement_change() returns trigger
     language plpgsql
     security definer
     set search_path = public
 as $$
+declare
+    -- Same reason as the policy above: a plain function call, no arrow operator.
+    actor text := json_extract_path_text(current_setting('request.jwt.claims', true)::json, 'email');
+    -- tg_op is 'INSERT' / 'UPDATE' / 'DELETE', but the column's CHECK constraint
+    -- only allows 'created' / 'updated' / 'deleted'. They MUST be mapped, not
+    -- lowercased: lower(tg_op) emits 'insert', which the CHECK rejects, and that
+    -- aborts the triggering statement — so publishing would silently fail for
+    -- everyone purely because the audit trail exists.
+    verb text := case tg_op
+        when 'INSERT' then 'created'
+        when 'UPDATE' then 'updated'
+        else 'deleted'
+    end;
 begin
-    if tg_op = 'INSERT' or tg_op = 'UPDATE' then
-        insert into announcement_log (announcement_id, action, title, actor_email)
-        values (new.id, lower(tg_op), new.title, auth.jwt() ->> 'email');
-    else
+    if tg_op = 'DELETE' then
         -- The row is gone on DELETE, so the id/title come from OLD.
         insert into announcement_log (announcement_id, action, title, actor_email)
-        values (old.id, 'deleted', old.title, auth.jwt() ->> 'email');
+        values (old.id, verb, old.title, actor);
+    else
+        insert into announcement_log (announcement_id, action, title, actor_email)
+        values (new.id, verb, new.title, actor);
     end if;
     return null;
 end;
