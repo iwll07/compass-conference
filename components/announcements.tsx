@@ -125,9 +125,11 @@ export function Announcements() {
               key={item.id}
               style={{ "--reveal-delay": `${index * 80}ms` } as React.CSSProperties}
             >
-              <p className="announcement-meta">{meta}</p>
-              <h3 className="announcement-title">{item.title}</h3>
-              <p className="announcement-body">{item.body}</p>
+              <div className="announcement-copy">
+                <p className="announcement-meta">{meta}</p>
+                <h3 className="announcement-title">{item.title}</h3>
+                <p className="announcement-body">{item.body}</p>
+              </div>
               {href ? (
                 /* A labelled link, not a bare arrow. The corner-arrow-only
                    affordance was too easy to miss, and a link with no text is

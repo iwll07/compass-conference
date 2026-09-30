@@ -281,11 +281,13 @@ export default function AdminPage() {
               <p className="admin-preview-label">Preview</p>
               <h3 className="announcements-heading">Announcements</h3>
               <article className="announcement">
-                <p className="announcement-meta">
-                  {[CATEGORY_LABELS[form.category], previewDate].filter(Boolean).join(" · ")}
-                </p>
-                <h3 className="announcement-title">{form.title || "Untitled announcement"}</h3>
-                <p className="announcement-body">{form.body || "One-line summary appears here."}</p>
+                <div className="announcement-copy">
+                  <p className="announcement-meta">
+                    {[CATEGORY_LABELS[form.category], previewDate].filter(Boolean).join(" · ")}
+                  </p>
+                  <h3 className="announcement-title">{form.title || "Untitled announcement"}</h3>
+                  <p className="announcement-body">{form.body || "One-line summary appears here."}</p>
+                </div>
                 {previewHref ? (
                   <a className="announcement-more" href={previewHref}>
                     Learn more

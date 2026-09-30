@@ -74,23 +74,27 @@ svg { flex-shrink: 0; vertical-align: middle; }
 /* Only the section TITLE is centred; the individual announcements stay
    left-aligned, matching how the rest of the page sets running text. */
 .announcements-heading { text-align: center; margin-bottom: 42px; }
-/* The padding sits inside the borders, so a bare .announcements between two
-   bordered blocks would show a doubled rule — the home intro below has none of
-   its own, so the lower border here is the only separator. */
-.announcement { padding: 26px 0; border-bottom: 1px solid var(--line); }
+/* Two columns: the announcement text on the left, its "Learn more" link on the
+   right. This is the same left-text/right-detail shape already used by
+   .explore-list further down the page, and it fills the dead space the
+   left-aligned column left behind. */
+.announcement { display: grid; grid-template-columns: 1fr auto; align-items: end; column-gap: 40px; padding: 26px 0; border-bottom: 1px solid var(--line); }
 .announcement:first-child { padding-top: 0; }
 .announcement:last-child { border-bottom: 0; padding-bottom: 0; }
-/* margin-inline:auto is REQUIRED, not cosmetic: the global `p { max-width: 68ch }`
-   makes this a ~340px box pinned to the left edge of the section, so text-align
-   alone would centre the label inside that off-centre box and leave it visibly
-   left-aligned. Same class of bug as the .last-conference paragraph fix. */
+.announcement-copy { min-width: 0; }
+/* No margin-inline:auto and no text-align: the items are left-aligned by design. */
 .announcement-meta { font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
 .announcement-title { font-size: 25px; margin-top: 12px; max-width: 30ch; }
 .announcement-body { margin-top: 8px; font-size: 13px; color: var(--muted); max-width: 62ch; }
+/* Baseline-aligned to the bottom of the text column via align-self:end on the
+   grid, so it reads as attached to the body line rather than floating. */
 /* Labelled link rather than a bare corner arrow, matching the "The program ->"
    text-link in the event strip directly above. Hidden entirely when the item
    has no link, so a no-link announcement shows no dangling affordance. */
-.announcement-more { display: inline-flex; align-items: center; gap: 11px; min-height: 44px; margin-top: 13px; padding: 0 4px; color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; }
+/* Lives in its own grid column (grid-column:2) so it sits at the right edge
+   instead of under the body text. Only rendered when the item has a link, so a
+   no-link announcement shows no dangling affordance. */
+.announcement-more { grid-column: 2; grid-row: 1; align-self: end; display: inline-flex; align-items: center; gap: 11px; min-height: 44px; padding: 0 4px; white-space: nowrap; color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; }
 .announcement-more svg { transition: transform 160ms cubic-bezier(.23,1,.32,1); }
 @media (hover: hover) and (pointer: fine) { .announcement-more:hover { text-decoration: underline; } .announcement-more:hover svg { transform: translateX(3px); } }
 .announcements-toggle { display: block; margin: 22px auto 0; min-height: 44px; padding: 0 4px; background: none; border: 0; color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: underline; text-underline-offset: .25em; }
@@ -320,7 +324,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .speaker-entry img, .sponsor-entry img, .poster-entry img { max-width: 240px; height: auto; }
 .print-only { display: none; }
 @media (min-width: 1400px) { .nav-shell, .hero { padding-left: 70px; padding-right: 70px; } }
-@media (max-width: 1399px) { .event-strip, .home-intro, .sponsor-strip, .last-conference, .page-shell { margin-left: 5vw; margin-right: 5vw; } }
+@media (max-width: 1399px) { .event-strip, .home-intro, .sponsor-strip, .last-conference, .announcements, .page-shell { margin-left: 5vw; margin-right: 5vw; } }
 @media (max-width: 1100px) { .desktop-nav { gap: 15px; } .nav-shell { gap: 20px; } .nav-actions { gap: 9px; } .nav-register { display: none; } .hero { min-height: 520px; } .hero h1 { font-size: 4rem; } .hero-copy { padding-top: 45px; } .compass-plate { margin-left: 5px; } .home-intro { gap: 50px; } .explore-section { gap: 40px; } .event-strip { flex-wrap: wrap; } .plate-caption { flex-direction: column; gap: 0; } }
 @media (max-width: 767px) {
   .institution-bar { font-size: 9px; padding-top: 8px; padding-bottom: 8px; }
@@ -374,7 +378,8 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .explore-list > a { gap: 20px; }
   .explore-detail { font-size: 0; }
   .explore-list p { font-size: 12px; }
-  .announcement { padding: 22px 0; }
+  .announcement { padding: 22px 0; grid-template-columns: 1fr; row-gap: 4px; }
+  .announcement-more { grid-column: 1; grid-row: auto; justify-self: start; }
   .announcement-title { font-size: 23px; }
   .announcements { padding: 44px 0; }
   .announcements-heading { margin-bottom: 30px; }
