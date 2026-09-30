@@ -1,0 +1,19 @@
+Drop the reveal animation on "Show more" items
+
+Items appended by "Show more" no longer carry the .reveal class. The scroll
+fade exists for content that arrives because you scrolled to it; these arrive
+because you clicked, with the section already in view, so the animation reads
+as lag on an explicit action — worsened by the 80ms stagger fading a batch in
+one after another. The initially visible items keep .reveal, since those do
+arrive by scrolling, and the heading is untouched.
+
+With no .reveal nodes mounted on expand, the observer has nothing to do, so
+`expanded` is removed from the dependency array again. The comment records that
+re-adding .reveal to expanded items requires re-adding `expanded`, otherwise
+this regresses into the "show more does nothing" bug fixed one commit earlier.
+
+Verified by timing rather than appearance: computed opacity sampled at +0ms,
++60ms and +560ms after the click. Appended items read opacity 1 at +0ms
+(previously 0, fading over ~240ms) with reveal false, while the first two keep
+reveal true. 13/13 unit, typecheck, eslint incl. components/lib, static build,
+158/158 QA, 33/33 motion, 21/21 overflow.

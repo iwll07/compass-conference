@@ -87,10 +87,11 @@ export function Announcements() {
     );
     targets.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-    // `expanded` MUST be a dependency: expanding mounts new .reveal items, and
-    // this effect is the only thing that ever adds .reveal-visible to them.
-    // Without it, "Show more" appends items that stay at opacity 0 forever.
-  }, [items, expanded]);
+    // Depends on [items] only. Items appended by "Show more" carry no .reveal
+    // class (see the note in the markup), so expanding mounts nothing this
+    // observer needs to see. If a reveal class is ever added back to those
+    // items, `expanded` MUST be added here too or they will mount at opacity 0.
+  }, [items]);
 
   // Loading: a few shimmering placeholder rows so the section does not pop in.
   if (items === null) {
@@ -125,7 +126,14 @@ export function Announcements() {
           const meta = [CATEGORY_LABELS[item.category], date].filter(Boolean).join(" · ");
           return (
             <article
-              className="announcement reveal"
+              /* Items appended by "Show more" deliberately skip the reveal
+                 class: they are revealed by a CLICK while already in view, not
+                 by scrolling, so the scroll-reveal fade (and its 80ms stagger)
+                 reads as lag on an explicit user action. The initially visible
+                 items keep it, since those genuinely do arrive via scrolling.
+                 Skipping the class also means the observer has nothing to do on
+                 expand, so `expanded` no longer needs to be a dependency. */
+              className={index < COLLAPSED_COUNT ? "announcement reveal" : "announcement"}
               key={item.id}
               dir={isAnnouncementRtl(item) ? "rtl" : "ltr"}
               style={{ "--reveal-delay": `${index * 80}ms` } as React.CSSProperties}
