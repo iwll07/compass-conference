@@ -16,6 +16,19 @@ import {
   type LinkTarget,
 } from "@/lib/announcements";
 
+/** The only account allowed to read the announcement audit log. Mirrors the
+ *  `announcement_log` SELECT policy in supabase/migrations — keep in sync. */
+export const HISTORY_EMAIL = "fares9005@gmail.com";
+
+type HistoryEntry = {
+  id: string;
+  announcement_id: string;
+  action: "created" | "updated" | "deleted";
+  title: string;
+  actor_email: string;
+  created_at: string;
+};
+
 type AuthState = "loading" | "signed-out" | "signed-in";
 // "custom-url" is a form-only sentinel; the stored value is "custom".
 type LinkChoice = LinkTarget | "custom-url";
@@ -28,6 +41,12 @@ export default function AdminPage() {
   const [emailState, setEmailState] = useState<"idle" | "sending" | "sent">("idle");
   const [authError, setAuthError] = useState<string | null>(null);
   const [items, setItems] = useState<Announcement[]>([]);
+  // Session email, used only to decide whether to show the history panel. RLS
+  // is the real gate: a non-privileged user gets an empty result here regardless
+  // of what this decides, so hiding the UI is presentation, not security.
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[] | null>(null);
+  const canSeeHistory = sessionEmail?.toLowerCase() === HISTORY_EMAIL;
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -47,6 +66,23 @@ export default function AdminPage() {
     setItems((data as Announcement[] | null) ?? []);
   }, []);
 
+  const loadHistory = useCallback(async () => {
+    // Returns no rows for anyone other than HISTORY_EMAIL: the SELECT policy
+    // allows only that one verified email, so this is safe to call
+    // unconditionally. Errors are swallowed to an empty list — a missing log
+    // must not break the rest of the admin page.
+    const { data, error } = await getSupabase()
+      .from("announcement_log")
+      .select("id,announcement_id,action,title,actor_email,created_at")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) {
+      setHistory([]);
+      return;
+    }
+    setHistory((data as HistoryEntry[] | null) ?? []);
+  }, []);
+
   useEffect(() => {
     // No setState for the unconfigured case: that branch is returned from
     // before authState is ever read, so syncing it here would be a redundant
@@ -63,21 +99,31 @@ export default function AdminPage() {
       if (!active) return;
       const signedIn = !!data.session;
       setAuthState(signedIn ? "signed-in" : "signed-out");
-      if (signedIn) load();
+      setSessionEmail(signedIn ? (data.session?.user?.email ?? null) : null);
+      if (signedIn) {
+        load();
+        loadHistory();
+      }
     });
 
     // Keeps the UI honest if the session refreshes or expires in another tab.
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!active) return;
       setAuthState(session ? "signed-in" : "signed-out");
-      if (session) load();
-      else setItems([]);
+      setSessionEmail(session ? (session.user?.email ?? null) : null);
+      if (session) {
+        load();
+        loadHistory();
+      } else {
+        setItems([]);
+        setHistory(null);
+      }
     });
     return () => {
       active = false;
       listener.subscription.unsubscribe();
     };
-  }, [load]);
+  }, [load, loadHistory]);
 
   async function sendMagicLink(event: React.FormEvent) {
     event.preventDefault();
@@ -159,6 +205,9 @@ export default function AdminPage() {
     setForm(EMPTY_FORM);
     setNotice("Announcement published.");
     load();
+    // The audit trigger has already fired server-side, so re-reading here shows
+    // the new entry immediately instead of on the next page load.
+    loadHistory();
   }
 
   async function togglePublished(item: Announcement) {
@@ -169,6 +218,7 @@ export default function AdminPage() {
       return;
     }
     load();
+    loadHistory();
   }
 
   async function remove(item: Announcement) {
@@ -179,6 +229,7 @@ export default function AdminPage() {
       return;
     }
     load();
+    loadHistory();
   }
 
   if (!isSupabaseConfigured) {
@@ -226,6 +277,10 @@ export default function AdminPage() {
           )}
           {authError ? <p className="admin-error" role="alert">{authError}</p> : null}
         </section>
+      ) : null}
+
+      {authState === "signed-in" && sessionEmail ? (
+        <p className="admin-note admin-signed-in">Signed in as {sessionEmail}</p>
       ) : null}
 
       {authState === "signed-in" ? (
@@ -343,6 +398,33 @@ export default function AdminPage() {
               })}
             </ul>
           </section>
+
+          {/* History is rendered only for the privileged account. Hiding it is
+              presentation, not security — the RLS policy on announcement_log is
+              what actually withholds the rows from anyone else. */}
+          {canSeeHistory ? (
+            <section className="admin-list" aria-labelledby="admin-history-heading">
+              <h2 id="admin-history-heading">History</h2>
+              <p className="admin-note">Who changed what, most recent first. Recorded by a database trigger, so it also captures edits made directly in Supabase.</p>
+              {history === null ? <p className="admin-note">Loading…</p> : null}
+              {history !== null && history.length === 0 ? <p className="admin-note">No activity recorded yet.</p> : null}
+              {history !== null && history.length > 0 ? (
+                <ul>
+                  {history.map((entry) => (
+                    <li key={entry.id}>
+                      <div>
+                        <p className="announcement-meta">
+                          {[entry.action, formatAnnouncementDate(entry.created_at)].filter(Boolean).join(" · ")}
+                        </p>
+                        <h3 className="announcement-title">{entry.title}</h3>
+                        <p className="announcement-body">{entry.actor_email}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          ) : null}
         </>
       ) : null}
     </main>

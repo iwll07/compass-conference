@@ -44,3 +44,62 @@ create policy "authenticated users can manage announcements"
     on announcements for all
     using (auth.role() = 'authenticated')
     with check (auth.role() = 'authenticated');
+
+-- ---------------------------------------------------------------------------
+-- Audit log: who changed which announcement, and when.
+--
+-- Written by a TRIGGER, not by the admin page. That matters: logging from React
+-- would miss any change made directly in the Supabase dashboard or SQL Editor,
+-- which is exactly where mistakes happen. The trigger is the only reliable
+-- record, and it runs on the database regardless of who or what made the edit.
+--
+-- Trigger functions are SECURITY DEFINER, so this insert bypasses RLS. That is
+-- intentional and narrow: it lets any authenticated user *record* an action
+-- (they can already make that change anyway) without granting them the ability
+-- to read history.
+-- ---------------------------------------------------------------------------
+create table announcement_log (
+    id uuid primary key default gen_random_uuid(),
+    announcement_id uuid not null,
+    action text not null check (action in ('created', 'updated', 'deleted')),
+    title text not null,
+    actor_email text not null,
+    created_at timestamptz not null default now()
+);
+
+create index announcement_log_created_at_idx on announcement_log (created_at desc);
+
+alter table announcement_log enable row level security;
+
+-- Reads are limited to one named account. auth.jwt() ->> 'email' is a VERIFIED
+-- claim from the signed token, not user_metadata (which the account owner can
+-- edit), so this cannot be spoofed from the client.
+create policy "fares can read announcement history"
+    on announcement_log for select
+    using (auth.jwt() ->> 'email') = 'fares9005@gmail.com';
+
+create function log_announcement_change() returns trigger
+    language plpgsql
+    security definer
+    set search_path = public
+as $$
+begin
+    if tg_op = 'INSERT' or tg_op = 'UPDATE' then
+        insert into announcement_log (announcement_id, action, title, actor_email)
+        values (new.id, lower(tg_op), new.title, auth.jwt() ->> 'email');
+    else
+        -- The row is gone on DELETE, so the id/title come from OLD.
+        insert into announcement_log (announcement_id, action, title, actor_email)
+        values (old.id, 'deleted', old.title, auth.jwt() ->> 'email');
+    end if;
+    return null;
+end;
+$$;
+
+create trigger announcements_audit_log
+    after insert or update or delete on announcements
+    for each row execute function log_announcement_change();
+
+-- Grants required for the Data API, same reason as the announcements table
+-- above: RLS and grants are independent, and missing grants produce a 401.
+grant select on announcement_log to authenticated;
