@@ -17,3 +17,9 @@ test-results/
 # Scratch logs from local verification runs (lint/build/QA/LCP timings)
 .logs/
 
+# Local scratch: temp verification scripts and their output. Named with a
+# leading dot + .txt/.tmp so they sort together and never belong in a commit.
+scripts/tmp-*
+.*.txt
+.*.tmp
+
