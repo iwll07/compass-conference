@@ -83,6 +83,13 @@ create policy "fares can read announcement history"
     on announcement_log for select
     using (json_extract_path_text(current_setting('request.jwt.claims', true)::json, 'email') = 'fares9005@gmail.com');
 
+-- Deletes are scoped to the same single account. A deletable audit log is not
+-- tamper-proof, so the privilege is deliberately narrow: nobody else can remove
+-- a record even if a delete button were somehow rendered for them.
+create policy "fares can delete announcement history"
+    on announcement_log for delete
+    using (json_extract_path_text(current_setting('request.jwt.claims', true)::json, 'email') = 'fares9005@gmail.com');
+
 create function log_announcement_change() returns trigger
     language plpgsql
     security definer
@@ -121,3 +128,4 @@ create trigger announcements_audit_log
 -- Grants required for the Data API, same reason as the announcements table
 -- above: RLS and grants are independent, and missing grants produce a 401.
 grant select on announcement_log to authenticated;
+grant delete on announcement_log to authenticated;

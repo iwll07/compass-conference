@@ -291,6 +291,34 @@ export default function AdminPage() {
     loadHistory();
   }
 
+  async function removeHistoryEntry(entry: HistoryEntry) {
+    setError(null);
+    // Only this one row is deleted. Gated by RLS: announcement_log has no DELETE
+    // policy for anyone except HISTORY_EMAIL, so this fails for every other
+    // account even if the button were somehow rendered.
+    const { error: err } = await getSupabase().from("announcement_log").delete().eq("id", entry.id);
+    if (err) {
+      setError(`Could not delete history: ${err.message}`);
+      return;
+    }
+    loadHistory();
+  }
+
+  async function clearHistory() {
+    setError(null);
+    // Deletes the whole visible history in one statement. Note the tradeoff this
+    // represents: an audit log you can erase is no longer proof of anything, so
+    // this is deliberately a distinct, labelled action rather than something
+    // bundled into routine use.
+    const { error: err } = await getSupabase().from("announcement_log").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    if (err) {
+      setError(`Could not clear history: ${err.message}`);
+      return;
+    }
+    setNotice("History cleared.");
+    loadHistory();
+  }
+
   if (!isSupabaseConfigured) {
     return (
       <main id="main-content" className="page-shell">
@@ -478,9 +506,34 @@ export default function AdminPage() {
                         <h3 className="announcement-title">{entry.title}</h3>
                         <p className="announcement-body">{entry.actor_email}</p>
                       </div>
+                      <div className="admin-row-actions">
+                        <button
+                          type="button"
+                          className="button button-secondary admin-row-button"
+                          onClick={() => removeHistoryEntry(entry)}
+                          aria-label={`Delete history entry for ${entry.title}`}
+                        >
+                          <span className="button-label">Delete</span>
+                        </button>
+                      </div>
                     </li>
                   )}
                 />
+              ) : null}
+              {history !== null && history.length > 0 ? (
+                <button
+                  type="button"
+                  className="button button-secondary admin-clear-history"
+                  onClick={() => {
+                    // confirm() rather than a custom dialog: this is destructive
+                    // and irreversible, and a native confirm cannot be styled
+                    // into the page or mistaken for part of the form.
+                    if (typeof window === "undefined") return;
+                    if (window.confirm(`Delete all ${history.length} history entries? This cannot be undone.`)) clearHistory();
+                  }}
+                >
+                  <span className="button-label">Clear all history</span>
+                </button>
               ) : null}
             </AdminDisclosure>
           ) : null}

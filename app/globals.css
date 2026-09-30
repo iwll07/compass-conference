@@ -166,6 +166,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .admin-collapse-count { font-family: "Public Sans", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--muted); margin-left: auto; order: -1; }
 .admin-collapse-body { padding-bottom: 12px; }
 .admin-expand { margin-top: 14px; }
+/* Clear-all sits apart from the per-row actions so it cannot be hit by accident
+   while reaching for a single-row Delete. */
+.admin-clear-history { margin-top: 22px; min-height: 44px; }
 
 /* ---- Motion (reveal, hover treatments, icon swaps) -------------------- */
 /* Reference feel: 160ms cubic-bezier(.23,1,.32,1), same curve as .button.
