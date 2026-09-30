@@ -95,6 +95,16 @@ svg { flex-shrink: 0; vertical-align: middle; }
    instead of under the body text. Only rendered when the item has a link, so a
    no-link announcement shows no dangling affordance. */
 .announcement-more { grid-column: 2; grid-row: 1; align-self: end; display: inline-flex; align-items: center; gap: 11px; min-height: 44px; padding: 0 4px; white-space: nowrap; color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; }
+/* Per-item RTL. `dir` is set on each <article> from the item's own text, so an
+   English and an Arabic announcement can sit in the same list. Grid columns
+   follow direction automatically, but these are stated explicitly so the
+   mirrored layout does not depend on that subtlety. */
+.announcement[dir="rtl"] .announcement-copy { text-align: right; }
+/* Mirrored: the link returns to the far LEFT edge, mirroring the LTR layout. */
+.announcement[dir="rtl"] .announcement-more { grid-column: 1; grid-row: 1; justify-self: end; }
+/* The arrow points the way the reader is going: right for LTR, left for RTL. */
+.announcement[dir="rtl"] .announcement-more svg { transform: scaleX(-1); }
+@media (hover: hover) and (pointer: fine) { .announcement[dir="rtl"] .announcement-more:hover svg { transform: scaleX(-1) translateX(3px); } }
 .announcement-more svg { transition: transform 160ms cubic-bezier(.23,1,.32,1); }
 @media (hover: hover) and (pointer: fine) { .announcement-more:hover { text-decoration: underline; } .announcement-more:hover svg { transform: translateX(3px); } }
 .announcements-toggle { display: block; margin: 22px auto 0; min-height: 44px; padding: 0 4px; background: none; border: 0; color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: underline; text-underline-offset: .25em; }

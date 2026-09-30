@@ -10,6 +10,7 @@ import {
   PAGE_ROUTES,
   announcementHref,
   formatAnnouncementDate,
+  isAnnouncementRtl,
   type Announcement,
   type AnnouncementCategory,
   type LinkTarget,
@@ -118,6 +119,13 @@ export default function AdminPage() {
     [formLinkTarget, form.customUrl]
   );
   const previewDate = useMemo(() => formatAnnouncementDate(new Date().toISOString()), []);
+  // The preview mirrors the homepage exactly, including RTL: typing Arabic into
+  // the form should show the same right-aligned, link-on-the-left result.
+  const previewRtl = useMemo(
+    () => isAnnouncementRtl({ title: form.title, body: form.body }),
+    [form.title, form.body]
+  );
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (saving) return;
@@ -280,7 +288,7 @@ export default function AdminPage() {
             <div className="admin-preview" aria-label="Preview">
               <p className="admin-preview-label">Preview</p>
               <h3 className="announcements-heading">Announcements</h3>
-              <article className="announcement">
+              <article className="announcement" dir={previewRtl ? "rtl" : "ltr"}>
                 <div className="announcement-copy">
                   <p className="announcement-meta">
                     {[CATEGORY_LABELS[form.category], previewDate].filter(Boolean).join(" · ")}

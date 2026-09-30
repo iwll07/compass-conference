@@ -56,6 +56,49 @@ export interface Announcement {
 export const ANNOUNCEMENT_COLUMNS = "id,title,body,category,link_target,custom_url,published,created_at";
 
 /**
+ * True when the text contains Arabic script.
+ *
+ * Drives the per-item `dir` attribute. This is per ITEM, not per page: an admin
+ * will mix English and Arabic announcements in the same table, so the direction
+ * has to be decided for each announcement independently.
+ *
+ * Matches the Arabic Unicode ranges only (not the whole U+0600-U+06FF block,
+ * which includes Arabic-Indic digits and punctuation that can legitimately
+ * appear inside an otherwise-English announcement).
+ */
+const ARABIC_SCRIPT = /[\u0621-\u063A\u0641-\u064A\u066E-\u06D3]/;
+
+/**
+ * The first strongly-scripted character's script, or null if there is none.
+ *
+ * Mirrors how a browser resolves `dir="auto"`: the first character with a strong
+ * direction decides, and digits/punctuation are skipped. Testing "does this
+ * string contain Arabic ANYWHERE" instead would flip an English headline that
+ * merely quotes an Arabic phrase in its body.
+ */
+function firstStrongScript(text: string): "arabic" | "latin" | null {
+  for (const char of text) {
+    if (ARABIC_SCRIPT.test(char)) return "arabic";
+    if (/\p{Script=Latin}/u.test(char)) return "latin";
+  }
+  return null;
+}
+
+/**
+ * Whether an announcement should render right-to-left.
+ *
+ * The title is judged first and on its own, since it is the item's headline: its
+ * first strong character decides. If the title carries no strong character at
+ * all (a bare number, a URL), the body breaks the tie, and anything still
+ * ambiguous stays LTR.
+ */
+export function isAnnouncementRtl(announcement: Pick<Announcement, "title" | "body">): boolean {
+  const title = firstStrongScript(announcement.title ?? "");
+  if (title) return title === "arabic";
+  return firstStrongScript(announcement.body ?? "") === "arabic";
+}
+
+/**
  * Resolve an announcement's outbound href, or null when it has no link.
  *
  * custom_url is admin-supplied free text, so it is validated rather than

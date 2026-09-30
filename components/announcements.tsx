@@ -8,6 +8,7 @@ import {
   CATEGORY_LABELS,
   announcementHref,
   formatAnnouncementDate,
+  isAnnouncementRtl,
   type Announcement,
 } from "@/lib/announcements";
 
@@ -123,6 +124,7 @@ export function Announcements() {
             <article
               className="announcement reveal"
               key={item.id}
+              dir={isAnnouncementRtl(item) ? "rtl" : "ltr"}
               style={{ "--reveal-delay": `${index * 80}ms` } as React.CSSProperties}
             >
               <div className="announcement-copy">
