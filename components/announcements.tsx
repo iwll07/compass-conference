@@ -87,7 +87,10 @@ export function Announcements() {
     );
     targets.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [items]);
+    // `expanded` MUST be a dependency: expanding mounts new .reveal items, and
+    // this effect is the only thing that ever adds .reveal-visible to them.
+    // Without it, "Show more" appends items that stay at opacity 0 forever.
+  }, [items, expanded]);
 
   // Loading: a few shimmering placeholder rows so the section does not pop in.
   if (items === null) {

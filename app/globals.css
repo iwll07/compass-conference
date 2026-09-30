@@ -100,9 +100,11 @@ svg { flex-shrink: 0; vertical-align: middle; }
    follow direction automatically, but these are stated explicitly so the
    mirrored layout does not depend on that subtlety. */
 .announcement[dir="rtl"] .announcement-copy { text-align: right; }
-/* Mirrored: the link returns to the far LEFT edge, mirroring the LTR layout. */
-.announcement[dir="rtl"] .announcement-more { grid-column: 1; grid-row: 1; justify-self: end; }
-/* The arrow points the way the reader is going: right for LTR, left for RTL. */
+/* Mirroring needs NO grid override. `direction: rtl` reverses CSS Grid's
+   columns on its own: the `1fr auto` track pair puts the wide copy column on
+   the right and the `auto` link column on the left, which is exactly the mirror
+   we want. An earlier version forced `grid-column: 1` here, which pushed the
+   link back into the wide 1fr column and left it stranded mid-row. */
 .announcement[dir="rtl"] .announcement-more svg { transform: scaleX(-1); }
 @media (hover: hover) and (pointer: fine) { .announcement[dir="rtl"] .announcement-more:hover svg { transform: scaleX(-1) translateX(3px); } }
 .announcement-more svg { transition: transform 160ms cubic-bezier(.23,1,.32,1); }
