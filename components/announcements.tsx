@@ -27,7 +27,7 @@ const COLLAPSED_COUNT = 3;
 export function Announcements() {
   const [items, setItems] = useState<Announcement[] | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const listRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     // Unconfigured builds (missing env vars) simply show nothing.
@@ -63,8 +63,11 @@ export function Announcements() {
   // behaviour, same classes — so this stays visually identical to every other
   // section, and reduced-motion/print overrides in globals.css still apply.
   useEffect(() => {
-    const root = listRef.current;
+    const root = sectionRef.current;
     if (!root) return;
+    // Scoped to the WHOLE SECTION, not the list: the "Announcements" heading
+    // carries .reveal but is a sibling of the list, so observing the list alone
+    // would leave the heading stuck at opacity 0 and invisible.
     const targets = root.querySelectorAll<HTMLElement>(".reveal:not(.reveal-visible)");
     if (!("IntersectionObserver" in window)) {
       targets.forEach((el) => el.classList.add("reveal-visible"));
@@ -109,8 +112,9 @@ export function Announcements() {
   const hidden = items.length - visible.length;
 
   return (
-    <section className="announcements" aria-label="Announcements">
-      <div className="announcements-list" ref={listRef}>
+    <section className="announcements" aria-labelledby="announcements-heading" ref={sectionRef}>
+      <h2 className="announcements-heading reveal" id="announcements-heading">Announcements</h2>
+      <div className="announcements-list">
         {visible.map((item, index) => {
           const href = announcementHref(item);
           const date = formatAnnouncementDate(item.created_at);

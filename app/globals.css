@@ -70,7 +70,10 @@ svg { flex-shrink: 0; vertical-align: middle; }
 /* A quiet, centred editorial list between the event strip and the home intro,
    framed by a hairline above and below. Gutters and max-width match
    .event-strip above so the block's edges line up with the countdown. */
-.announcements { max-width: 1260px; margin: 0 auto; padding: 58px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: center; }
+.announcements { max-width: 1260px; margin: 0 auto; padding: 58px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+/* Only the section TITLE is centred; the individual announcements stay
+   left-aligned, matching how the rest of the page sets running text. */
+.announcements-heading { text-align: center; margin-bottom: 42px; }
 /* The padding sits inside the borders, so a bare .announcements between two
    bordered blocks would show a doubled rule — the home intro below has none of
    its own, so the lower border here is the only separator. */
@@ -81,9 +84,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
    makes this a ~340px box pinned to the left edge of the section, so text-align
    alone would centre the label inside that off-centre box and leave it visibly
    left-aligned. Same class of bug as the .last-conference paragraph fix. */
-.announcement-meta { margin-inline: auto; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
-.announcement-title { font-size: 28px; margin-top: 12px; margin-inline: auto; max-width: 24ch; }
-.announcement-body { margin: 9px auto 0; font-size: 14px; color: var(--muted); max-width: 52ch; }
+.announcement-meta { font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.announcement-title { font-size: 25px; margin-top: 12px; max-width: 30ch; }
+.announcement-body { margin-top: 8px; font-size: 13px; color: var(--muted); max-width: 62ch; }
 /* Labelled link rather than a bare corner arrow, matching the "The program ->"
    text-link in the event strip directly above. Hidden entirely when the item
    has no link, so a no-link announcement shows no dangling affordance. */
@@ -374,6 +377,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .announcement { padding: 22px 0; }
   .announcement-title { font-size: 23px; }
   .announcements { padding: 44px 0; }
+  .announcements-heading { margin-bottom: 30px; }
   .admin-list li { flex-direction: column; gap: 16px; }
   .admin-row-actions { justify-content: flex-start; width: 100%; }
   .sponsor-strip { align-items: start; flex-direction: column; padding: 38px 0; gap: 12px; }

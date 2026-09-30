@@ -47,10 +47,10 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setAuthState("signed-out");
-      return;
-    }
+    // No setState for the unconfigured case: that branch is returned from
+    // before authState is ever read, so syncing it here would be a redundant
+    // state update (and a cascading render) on every mount.
+    if (!isSupabaseConfigured) return;
     const supabase = getSupabase();
     let active = true;
 
@@ -276,6 +276,7 @@ export default function AdminPage() {
                 actually be published. */}
             <div className="admin-preview" aria-label="Preview">
               <p className="admin-preview-label">Preview</p>
+              <h3 className="announcements-heading">Announcements</h3>
               <article className="announcement">
                 <p className="announcement-meta">
                   {[CATEGORY_LABELS[form.category], previewDate].filter(Boolean).join(" · ")}
