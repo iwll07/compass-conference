@@ -20,6 +20,9 @@ import {
  *  `announcement_log` SELECT policy in supabase/migrations — keep in sync. */
 export const HISTORY_EMAIL = "fares9005@gmail.com";
 
+/** Rows shown in each admin list before "Show more". */
+const ADMIN_COLLAPSED_COUNT = 2;
+
 type HistoryEntry = {
   id: string;
   announcement_id: string;
@@ -28,6 +31,62 @@ type HistoryEntry = {
   actor_email: string;
   created_at: string;
 };
+
+/**
+ * Shows the first ADMIN_COLLAPSED_COUNT rows and hides the rest behind a
+ * "Show more" button. Used by both the announcements list and the history list
+ * so they behave identically.
+ *
+ * Deliberately no animation on expand, matching the homepage decision: these
+ * appear in response to a click while already on screen, so a fade would read
+ * as lag rather than polish.
+ */
+function CollapsibleList<T>({ items, renderItem }: { items: T[]; renderItem: (item: T) => React.ReactNode }) {
+  const [expanded, setExpanded] = useState(false);
+  if (items.length === 0) return null;
+  const visible = expanded ? items : items.slice(0, ADMIN_COLLAPSED_COUNT);
+  const hidden = items.length - visible.length;
+  return (
+    <>
+      <ul>{visible.map(renderItem)}</ul>
+      {hidden > 0 || expanded ? (
+        <button type="button" className="announcements-toggle admin-expand" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? "Show less" : `Show more (${hidden})`}
+        </button>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * A collapsible section, built on native <details>/<summary> rather than a
+ * button + state.
+ *
+ * Two reasons this is the right control here: it works with JS disabled and
+ * with keyboard/screen readers for free (arrow keys, Enter/Space, and the
+ * expanded state is announced), and it needs no open/closed state in React.
+ */
+function AdminDisclosure({
+  id,
+  title,
+  count,
+  children,
+}: {
+  id: string;
+  title: string;
+  count: number | null;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="admin-collapse" id={id}>
+      <summary className="admin-collapse-summary">
+        <span>{title}</span>
+        {count !== null ? <span className="admin-collapse-count">{count}</span> : null}
+      </summary>
+      <div className="admin-collapse-body">{children}</div>
+    </details>
+  );
+}
 
 type AuthState = "loading" | "signed-out" | "signed-in";
 // "custom-url" is a form-only sentinel; the stored value is "custom".
@@ -364,11 +423,11 @@ export default function AdminPage() {
           {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
           {error ? <p className="admin-error" role="alert">{error}</p> : null}
 
-          <section className="admin-list" aria-labelledby="admin-list-heading">
-            <h2 id="admin-list-heading">Existing announcements</h2>
+          <AdminDisclosure id="admin-announcements" title="Existing announcements" count={items.length}>
             {items.length === 0 ? <p className="admin-note">Nothing here yet.</p> : null}
-            <ul>
-              {items.map((item) => {
+            <CollapsibleList
+              items={items}
+              renderItem={(item) => {
                 const href = announcementHref(item);
                 return (
                   <li key={item.id}>
@@ -395,22 +454,22 @@ export default function AdminPage() {
                     </div>
                   </li>
                 );
-              })}
-            </ul>
-          </section>
+              }}
+            />
+          </AdminDisclosure>
 
           {/* History is rendered only for the privileged account. Hiding it is
               presentation, not security — the RLS policy on announcement_log is
               what actually withholds the rows from anyone else. */}
           {canSeeHistory ? (
-            <section className="admin-list" aria-labelledby="admin-history-heading">
-              <h2 id="admin-history-heading">History</h2>
+            <AdminDisclosure id="admin-history" title="History" count={history?.length ?? null}>
               <p className="admin-note">Who changed what, most recent first. Recorded by a database trigger, so it also captures edits made directly in Supabase.</p>
               {history === null ? <p className="admin-note">Loading…</p> : null}
               {history !== null && history.length === 0 ? <p className="admin-note">No activity recorded yet.</p> : null}
               {history !== null && history.length > 0 ? (
-                <ul>
-                  {history.map((entry) => (
+                <CollapsibleList
+                  items={history}
+                  renderItem={(entry) => (
                     <li key={entry.id}>
                       <div>
                         <p className="announcement-meta">
@@ -420,10 +479,10 @@ export default function AdminPage() {
                         <p className="announcement-body">{entry.actor_email}</p>
                       </div>
                     </li>
-                  ))}
-                </ul>
+                  )}
+                />
               ) : null}
-            </section>
+            </AdminDisclosure>
           ) : null}
         </>
       ) : null}

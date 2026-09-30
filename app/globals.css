@@ -152,6 +152,21 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .admin-state { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .admin-state-live { color: var(--accent); }
 
+/* Collapsible admin sections. Native <details>/<summary> so keyboard and screen
+   reader support is free; only the marker and the hover/focus treatment are
+   styled here. The summary is a real focusable control, so it keeps the site's
+   accent focus ring. */
+.admin-collapse { border-top: 1px solid var(--line); }
+.admin-collapse-summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; padding: 4px 0; cursor: pointer; list-style: none; font-family: "Source Serif 4", Georgia, serif; font-size: 22px; }
+.admin-collapse-summary::-webkit-details-marker { display: none; }
+/* A small chevron that rotates, drawn with borders so it needs no icon import. */
+.admin-collapse-summary::after { content: ""; width: 9px; height: 9px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg) translateY(-2px); transition: transform 180ms cubic-bezier(.23,1,.32,1); flex-shrink: 0; }
+.admin-collapse[open] > .admin-collapse-summary::after { transform: rotate(-135deg) translateY(-2px); }
+@media (hover: hover) and (pointer: fine) { .admin-collapse-summary:hover { color: var(--accent); } }
+.admin-collapse-count { font-family: "Public Sans", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--muted); margin-left: auto; order: -1; }
+.admin-collapse-body { padding-bottom: 12px; }
+.admin-expand { margin-top: 14px; }
+
 /* ---- Motion (reveal, hover treatments, icon swaps) -------------------- */
 /* Reference feel: 160ms cubic-bezier(.23,1,.32,1), same curve as .button.
    All hover effects are gated behind (hover: hover) so touch devices never
