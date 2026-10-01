@@ -125,6 +125,19 @@ svg { flex-shrink: 0; vertical-align: middle; }
    way the "Learn more" arrow is. Only the text direction flips. */
 .announcement-up svg { transition: transform 160ms cubic-bezier(.23,1,.32,1); }
 @media (hover: hover) and (pointer: fine) { .announcement-up:hover { color: var(--accent); text-decoration: underline; } .announcement-up:hover svg { transform: translateY(-3px); } }
+
+/* The arrow TRAILS the wording in both directions. It leads in LTR simply
+   because the DOM puts the icon first; left alone, `direction: rtl` would
+   reverse the flex row and swing that same icon to the right, putting it
+   before the label in Arabic reading order — the opposite side from English.
+   That reads as though the label were a continuation of the arrow rather than
+   the destination it names, and it left the icon stranded at the outer edge of
+   the row instead of tucked against the text.
+   row-reverse puts the arrow after the label in the visual order in RTL while
+   leaving the glyph itself unmirrored (it still points up) and leaving LTR
+   untouched. This is the same trailing arrangement "Learn more" already uses,
+   where the arrow points the way forward in reading order. */
+.announcement[dir="rtl"] .announcement-up { flex-direction: row-reverse; }
 .announcements-toggle { display: block; margin: 22px auto 0; min-height: 44px; padding: 0 4px; background: none; border: 0; color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: underline; text-underline-offset: .25em; }
 /* Loading skeleton. A static --line block is used rather than a shimmer
    animation so prefers-reduced-motion needs no special case here. */
