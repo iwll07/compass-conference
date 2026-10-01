@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowRightIcon, ArrowUpIcon } from "@phosphor-icons/react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   ANNOUNCEMENT_COLUMNS,
   CATEGORY_LABELS,
+  HERO_ANCHOR_ID,
   announcementHref,
   formatAnnouncementDate,
   isAnnouncementRtl,
+  isHeroLink,
   type Announcement,
 } from "@/lib/announcements";
 
@@ -29,6 +31,29 @@ export function Announcements() {
   const [items, setItems] = useState<Announcement[] | null>(null);
   const [expanded, setExpanded] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+
+  // Scroll to the hero for the "Calls open now" jump, instead of letting the
+  // router handle the fragment. See the note at the link: a router-driven
+  // "/#hero" is a no-op whenever the URL already carries that hash, so repeat
+  // clicks did nothing.
+  const jumpToHero = useCallback((event: React.MouseEvent<HTMLAnchorElement>) => {
+    const hero = document.getElementById(HERO_ANCHOR_ID);
+    if (!hero) return; // let the browser follow the href as a fallback
+    event.preventDefault();
+    // Keep the URL in sync so the link stays shareable and the back button
+    // behaves, without triggering the navigation we just cancelled.
+    window.history.pushState(null, "", `#${HERO_ANCHOR_ID}`);
+    hero.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      // Matches .hero { scroll-margin-top } in globals.css. Without it the
+      // smooth scroll would land the hero flush against the viewport edge.
+      block: "start",
+    });
+    // Move keyboard focus with the viewport, so the next Tab continues from
+    // the hero rather than from the link the reader just activated.
+    hero.setAttribute("tabindex", "-1");
+    hero.focus({ preventScroll: true });
+  }, []);
 
   useEffect(() => {
     // Unconfigured builds (missing env vars) simply show nothing.
@@ -143,7 +168,31 @@ export function Announcements() {
                 <h3 className="announcement-title">{item.title}</h3>
                 <p className="announcement-body">{item.body}</p>
               </div>
-              {href ? (
+              {/* One action per item, not two. The admin form's link dropdown
+                  decides which: a normal page/custom URL renders "Learn more",
+                  while the "Open calls" target renders the up-arrow
+                  jump instead. They were briefly both rendered on every item,
+                  which meant an announcement about anything at all also carried
+                  a call-for-papers shortcut the editor never asked for. */}
+              {isHeroLink(item) ? (
+                /* next/link is deliberately NOT used here. For a same-page
+                   fragment the router suppresses the scroll when the URL is
+                   already "/#hero": it resolves the navigation to "nothing to
+                   do", so the hero stayed where it was. That made the link work
+                   exactly once per page load — the second click, and every
+                   click after a new announcement was added, silently did
+                   nothing. The href is still a real fragment (so it is
+                   copyable, middle-clickable, and degrades without JS), but the
+                   scroll is performed explicitly so every click works. */
+                <a
+                  className="announcement-up"
+                  href={href ?? `/#${HERO_ANCHOR_ID}`}
+                  onClick={jumpToHero}
+                >
+                  <ArrowUpIcon size={17} aria-hidden="true" />
+                  <span>Calls open now</span>
+                </a>
+              ) : href ? (
                 /* A labelled link, not a bare arrow. The corner-arrow-only
                    affordance was too easy to miss, and a link with no text is
                    also worse for screen readers. "Learn more" mirrors the

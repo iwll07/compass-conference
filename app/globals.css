@@ -56,6 +56,13 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .hero-copy > p { max-width: 430px; margin-top: 26px; font-size: 16px; color: var(--muted); line-height: 1.7; }
 .hero-photo .hero-copy > p { max-width: 46ch; color: var(--hero-muted); }
 .hero-actions { display: flex; flex-direction: column; align-items: center; gap: 22px; margin-top: 31px; }
+/* Anchor target for an announcement whose link is set to "Hero — call buttons".
+   Without a scroll margin the browser aligns the element top with the viewport
+   top, which shaves the hero's top padding off; 24px keeps the full hero — the
+   headline, both CTA rows and the definition line — comfortably in frame. It
+   lives on the SECTION rather than the CTA row so the jump shows the whole
+   hero, which is what the link promises. */
+.hero { scroll-margin-top: 24px; }
 .hero-photo .hero-actions { justify-content: center; }
 /* Two equal-weight CTA buttons side by side, stacking when the row runs out
    of room. The Discover COMPASS text link sits below this row. */
@@ -89,12 +96,16 @@ svg { flex-shrink: 0; vertical-align: middle; }
 /* Baseline-aligned to the bottom of the text column via align-self:end on the
    grid, so it reads as attached to the body line rather than floating. */
 /* Labelled link rather than a bare corner arrow, matching the "The program ->"
-   text-link in the event strip directly above. Hidden entirely when the item
-   has no link, so a no-link announcement shows no dangling affordance. */
-/* Lives in its own grid column (grid-column:2) so it sits at the right edge
-   instead of under the body text. Only rendered when the item has a link, so a
-   no-link announcement shows no dangling affordance. */
+   text-link in the event strip directly above. Lives in its own grid column
+   (grid-column:2) so it sits at the right edge instead of under the body text,
+   and is only rendered at all when the item has a link, so a no-link
+   announcement shows no dangling affordance. */
 .announcement-more { grid-column: 2; grid-row: 1; align-self: end; display: inline-flex; align-items: center; gap: 11px; min-height: 44px; padding: 0 4px; white-space: nowrap; color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; }
+/* The hero jump, rendered only when an admin picks the hero link target for
+   that announcement. Same grid cell as "Learn more" — an item shows one action
+   or the other, never both — so it repeats .announcement-more's placement and
+   differs only in colour. */
+.announcement-up { grid-column: 2; grid-row: 1; align-self: end; display: inline-flex; align-items: center; gap: 11px; min-height: 44px; padding: 0 4px; white-space: nowrap; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; }
 /* Per-item RTL. `dir` is set on each <article> from the item's own text, so an
    English and an Arabic announcement can sit in the same list. Grid columns
    follow direction automatically, but these are stated explicitly so the
@@ -109,6 +120,11 @@ svg { flex-shrink: 0; vertical-align: middle; }
 @media (hover: hover) and (pointer: fine) { .announcement[dir="rtl"] .announcement-more:hover svg { transform: scaleX(-1) translateX(3px); } }
 .announcement-more svg { transition: transform 160ms cubic-bezier(.23,1,.32,1); }
 @media (hover: hover) and (pointer: fine) { .announcement-more:hover { text-decoration: underline; } .announcement-more:hover svg { transform: translateX(3px); } }
+
+/* The up arrow points up in both LTR and RTL, so it must NOT be mirrored the
+   way the "Learn more" arrow is. Only the text direction flips. */
+.announcement-up svg { transition: transform 160ms cubic-bezier(.23,1,.32,1); }
+@media (hover: hover) and (pointer: fine) { .announcement-up:hover { color: var(--accent); text-decoration: underline; } .announcement-up:hover svg { transform: translateY(-3px); } }
 .announcements-toggle { display: block; margin: 22px auto 0; min-height: 44px; padding: 0 4px; background: none; border: 0; color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: underline; text-underline-offset: .25em; }
 /* Loading skeleton. A static --line block is used rather than a shimmer
    animation so prefers-reduced-motion needs no special case here. */
@@ -411,6 +427,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .explore-list p { font-size: 12px; }
   .announcement { padding: 22px 0; grid-template-columns: 1fr; row-gap: 4px; }
   .announcement-more { grid-column: 1; grid-row: auto; justify-self: start; }
+  /* Single-column stack: whichever action the item has (either "Learn more" or
+     the "Call buttons" hero jump) drops below the copy, aligned to the start. */
+  .announcement-more, .announcement-up { grid-column: 1; grid-row: auto; justify-self: start; }
   .announcement-title { font-size: 23px; }
   .announcements { padding: 44px 0; }
   .announcements-heading { margin-bottom: 30px; }

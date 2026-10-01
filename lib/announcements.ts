@@ -36,9 +36,28 @@ export const PAGE_ROUTES = {
 
 export type PageRouteKey = keyof typeof PAGE_ROUTES;
 
-export type LinkTarget = PageRouteKey | "none" | "custom";
+/**
+ * The "hero" link target: not a page of its own, but a jump back to the top of
+ * the homepage so the reader lands on the hero with the call-to-action buttons
+ * in view. It is a first-class link target rather than a link rendered on every
+ * announcement, because whether an announcement should point at the open calls
+ * is an editorial decision made per item in /admin.
+ *
+ * The anchor is the hero SECTION, not the CTA row: jumping to the buttons alone
+ * clipped the headline and left the page looking broken mid-hero.
+ */
+export const HERO_LINK_TARGET = "hero" as const;
 
-export const LINK_TARGETS: LinkTarget[] = [...Object.keys(PAGE_ROUTES) as PageRouteKey[], "none", "custom"];
+export const HERO_ANCHOR_ID = "hero";
+
+export type LinkTarget = PageRouteKey | "none" | "custom" | typeof HERO_LINK_TARGET;
+
+export const LINK_TARGETS: LinkTarget[] = [...(Object.keys(PAGE_ROUTES) as PageRouteKey[]), HERO_LINK_TARGET, "none", "custom"];
+
+/** True when this announcement's link is the jump back to the hero. */
+export function isHeroLink(announcement: Pick<Announcement, "link_target">): boolean {
+  return announcement.link_target === HERO_LINK_TARGET;
+}
 
 export interface Announcement {
   id: string;
@@ -110,6 +129,11 @@ export function isAnnouncementRtl(announcement: Pick<Announcement, "title" | "bo
  */
 export function announcementHref(announcement: Pick<Announcement, "link_target" | "custom_url">): string | null {
   if (announcement.link_target === "none") return null;
+  if (announcement.link_target === HERO_LINK_TARGET) {
+    // A same-page anchor. `scroll-margin-top` on the hero section (see
+    // app/globals.css) keeps the top of the hero clear of the viewport edge.
+    return `/#${HERO_ANCHOR_ID}`;
+  }
   if (announcement.link_target === "custom") {
     const raw = (announcement.custom_url ?? "").trim();
     if (!raw) return null;

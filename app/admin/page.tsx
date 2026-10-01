@@ -1,16 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, ArrowUpIcon } from "@phosphor-icons/react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   ANNOUNCEMENT_COLUMNS,
   CATEGORIES,
   CATEGORY_LABELS,
+  HERO_LINK_TARGET,
   PAGE_ROUTES,
   announcementHref,
   formatAnnouncementDate,
   isAnnouncementRtl,
+  isHeroLink,
   type Announcement,
   type AnnouncementCategory,
   type LinkTarget,
@@ -399,6 +401,13 @@ export default function AdminPage() {
                 {Object.entries(PAGE_ROUTES).map(([key, href]) => (
                   <option key={key} value={key}>{CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS]} ({href})</option>
                 ))}
+                {/* Pages first, then the special targets. "Open calls" is a jump back to the
+                    top of the homepage where the open-call CTA buttons live, so
+                    the reader lands on the whole hero rather than mid-page.
+                    Selecting it here is what adds the jump link to that
+                    announcement — nothing renders it automatically — and it is
+                    the only option that reveals the "Link wording" field. */}
+                <option value={HERO_LINK_TARGET}>Open calls — jump to the top of the homepage</option>
                 <option value="none">No link</option>
                 <option value="custom-url">Paste a custom URL…</option>
               </select>
@@ -438,7 +447,17 @@ export default function AdminPage() {
                   <h3 className="announcement-title">{form.title || "Untitled announcement"}</h3>
                   <p className="announcement-body">{form.body || "One-line summary appears here."}</p>
                 </div>
-                {previewHref ? (
+                {/* Mirrors the homepage's either/or: the hero target shows the
+                    up-arrow jump link (with whatever wording the editor typed),
+                    any other href shows "Learn more". Built from the same
+                    isHeroLink()/heroLinkLabel() the homepage uses, so the
+                    preview cannot drift from the real output. */}
+                {isHeroLink({ link_target: formLinkTarget }) ? (
+                  <span className="announcement-up">
+                    <ArrowUpIcon size={17} aria-hidden="true" />
+                    <span>Calls open now</span>
+                  </span>
+                ) : previewHref ? (
                   <a className="announcement-more" href={previewHref}>
                     Learn more
                     <ArrowRightIcon size={17} aria-hidden="true" />

@@ -10,7 +10,12 @@ const stagger = (ms: number) => ({ "--reveal-delay": `${ms}ms` }) as CSSProperti
 
 export default function HomePage() {
   return <main id="main-content">
-    <section className="hero hero-photo">
+    {/* id="hero" is the jump target for announcements whose link is set to
+        "Hero — call buttons" in /admin. It sits on the SECTION, not on the CTA
+        row: landing on the buttons alone pushed the headline off-screen and
+        looked like a broken page, whereas the whole hero visible matches what
+        the reader was promised. scroll-margin-top lives in globals.css. */}
+    <section className="hero hero-photo" id="hero">
       {/* Hero photo is a real <img>, not a CSS background-image. The preload
           scanner only discovers images present in markup, so a background-image
           LCP element is not fetched until CSS is parsed and applied — that late
