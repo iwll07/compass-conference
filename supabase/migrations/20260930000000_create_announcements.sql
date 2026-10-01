@@ -18,7 +18,12 @@ create table announcements (
     category announcement_category not null default 'general',
     link_target text not null default 'none',
       -- one of: 'registration' | 'speakers' | 'agenda' | 'sponsors' |
-      --         'posters' | 'none' | 'custom'
+      --         'posters' | 'hero' | 'none' | 'custom'
+      -- 'hero' is not a page: it renders a link that jumps back to the
+      -- homepage hero, where the open-call CTA buttons live. Chosen per
+      -- announcement in /admin, so it is only present on the items an editor
+      -- pointed at the open calls. Its wording is set per item by the
+      -- link_label column added in a later migration.
     custom_url text,
       -- only used when link_target = 'custom'; null otherwise
     published boolean not null default true,

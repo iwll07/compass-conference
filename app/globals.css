@@ -96,6 +96,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
 /* Baseline-aligned to the bottom of the text column via align-self:end on the
    grid, so it reads as attached to the body line rather than floating. */
 /* Labelled link rather than a bare corner arrow, matching the "The program ->"
+   text-link in the event strip directly above. Hidden entirely when the item
+   has no link, so a no-link announcement shows no dangling affordance. */
+/* Labelled link rather than a bare corner arrow, matching the "The program ->"
    text-link in the event strip directly above. Lives in its own grid column
    (grid-column:2) so it sits at the right edge instead of under the body text,
    and is only rendered at all when the item has a link, so a no-link
@@ -104,8 +107,13 @@ svg { flex-shrink: 0; vertical-align: middle; }
 /* The hero jump, rendered only when an admin picks the hero link target for
    that announcement. Same grid cell as "Learn more" — an item shows one action
    or the other, never both — so it repeats .announcement-more's placement and
-   differs only in colour. */
-.announcement-up { grid-column: 2; grid-row: 1; align-self: end; display: inline-flex; align-items: center; gap: 11px; min-height: 44px; padding: 0 4px; white-space: nowrap; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; }
+   differs only in colour.
+   The wording is editor-supplied (see heroLinkLabel), so the nowrap from
+   .announcement-more is replaced with wrapping plus a max-width: an
+   unbounded single-line label would otherwise widen the card and push the
+   whole page into horizontal overflow on narrow screens. The cap matches
+   HERO_LINK_LABEL_MAX. */
+.announcement-up { grid-column: 2; grid-row: 1; align-self: end; display: inline-flex; align-items: center; gap: 11px; min-height: 44px; padding: 0 4px; max-width: 100%; overflow-wrap: break-word; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; }
 /* Per-item RTL. `dir` is set on each <article> from the item's own text, so an
    English and an Arabic announcement can sit in the same list. Grid columns
    follow direction automatically, but these are stated explicitly so the
@@ -154,6 +162,10 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .admin-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
 .admin-signout { min-height: 44px; }
 .admin-note { color: var(--muted); font-size: 14px; }
+/* Small help text under a form field. `margin-top: -8px` pulls it back toward
+   the input above it, because .admin-form spaces every direct child with a
+   large gap meant for label/input pairs rather than for a note. */
+.admin-hint { margin-top: -8px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .admin-signed-in { margin-top: 16px; font-size: 12px; }
 .admin-notice { margin-top: 18px; padding: 13px 17px; background: var(--accent-soft); color: var(--ink); font-size: 14px; }
 .admin-error { margin-top: 18px; padding: 13px 17px; border: 1px solid var(--line); color: var(--ink); font-size: 14px; }

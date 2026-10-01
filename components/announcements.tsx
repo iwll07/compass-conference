@@ -6,6 +6,7 @@ import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   ANNOUNCEMENT_COLUMNS,
   CATEGORY_LABELS,
+  heroLinkLabel,
   HERO_ANCHOR_ID,
   announcementHref,
   formatAnnouncementDate,
@@ -190,7 +191,7 @@ export function Announcements() {
                   onClick={jumpToHero}
                 >
                   <ArrowUpIcon size={17} aria-hidden="true" />
-                  <span>Calls open now</span>
+                  <span>{heroLinkLabel(item)}</span>
                 </a>
               ) : href ? (
                 /* A labelled link, not a bare arrow. The corner-arrow-only

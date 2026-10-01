@@ -50,6 +50,33 @@ export const HERO_LINK_TARGET = "hero" as const;
 
 export const HERO_ANCHOR_ID = "hero";
 
+/**
+ * The visible label for this link, defined once because it appears in two
+ * independent renderers (the homepage item and the admin live preview) and the
+ * two must not be able to drift apart.
+ *
+ * "Calls open now" rather than "Call buttons": the latter names the mechanic
+ * (two buttons) rather than the benefit, and it reads as a label for a UI
+ * widget rather than a destination. This wording also matches the vocabulary
+ * already used across the site -- `openCalls` in lib/calls.ts, and the
+ * "Organization Call" / "Speaker / Posters Call" button labels -- so the
+ * announcement points at something the reader has already seen named that way.
+ *
+ * Deliberately generic enough to cover BOTH open calls: this link appears on
+ * whichever announcement opts in to the hero target, so a narrower label like
+ * "Submit an abstract" would be actively wrong on an announcement that is not
+ * about abstracts.
+ */
+export const HERO_LINK_LABEL = "Calls open now";
+
+/**
+ * Longest editor-supplied label accepted, enforced by the admin input's
+ * maxLength and matched by a CSS cap. The label sits in a nowrap flex row, so
+ * an unbounded string could push the announcement card into horizontal
+ * overflow — which is a real breakage on mobile, not just untidy wrapping.
+ */
+export const HERO_LINK_LABEL_MAX = 40;
+
 export type LinkTarget = PageRouteKey | "none" | "custom" | typeof HERO_LINK_TARGET;
 
 export const LINK_TARGETS: LinkTarget[] = [...(Object.keys(PAGE_ROUTES) as PageRouteKey[]), HERO_LINK_TARGET, "none", "custom"];
@@ -59,6 +86,25 @@ export function isHeroLink(announcement: Pick<Announcement, "link_target">): boo
   return announcement.link_target === HERO_LINK_TARGET;
 }
 
+/**
+ * The wording for the hero jump: whatever the editor typed, else the default.
+ *
+ * The admin form reveals a text field when "Open calls" is selected, so each
+ * announcement can name its own destination — an abstract call and a poster
+ * call are different actions and a single fixed label cannot describe both.
+ *
+ * Falls back to the default rather than rendering nothing, so clearing the
+ * field (or an older row with no link_label yet) still produces a usable link
+ * instead of an arrow with no text, which is an accessibility failure.
+ *
+ * Takes a Partial deliberately: a row published before the link_label migration
+ * has no such field at all, so `undefined` is a real runtime input here, not
+ * just a type-checking convenience.
+ */
+export function heroLinkLabel(announcement: Partial<Pick<Announcement, "link_label">>): string {
+  return announcement.link_label?.trim() || HERO_LINK_LABEL;
+}
+
 export interface Announcement {
   id: string;
   title: string;
@@ -66,13 +112,19 @@ export interface Announcement {
   category: AnnouncementCategory;
   link_target: LinkTarget;
   custom_url: string | null;
+  /**
+   * Editor-written wording for the hero jump, e.g. "Submit your abstract".
+   * Null means "use the default", so existing rows and non-hero targets need
+   * no backfill.
+   */
+  link_label: string | null;
   published: boolean;
   created_at: string;
 }
 
 // Columns the homepage needs. Selecting explicitly (rather than `select("*")`)
 // keeps the static-export payload small and makes the RLS interaction obvious.
-export const ANNOUNCEMENT_COLUMNS = "id,title,body,category,link_target,custom_url,published,created_at";
+export const ANNOUNCEMENT_COLUMNS = "id,title,body,category,link_target,custom_url,link_label,published,created_at";
 
 /**
  * True when the text contains Arabic script.

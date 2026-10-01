@@ -8,6 +8,9 @@ import {
   CATEGORIES,
   CATEGORY_LABELS,
   HERO_LINK_TARGET,
+  HERO_LINK_LABEL,
+  HERO_LINK_LABEL_MAX,
+  heroLinkLabel,
   PAGE_ROUTES,
   announcementHref,
   formatAnnouncementDate,
@@ -94,7 +97,7 @@ type AuthState = "loading" | "signed-out" | "signed-in";
 // "custom-url" is a form-only sentinel; the stored value is "custom".
 type LinkChoice = LinkTarget | "custom-url";
 
-const EMPTY_FORM = { title: "", category: "general" as AnnouncementCategory, linkChoice: "none" as LinkChoice, customUrl: "", body: "" };
+const EMPTY_FORM = { title: "", category: "general" as AnnouncementCategory, linkChoice: "none" as LinkChoice, customUrl: "", linkLabel: "", body: "" };
 
 export default function AdminPage() {
   const [authState, setAuthState] = useState<AuthState>("loading");
@@ -254,6 +257,10 @@ export default function AdminPage() {
       // custom_url is stored only for the 'custom' target and cleared for every
       // other option, so a stale URL can never outlive its selection.
       custom_url: formLinkTarget === "custom" ? form.customUrl.trim() : null,
+      // Stored only for the 'hero' target and cleared for every other option,
+      // mirroring custom_url. Trimmed, and an empty string is stored as null so
+      // it keeps meaning "use the default" rather than "explicitly blank".
+      link_label: formLinkTarget === HERO_LINK_TARGET && form.linkLabel.trim() ? form.linkLabel.trim() : null,
       published: true,
     });
     setSaving(false);
@@ -395,7 +402,15 @@ export default function AdminPage() {
                   const choice = e.target.value as LinkChoice;
                   // Choosing a page or "No link" drops the custom URL so the
                   // stored row can never disagree with the selected target.
-                  setForm({ ...form, linkChoice: choice, customUrl: choice === "custom-url" ? form.customUrl : "" });
+                  // The label is cleared the same way: it only means anything for
+                  // the hero target, so carrying it onto an unrelated target
+                  // would store text that nothing renders.
+                  setForm({
+                    ...form,
+                    linkChoice: choice,
+                    customUrl: choice === "custom-url" ? form.customUrl : "",
+                    linkLabel: choice === HERO_LINK_TARGET ? form.linkLabel : "",
+                  });
                 }}
               >
                 {Object.entries(PAGE_ROUTES).map(([key, href]) => (
@@ -422,6 +437,29 @@ export default function AdminPage() {
                     value={form.customUrl}
                     onChange={(e) => setForm({ ...form, customUrl: e.target.value })}
                   />
+                </>
+              ) : null}
+
+              {form.linkChoice === HERO_LINK_TARGET ? (
+                <>
+                  <label htmlFor="ann-link-label">Link wording</label>
+                  <input
+                    id="ann-link-label"
+                    type="text"
+                    // Bounded for two reasons: the label shares a grid cell with
+                    // the "Learn more" link and renders on one line on desktop,
+                    // so a very long phrase would either overflow the card or
+                    // wrap awkwardly. maxLength also matches the CSS cap.
+                    maxLength={HERO_LINK_LABEL_MAX}
+                    placeholder={HERO_LINK_LABEL}
+                    value={form.linkLabel}
+                    onChange={(e) => setForm({ ...form, linkLabel: e.target.value })}
+                  />
+                  {/* Explains that leaving it blank is safe, so an editor is not
+                      forced to invent wording for every announcement. */}
+                  <p className="admin-hint">
+                    Leave blank to use “{HERO_LINK_LABEL}”. Only affects this announcement.
+                  </p>
                 </>
               ) : null}
 
@@ -455,7 +493,9 @@ export default function AdminPage() {
                 {isHeroLink({ link_target: formLinkTarget }) ? (
                   <span className="announcement-up">
                     <ArrowUpIcon size={17} aria-hidden="true" />
-                    <span>Calls open now</span>
+                    {/* Same resolver the homepage calls, so typing a label here
+                        shows exactly the wording that will be published. */}
+                    <span>{heroLinkLabel({ link_label: form.linkLabel })}</span>
                   </span>
                 ) : previewHref ? (
                   <a className="announcement-more" href={previewHref}>
