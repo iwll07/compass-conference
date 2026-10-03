@@ -6,7 +6,16 @@
 -- policies below are load-bearing rather than defence-in-depth.
 --
 -- Run manually in the Supabase SQL Editor if the CLI is not wired to this
--- project. Statements are idempotent-ish but intended as a one-time migration.
+-- project.
+--
+-- ONE-TIME MIGRATION -- NOT SAFELY RE-RUNNABLE. Every statement below is
+-- unguarded (`create type`, `create table`, `create index`, `create policy`,
+-- `create function`, `create trigger` -- no `if not exists` / `if exists`), and
+-- the SQL Editor aborts a pasted script at the first error. So once this file
+-- has been applied, re-pasting it stops at the first `create type` and changes
+-- nothing. Any later change must go in a NEW, separate migration file: see
+-- 20260930120000_add_link_label.sql and 20261003120000_allow_history_delete.sql
+-- for two that were added after this file had already been applied.
 
 create type announcement_category as enum
     ('registration', 'speakers', 'agenda', 'sponsors', 'posters', 'general');
