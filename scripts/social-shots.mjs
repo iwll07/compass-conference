@@ -2,12 +2,15 @@ import { chromium } from "@playwright/test";
 
 // Footer social-links visual check: light/dark desktop + light mobile.
 const shots = [
-  ["social-footer-light", { width: 1440, height: 1000 }, null, false],
-  ["social-footer-dark", { width: 1440, height: 1000 }, "dark", false],
-  ["social-footer-mobile", { width: 390, height: 844 }, null, true],
+  ["social-footer-light", { width: 1440, height: 1000 }, null],
+  ["social-footer-dark", { width: 1440, height: 1000 }, "dark"],
+  ["social-footer-mobile", { width: 390, height: 844 }, null],
 ];
 const browser = await chromium.launch({ channel: "msedge" });
-for (const [name, viewport, theme, mobile] of shots) {
+// The viewport width alone distinguishes the mobile shot, so the tuple carries no
+// per-shot `mobile` flag. An earlier fourth column was destructured but never
+// read, which `npm run lint` now flags: the lint script covers scripts/.
+for (const [name, viewport, theme] of shots) {
   const context = await browser.newContext({ viewport });
   const page = await context.newPage();
   await page.goto("http://localhost:3000/", { waitUntil: "networkidle" });

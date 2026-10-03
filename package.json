@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build && node scripts/csp-hashes.mjs",
-    "lint": "eslint app next.config.ts",
+    "lint": "eslint app components lib tests scripts next.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:e2e": "playwright test",
