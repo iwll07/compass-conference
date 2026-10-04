@@ -56,7 +56,7 @@ export default function SpeakersPage() {
                 <ul>
                   {speaker.links.map((link) => (
                     <li key={link.href}>
-                      <Link href={link.href} className="text-link">{link.label}</Link>
+                      <a className="text-link" href={link.href} {...(link.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{link.label}</a>
                     </li>
                   ))}
                 </ul>

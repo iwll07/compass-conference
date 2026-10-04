@@ -53,7 +53,7 @@ export default function SponsorsPage() {
         <section className="empty-state reveal" aria-labelledby="sponsors-coming-soon">
           <h2 id="sponsors-coming-soon">Our supporters, soon.</h2>
           <p>
-            Soon...
+            Confirmed sponsors and partners will be listed here with their details. Partnership information is coming soon.
           </p>
         </section>
       )}

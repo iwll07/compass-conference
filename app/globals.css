@@ -93,11 +93,6 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .announcement-meta { font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
 .announcement-title { font-size: 25px; margin-top: 12px; max-width: 30ch; }
 .announcement-body { margin-top: 8px; font-size: 13px; color: var(--muted); max-width: 62ch; }
-/* Baseline-aligned to the bottom of the text column via align-self:end on the
-   grid, so it reads as attached to the body line rather than floating. */
-/* Labelled link rather than a bare corner arrow, matching the "The program ->"
-   text-link in the event strip directly above. Hidden entirely when the item
-   has no link, so a no-link announcement shows no dangling affordance. */
 /* Labelled link rather than a bare corner arrow, matching the "The program ->"
    text-link in the event strip directly above. Lives in its own grid column
    (grid-column:2) so it sits at the right edge instead of under the body text,

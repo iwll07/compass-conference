@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { Compass, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { posters } from "@/lib/content";
 import { speakerPostersCall } from "@/lib/calls";
@@ -26,7 +25,7 @@ export default function PostersPage() {
             <article key={poster.id} className="poster-entry">
               {poster.imageUrl ? (
                 <figure>
-                  <Link href={poster.imageUrl} className="text-link" aria-label={`View full-size poster: ${poster.title}`}>
+                  <a href={poster.imageUrl} target="_blank" rel="noopener noreferrer" aria-label={`View full-size poster: ${poster.title}`}>
                     <Image
                       src={poster.imageUrl}
                       alt={`Research poster: ${poster.title}`}
@@ -34,7 +33,7 @@ export default function PostersPage() {
                       height={960}
                       style={{ width: "100%", height: "auto" }}
                     />
-                  </Link>
+                  </a>
                   <figcaption>Open the image to view the full-size poster.</figcaption>
                 </figure>
               ) : (
