@@ -10,11 +10,11 @@ export const metadata: Metadata = {
   description: "Conference of Medical Practice and Scientific Studies at Beni Suef National University.",
   icons: { icon: "/tab-compass.png", apple: "/tab-compass.png" },
   // Required so og:/twitter: image URLs render as absolute URLs in previews
-  metadataBase: new URL("https://compass.bsnu.workers.dev"),
+  metadataBase: new URL("https://compassbsnu.page"),
   openGraph: {
     title: "COMPASS | Directing the Future of Healthcare",
     description: "Conference of Medical Practice and Scientific Studies at Beni Suef National University.",
-    url: "https://compass.bsnu.workers.dev",
+    url: "https://compassbsnu.page",
     siteName: "COMPASS",
     images: [{ url: "/compass-banner.jpg", width: 1280, height: 853 }],
     type: "website",

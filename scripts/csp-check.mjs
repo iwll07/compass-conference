@@ -54,7 +54,7 @@ const beaconLoaded = await page.evaluate(() => {
   return { present: !!el, data: el?.getAttribute("data-cf-beacon") ?? null };
 });
 check("beacon script tag present in served page", beaconLoaded.present);
-check("beacon token delivered to the page", beaconLoaded.data?.includes("21fb769a8dcc47c398c4d7df71518fd7") === true, String(beaconLoaded.data));
+check("beacon token delivered to the page", beaconLoaded.data?.includes("ad820dbf1a32497099d0028be6c1e7fb") === true, String(beaconLoaded.data));
 check("beacon script was actually fetched (allowed by script-src)", beaconRequests.length > 0, JSON.stringify(beaconRequests.slice(0, 2)));
 
 // Hydration proof: countdown ticks (static HTML shows "Preparing", hydrated shows live numbers)

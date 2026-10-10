@@ -7,7 +7,7 @@
 // Lives here for the same reason the call links live in lib/calls.ts — one
 // place to edit. Rotating the token, or removing analytics entirely, means
 // changing this file (and the script tag + both CSP entries; see working.md).
-export const CLOUDFLARE_ANALYTICS_TOKEN = "21fb769a8dcc47c398c4d7df71518fd7";
+export const CLOUDFLARE_ANALYTICS_TOKEN = "ad820dbf1a32497099d0028be6c1e7fb";
 
 // Hosts the beacon needs in the Content-Security-Policy (public/_headers).
 // Kept beside the token so the script tag and the policy cannot drift apart.

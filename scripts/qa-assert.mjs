@@ -111,7 +111,7 @@ const beacon = page.locator('script[src="https://static.cloudflareinsights.com/b
 check("cloudflare beacon script present in head", await beacon.count() === 1, `found ${await beacon.count()}`);
 check("beacon is a plain module script (not next/script bootstrap)", (await beacon.getAttribute("type")) === "module");
 const beaconData = await beacon.getAttribute("data-cf-beacon");
-check("beacon carries the site token", beaconData === JSON.stringify({ token: "21fb769a8dcc47c398c4d7df71518fd7" }), String(beaconData));
+check("beacon carries the site token", beaconData === JSON.stringify({ token: "ad820dbf1a32497099d0028be6c1e7fb" }), String(beaconData));
 check("beacon is in <head> so it loads on every page", await beacon.evaluate((el) => el.ownerDocument.head.contains(el)));
 // The whole point of the plain-tag choice: no next/script inline bootstrap, so
 // the inline-hash count must not have grown.
