@@ -64,12 +64,24 @@ svg { flex-shrink: 0; vertical-align: middle; }
    hero, which is what the link promises. */
 .hero { scroll-margin-top: 24px; }
 .hero-photo .hero-actions { justify-content: center; }
-/* Two equal-weight CTA buttons side by side, stacking when the row runs out
-   of room. The Discover COMPASS text link sits below this row. */
-.hero-cta-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-.hero-link { color: var(--hero-ink); }
+/* Both calls closed on 11 October 2026, so the hero's CTA row holds an inert
+   "Registration soon" badge next to the active "Discover COMPASS" text link.
+   Desktop: side by side, vertically centred. Mobile: stacked column, centred. */
+.hero-cta-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 20px; }
 .button { display: inline-flex; align-items: center; justify-content: space-between; gap: 25px; min-height: 50px; padding: 12px 23px; text-decoration: none; background: var(--button); color: var(--button-ink); border: 1px solid var(--button); border-radius: 2px; font-size: 13px; font-weight: 600; transition: transform 160ms cubic-bezier(.23,1,.32,1), background-color 160ms, box-shadow 160ms; }
 .button-secondary { background: transparent; color: var(--ink); border-color: var(--line); }
+/* Inert "Registration soon" badge in the hero CTA row: rendered as disabled
+   text (aria-disabled in the markup), never a link, never focusable, and
+   pointer-events: none so it does not even react to the cursor. Deliberately
+   NOT .button-secondary — it keeps the primary .button's SOLID fill, so the
+   dimmed affordance still reads as a filled button rather than an outline
+   (an outline over the dark hero scrim loses the shape entirely). Opacity is
+   slightly higher (0.75) here since the two items sit together and the dimmed
+   badge doesn't need to be as recessive against the scrim. */
+.hero-register-disabled { opacity: 0.85; cursor: default; user-select: none; pointer-events: none; }
+/* Hero text colour for the Discover COMPASS text link: --hero-ink (white over
+   the scrim) rather than the page's default --ink, which is dark on light. */
+.hero-link { color: var(--hero-ink); }
 .text-link { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; font-size: 13px; font-weight: 600; text-decoration: none; }
 .text-link:hover { text-decoration: underline; }
 
@@ -362,9 +374,6 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .empty-state h2 { font-size: clamp(1.8rem, 3vw, 2.7rem); max-width: 24ch; margin-bottom: 17px; }
 .empty-state p { max-width: 58ch; font-size: 14px; color: var(--muted); margin-bottom: 18px; }
 .empty-mark { float: right; margin: 10px 0 35px 30px; color: var(--accent); }
-/* Open-call links on the registration page (URLs live in lib/calls.ts). */
-.open-calls-lead { margin-bottom: 12px; }
-.open-calls { display: flex; flex-wrap: wrap; gap: 6px 34px; list-style: none; margin: 0; padding: 0; }
 /* Key dates for the Speaker / Posters call (speakers + posters pages).
    Width-capped: the margin-note is full-width, so an uncapped space-between row
    would fling the dates to the far edge and break the label/date pairing. */
@@ -373,9 +382,6 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .call-deadlines > div:last-child { border-bottom: 0; padding-bottom: 0; }
 .call-deadlines dt { font-size: 12px; color: var(--muted); }
 .call-deadlines dd { margin: 0; font-size: 12px; font-weight: 600; color: var(--ink); text-align: right; }
-
-/* Call-to-action button inside a margin-note (speakers/posters pages). */
-.call-button { margin: 16px 0 18px; }
 
 /* Agenda "Download agenda": dimmed + inert until the program is confirmed.
    Not focusable, not a control — mirrors .nav-register-disabled. */
@@ -414,16 +420,8 @@ svg { flex-shrink: 0; vertical-align: middle; }
   .hero h1 { font-size: clamp(3rem, 10vw, 4.5rem); max-width: 13ch; }
   .hero-copy > p { margin-top: 21px; font-size: 15px; max-width: 36ch; }
   .hero-actions { gap: 18px; margin-top: 25px; }
-  /* Buttons stretch to the full column width here, so `space-between` strands the
-     label hard left with the arrow far right, while centering on the button's own
-     axis overshoots to the right (the arrow is not accounted for). Centering in the
-     space BETWEEN the left edge and the arrow: `1fr auto auto` makes the flexible
-     column end where the arrow begins, so the label sits optically centred in the
-     text area with the arrow still signalling "leaves the site". */
-  .hero-cta-row { flex-direction: column; align-items: stretch; width: 100%; }
-  .hero-cta-row .button { display: grid; grid-template-columns: 1fr auto auto; align-items: center; column-gap: 12px; }
-  .hero-cta-row .button-label { grid-column: 1; justify-self: center; }
-  .hero-cta-row .button svg { grid-column: 2; justify-self: end; }
+  /* Mobile: stack the badge and text link, centred with comfortable gap. */
+  .hero-cta-row { flex-direction: column; align-items: center; gap: 16px; }
   .hero-definition { display: none; }
   .compass-plate { height: 285px; margin: 0; }
   .compass-plate > svg { width: 380px; margin: -55px auto; }

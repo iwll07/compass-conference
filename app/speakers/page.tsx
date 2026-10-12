@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { speakers } from "@/lib/content";
-import { speakerPostersCall } from "@/lib/calls";
 import { CallDeadlines } from "@/components/call-deadlines";
 
 export const metadata: Metadata = {
@@ -81,13 +79,9 @@ export default function SpeakersPage() {
           <aside className="margin-note" aria-labelledby="speakers-call">
             <h2 id="speakers-call" className="section-heading">Want to speak at COMPASS?</h2>
             <p>
-              Speaker proposals are open now. We are looking for students and faculty who want to
-              share work in progress, a case worth discussing, or a question the room should hear.
+              Speaker proposals are now closed. The submission deadline passed on 11 October 2026, and
+              proposals received are currently under review — thank you to everyone who put one forward.
             </p>
-            <a className="button hover-lift call-button" href={speakerPostersCall.href} target="_blank" rel="noopener noreferrer">
-              {speakerPostersCall.label}
-              <ArrowUpRightIcon size={19} aria-hidden="true" />
-            </a>
             <CallDeadlines />
             <p>Selected speakers will be announced here, with session details as the programme takes shape.</p>
           </aside>

@@ -56,16 +56,16 @@ export const HERO_ANCHOR_ID = "hero";
  * two must not be able to drift apart.
  *
  * "Calls open now" rather than "Call buttons": the latter names the mechanic
- * (two buttons) rather than the benefit, and it reads as a label for a UI
- * widget rather than a destination. This wording also matches the vocabulary
- * already used across the site -- `openCalls` in lib/calls.ts, and the
- * "Organization Call" / "Speaker / Posters Call" button labels -- so the
- * announcement points at something the reader has already seen named that way.
+ * (the buttons) rather than the benefit, and it reads as a label for a UI
+ * widget rather than a destination. The wording is deliberately generic enough
+ * to cover whatever announcement opts in to the hero target — a narrower label
+ * like "Submit an abstract" would be actively wrong on an announcement that is
+ * not about abstracts.
  *
- * Deliberately generic enough to cover BOTH open calls: this link appears on
- * whichever announcement opts in to the hero target, so a narrower label like
- * "Submit an abstract" would be actively wrong on an announcement that is not
- * about abstracts.
+ * Since 11 October 2026 the hero no longer shows any call CTA (both calls
+ * closed), so this link is understood as "jump to the top of the homepage".
+ * An editor can override the wording per-announcement via `link_label` if the
+ * default reads as stale; nothing in the site asserts on the exact string.
  */
 export const HERO_LINK_LABEL = "Calls open now";
 

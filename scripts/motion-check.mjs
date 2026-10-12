@@ -36,7 +36,10 @@ function check(name, pass, detail = "") { results.push({ name, pass: !!pass, det
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   const page = await context.newPage();
   await page.goto(BASE + "/", { waitUntil: "networkidle" });
-  const button = page.locator(".hero-actions .button").first();
+  // The hero no longer has any hover-lift button (its only .button is the inert
+  // badge), so the hover-lift assertion targets the IMPACT "Relive the moment"
+  // button instead — the remaining a.button.hover-lift on the homepage.
+  const button = page.locator(".last-conference a.button.hover-lift").first();
   await button.hover();
   await page.waitForTimeout(250);
   const after = await button.evaluate((el) => getComputedStyle(el).transform);

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Compass, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
+import { Compass } from "@phosphor-icons/react/dist/ssr";
 import { posters } from "@/lib/content";
-import { speakerPostersCall } from "@/lib/calls";
 import { CallDeadlines } from "@/components/call-deadlines";
 
 export const metadata: Metadata = {
@@ -67,11 +66,8 @@ export default function PostersPage() {
 
       <aside className="margin-note reveal" aria-labelledby="poster-submissions">
         <h2 id="poster-submissions" className="section-heading">Thinking about sharing your work?</h2>
-        <p>Poster submissions are open now, and are handled through the call below.</p>
-        <a className="button hover-lift call-button" href={speakerPostersCall.href} target="_blank" rel="noopener noreferrer">
-          {speakerPostersCall.label}
-          <ArrowUpRightIcon size={19} aria-hidden="true" />
-        </a>
+        <p>Poster submissions are now closed. The submission deadline passed on 11 October 2026, and
+          entries received are currently under review — thank you to everyone who submitted.</p>
         <CallDeadlines />
         <p>Accepted work will be presented and published in the COMPASS Abstract Book.</p>
       </aside>

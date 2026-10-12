@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Compass, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
-import { openCalls } from "@/lib/calls";
+import { Compass } from "@phosphor-icons/react/dist/ssr";
 
 export const metadata: Metadata = {
   title: "Registration | COMPASS",
@@ -21,19 +20,6 @@ export default function RegistrationPage() {
         <p>
           Registration is not open yet. Confirmed registration details will be published here.
         </p>
-        <p className="open-calls-lead">
-          In the meantime, two calls are open:
-        </p>
-        <ul className="open-calls">
-          {openCalls.map((call) => (
-            <li key={call.href}>
-              <a className="text-link" href={call.href} target="_blank" rel="noopener noreferrer">
-                {call.label}
-                <ArrowUpRightIcon size={18} aria-hidden="true" />
-              </a>
-            </li>
-          ))}
-        </ul>
       </section>
     </main>
   );

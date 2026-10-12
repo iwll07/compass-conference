@@ -41,22 +41,46 @@ check("header 'Registration soon' has no arrow icon", await navSoon.locator("svg
 check("header 'Registration soon' is dimmed", (await navSoon.evaluate((el) => getComputedStyle(el).opacity)) === "0.55");
 check("no clickable registration link in header", await page.locator('.nav-actions a[href*="registration"]').count() === 0);
 
-// 2b. Hero CTAs: two equal-weight external call buttons, Discover COMPASS below them
-const callSpecs = [
-  ["Organization Call", "https://tally.so/r/Zjx190"],
-  ["Speaker / Posters Call", "https://tally.so/r/RGpJ7P"],
-];
-check("hero has exactly two CTA buttons", await page.locator(".hero-actions .button").count() === 2, `${await page.locator(".hero-actions .button").count()}`);
-for (const [label, href] of callSpecs) {
-  const cta = page.locator(".hero-cta-row a.button", { hasText: label });
-  check(`hero CTA "${label}" exists`, await cta.count() === 1);
-  check(`hero CTA "${label}" href`, await cta.getAttribute("href") === href, String(await cta.getAttribute("href")));
-  check(`hero CTA "${label}" opens in new tab`, (await cta.getAttribute("target")) === "_blank" && ((await cta.getAttribute("rel")) ?? "").includes("noopener"));
-  check(`hero CTA "${label}" has hover-lift`, ((await cta.getAttribute("class")) ?? "").split(" ").includes("hover-lift") === true);
-}
+// 2b. Hero CTAs: both calls closed 11 Oct 2026, so the CTA row holds TWO
+// items side by side on desktop — an inert solid "Registration soon" badge and
+// the "Discover COMPASS" text link. Mobile: stacked column, centred.
+const heroBadge = page.locator(".hero-cta-row .hero-register-disabled");
+check("hero has an inert 'Registration soon' badge", await heroBadge.count() === 1, `${await heroBadge.count()}`);
+check("hero badge reads 'Registration soon'", (await heroBadge.textContent())?.trim() === "Registration soon", (await heroBadge.textContent())?.trim());
+check("hero badge is a span, not a link", await heroBadge.evaluate((el) => el.tagName.toLowerCase()) === "span");
+check("hero badge is aria-disabled", await heroBadge.getAttribute("aria-disabled") === "true");
+check("hero badge is not focusable", await heroBadge.evaluate((el) => el.tabIndex) === -1);
+check("hero badge ignores the pointer", (await heroBadge.evaluate((el) => getComputedStyle(el).pointerEvents)) === "none");
+// Opacity is 0.75 (slightly higher since the two items sit together)
+check("hero badge is dimmed", (await heroBadge.evaluate((el) => getComputedStyle(el).opacity)) === "0.85", (await heroBadge.evaluate((el) => getComputedStyle(el).opacity)));
+check("hero badge has no arrow icon", await heroBadge.locator("svg").count() === 0);
+// It must be the SOLID primary .button, never .button-secondary — the outline
+// treatment disappears against the dark hero scrim.
+const badgeClass = ((await heroBadge.getAttribute("class")) ?? "").split(" ");
+check("hero badge does not use .button-secondary", !badgeClass.includes("button-secondary"), badgeClass.join(" "));
+check("hero badge uses the primary .button class", badgeClass.includes("button"), badgeClass.join(" "));
+const badgeBg = await heroBadge.evaluate((el) => getComputedStyle(el).backgroundColor);
+check("hero badge keeps a solid background fill", badgeBg !== "transparent" && !/rgba\(\s*\d+,\s*\d+,\s*\d+,\s*0\)/.test(badgeBg), badgeBg);
+
+const heroDiscover = page.locator(".hero-cta-row .hero-link");
+check("hero has an active 'Discover COMPASS' link", await heroDiscover.count() === 1, `${await heroDiscover.count()}`);
+check("hero 'Discover COMPASS' links to /about", await heroDiscover.getAttribute("href") === "/about", String(await heroDiscover.getAttribute("href")));
+check("hero 'Discover COMPASS' label", (await heroDiscover.textContent())?.includes("Discover COMPASS") === true, (await heroDiscover.textContent())?.trim());
+check("hero 'Discover COMPASS' arrow is decorative", await heroDiscover.locator("svg[aria-hidden='true']").count() === 1);
+
+// The text link sits SIDE BY SIDE with the badge on desktop, vertically centered.
 const ctaRow = await page.locator(".hero-cta-row").boundingBox();
-const discover = await page.locator(".hero-actions .hero-link").boundingBox();
-check("Discover COMPASS sits below the CTA row", !!ctaRow && !!discover && discover.y > ctaRow.y + ctaRow.height - 1, JSON.stringify({ ctaRow, discover }));
+const discoverBox = await heroDiscover.boundingBox();
+check(
+  "Discover COMPASS sits side by side with badge on desktop (not below)",
+  !!ctaRow && !!discoverBox && discoverBox.x > ctaRow.x + ctaRow.width - 1 && Math.abs(discoverBox.y - ctaRow.y - ctaRow.height / 2) < 8,
+  JSON.stringify({ ctaRow, discoverBox })
+);
+
+// Row holds exactly two items (badge + link).
+check("hero CTA row holds exactly two items", await page.locator(".hero-cta-row > *").count() === 2, `${await page.locator(".hero-cta-row > *").count()}`);
+// No external call link survives anywhere in the hero.
+check("hero has no external call links", await page.locator('.hero-actions a[href*="tally.so"]').count() === 0);
 check("hero no longer links to /registration", await page.locator('.hero-actions a[href*="registration"]').count() === 0);
 
 // 2c. "Last conference" callout (IMPACT): real URLs, not placeholders
@@ -149,18 +173,19 @@ check("business contact label before email", business.includes("Business contact
 check("email link itself unchanged", await page.locator(".credit-contact a.credit-email").getAttribute("href") === "mailto:MoodITBusiness@gmail.com");
 
 
-// 4. Registration page: coming soon, and NO form fields anywhere
+// 4. Registration page: coming soon, no form fields, no call links (calls closed)
 await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 const formControls = await page.locator("input, select, textarea, form").count();
 check("registration has no form controls yet", formControls === 0, `found ${formControls}`);
-check("registration announces coming soon", (await page.locator("main").textContent())?.toLowerCase().includes("coming soon") === true);
-const openCallLinks = await page.locator(".open-calls a").count();
-check("registration page points to both open calls", openCallLinks === 2, `found ${openCallLinks}`);
-for (const [label, href] of callSpecs) {
-  const link = page.locator(".open-calls a", { hasText: label });
-  check(`registration page links "${label}"`, await link.count() === 1 && await link.getAttribute("href") === href, String(await link.getAttribute("href")));
-  check(`registration page "${label}" opens in new tab`, (await link.getAttribute("target")) === "_blank" && ((await link.getAttribute("rel")) ?? "").includes("noopener"));
-}
+const regText = (await page.locator("main").textContent()) ?? "";
+check("registration announces coming soon", regText.toLowerCase().includes("coming soon") === true);
+check(
+  "registration keeps its clean coming-soon empty state",
+  regText.includes("Registration is not open yet. Confirmed registration details will be published here."),
+  regText.replace(/\s+/g, " ").slice(0, 160)
+);
+check("registration no longer has an open-calls list", await page.locator(".open-calls, .open-calls-lead").count() === 0);
+check("registration has no external Tally links", await page.locator('main a[href*="tally.so"]').count() === 0);
 
 // 5. Empty states are intentional on agenda/speakers/posters/sponsors
 for (const route of ["/agenda/", "/speakers/", "/posters/", "/sponsors/"]) {
@@ -191,23 +216,24 @@ check("event-strip place keeps its accessible name", (await place.getAttribute("
 check("event-strip place still opens in a new tab", (await place.getAttribute("target")) === "_blank" && ((await place.getAttribute("rel")) ?? "").includes("noopener"));
 check("no negative countdown values", !/-\d/.test(heroText ?? ""));
 
-// 6b. Speakers + posters pages each surface the Speaker / Posters Call CTA
-const speakerPostersHref = "https://tally.so/r/RGpJ7P";
+// 6b. Speakers + posters pages: submissions CLOSED and under review, the
+// timeline stays visible, and no external call link remains.
 for (const [route, noteId] of [["/speakers/", "speakers-call"], ["/posters/", "poster-submissions"]]) {
   await page.goto(BASE + route, { waitUntil: "networkidle" });
   const note = page.locator(`[aria-labelledby="${noteId}"]`);
-  check(`${route} has a call-to-action note`, await note.count() === 1);
-  const cta = note.locator(`a.call-button[href="${speakerPostersHref}"]`);
-  check(`${route} CTA links the Speaker / Posters Call`, await cta.count() === 1, `${await cta.count()}`);
-  check(`${route} CTA opens in new tab`, (await cta.getAttribute("target")) === "_blank" && ((await cta.getAttribute("rel")) ?? "").includes("noopener"));
-  check(`${route} CTA has hover-lift`, ((await cta.getAttribute("class")) ?? "").split(" ").includes("hover-lift") === true);
-  check(`${route} CTA is labelled`, (await cta.textContent())?.includes("Speaker / Posters Call") === true, (await cta.textContent())?.trim());
-  // The old "not open on this website" copy must be gone now that the call is live.
-  check(`${route} no longer claims submissions are closed`, ((await page.locator("main").textContent()) ?? "").toLowerCase().includes("not open on this website") === false);
-  // Key dates for the call, shared by both pages. The presentation date is
-  // derived from conferenceWindow, so this also guards against drift.
+  check(`${route} keeps its call note`, await note.count() === 1);
+  const noteText = ((await note.textContent()) ?? "").replace(/\s+/g, " ");
+  check(`${route} says submissions are closed`, noteText.toLowerCase().includes("closed"), noteText.slice(0, 140));
+  check(`${route} says submissions are under review`, noteText.toLowerCase().includes("under review"), noteText.slice(0, 140));
+  check(`${route} no longer says submissions are open`, noteText.toLowerCase().includes("are open now") === false, noteText.slice(0, 140));
+  // The active Tally CTA must be gone from the note and the page entirely.
+  check(`${route} has no active call button`, await note.locator("a.call-button").count() === 0);
+  check(`${route} has no external Tally links`, await page.locator('main a[href*="tally.so"]').count() === 0);
+  // Key dates for the call, shared by both pages and retained after closure so
+  // visitors can still see the review/presentation timeline. The presentation
+  // date is derived from conferenceWindow, so this also guards against drift.
   const dl = note.locator(".call-deadlines");
-  check(`${route} shows the call key dates`, await dl.count() === 1);
+  check(`${route} still shows the call key dates`, await dl.count() === 1);
   const dlText = ((await dl.textContent()) ?? "").replace(/\s+/g, " ");
   for (const [label, value] of [
     ["Submission deadline", "11 October 2026"],
@@ -216,7 +242,7 @@ for (const [route, noteId] of [["/speakers/", "speakers-call"], ["/posters/", "p
   ]) {
     check(`${route} shows ${label}`, dlText.includes(label) && dlText.includes(value), dlText.slice(0, 120));
   }
-  check(`${route} no longer promises future deadlines`, ((await note.textContent()) ?? "").includes("once they are confirmed") === false);
+  check(`${route} no longer promises future deadlines`, noteText.includes("once they are confirmed") === false);
 }
 
 
