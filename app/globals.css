@@ -218,6 +218,38 @@ svg { flex-shrink: 0; vertical-align: middle; }
    while reaching for a single-row Delete. */
 .admin-clear-history { margin-top: 22px; min-height: 44px; }
 
+/* ---- Registration (/registration) --------------------------------------- */
+.reg-form { max-width: 540px; margin-top: 40px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.reg-fieldset { width: 100%; border: 0; padding: 0; margin: 0 0 20px 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.reg-legend { font-family: "Source Serif 4", Georgia, serif; font-size: 24px; color: var(--ink); margin-bottom: 8px; padding: 0; }
+.reg-form label { margin-top: 10px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.reg-form input, .reg-form select { width: 100%; min-height: 46px; font-size: 16px; padding: 11px 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 2px; }
+.reg-phone-row { display: flex; width: 100%; }
+.reg-phone-prefix { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; background: var(--surface); color: var(--muted); border: 1px solid var(--line); border-right: 0; border-radius: 2px 0 0 2px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; user-select: none; }
+.reg-phone-row input { border-radius: 0 2px 2px 0; }
+.reg-field-error { font-size: 12px; font-weight: 600; color: var(--accent); margin-top: 2px; line-height: 1.4; }
+.reg-submit-error { margin-top: 14px; padding: 13px 17px; border: 1px solid var(--line); color: var(--ink); font-size: 14px; width: 100%; }
+.reg-form .button { margin-top: 16px; }
+.reg-form .button:disabled { opacity: .55; cursor: default; }
+.reg-privacy { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 8px; max-width: 48ch; }
+
+.reg-confirmation { max-width: 580px; margin-top: 40px; }
+.reg-confirmation h2 { font-size: clamp(2.2rem, 4vw, 3rem); margin-bottom: 8px; outline: none; }
+.reg-thankyou { font-size: 18px; color: var(--ink); margin-top: 8px; }
+.reg-details { margin: 24px 0 20px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 2px; display: grid; gap: 12px; }
+.reg-details > div { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; }
+.reg-details dt { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.reg-details dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink); text-align: right; word-break: break-all; }
+.reg-next { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+.reg-event { padding: 18px 22px; background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 2px 2px 0; margin-bottom: 28px; }
+.reg-event-date { font-weight: 600; font-size: 15px; color: var(--ink); margin-bottom: 4px; }
+.reg-event-line { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.reg-event-place { font-size: 13px; color: var(--muted); }
+.reg-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.reg-home-link { color: var(--accent); }
+.reg-contact { margin-top: 24px; font-size: 13px; color: var(--muted); }
+.reg-contact a { color: var(--accent); }
+
 /* ---- Motion (reveal, hover treatments, icon swaps) -------------------- */
 /* Reference feel: 160ms cubic-bezier(.23,1,.32,1), same curve as .button.
    All hover effects are gated behind (hover: hover) so touch devices never
