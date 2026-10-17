@@ -1,0 +1,159 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import {
+  normalizeEgyptianPhone,
+  validateName,
+  validateEmail,
+  NATIONALITIES,
+  UNIVERSITIES,
+  ACADEMIC_YEARS,
+} from "../lib/registration.ts";
+
+// ---- Phone normalisation ----
+
+test("normalizeEgyptianPhone: standard local format (01012345678)", () => {
+  assert.equal(normalizeEgyptianPhone("01012345678"), "+201012345678");
+});
+
+test("normalizeEgyptianPhone: without trunk prefix (1012345678)", () => {
+  assert.equal(normalizeEgyptianPhone("1012345678"), "+201012345678");
+});
+
+test("normalizeEgyptianPhone: international +20", () => {
+  assert.equal(normalizeEgyptianPhone("+201012345678"), "+201012345678");
+});
+
+test("normalizeEgyptianPhone: international 0020", () => {
+  assert.equal(normalizeEgyptianPhone("00201012345678"), "+201012345678");
+});
+
+test("normalizeEgyptianPhone: strips spaces, dashes, dots, parens", () => {
+  assert.equal(normalizeEgyptianPhone("010 1234 5678"), "+201012345678");
+  assert.equal(normalizeEgyptianPhone("010-1234-5678"), "+201012345678");
+  assert.equal(normalizeEgyptianPhone("(010) 1234.5678"), "+201012345678");
+});
+
+test("normalizeEgyptianPhone: converts Arabic-Indic digits", () => {
+  assert.equal(normalizeEgyptianPhone("٠١٠١٢٣٤٥٦٧٨"), "+201012345678");
+});
+
+test("normalizeEgyptianPhone: all valid prefixes (10, 11, 12, 15)", () => {
+  assert.equal(normalizeEgyptianPhone("01012345678"), "+201012345678");
+  assert.equal(normalizeEgyptianPhone("01112345678"), "+201112345678");
+  assert.equal(normalizeEgyptianPhone("01212345678"), "+201212345678");
+  assert.equal(normalizeEgyptianPhone("01512345678"), "+201512345678");
+});
+
+test("normalizeEgyptianPhone: rejects invalid prefixes", () => {
+  assert.equal(normalizeEgyptianPhone("01312345678"), null); // 13 not valid
+  assert.equal(normalizeEgyptianPhone("01412345678"), null); // 14 not valid
+  assert.equal(normalizeEgyptianPhone("01612345678"), null); // 16 not valid
+});
+
+test("normalizeEgyptianPhone: rejects wrong length", () => {
+  assert.equal(normalizeEgyptianPhone("0101234567"), null);   // 10 digits
+  assert.equal(normalizeEgyptianPhone("010123456789"), null); // 12 digits
+  assert.equal(normalizeEgyptianPhone(""), null);
+});
+
+test("normalizeEgyptianPhone: rejects non-numeric input", () => {
+  assert.equal(normalizeEgyptianPhone("abcdefghijk"), null);
+  assert.equal(normalizeEgyptianPhone("010abc45678"), null);
+});
+
+// ---- Name validation ----
+
+test("validateName: accepts a two-word name", () => {
+  assert.equal(validateName("Fares Ahmed"), "Fares Ahmed");
+});
+
+test("validateName: trims whitespace", () => {
+  assert.equal(validateName("  Fares Ahmed  "), "Fares Ahmed");
+});
+
+test("validateName: rejects single word", () => {
+  assert.equal(validateName("Fares"), null);
+});
+
+test("validateName: rejects too short (< 3 chars)", () => {
+  assert.equal(validateName("AB"), null);
+  assert.equal(validateName("A"), null);
+});
+
+test("validateName: rejects too long (> 100 chars)", () => {
+  assert.equal(validateName("A".repeat(51) + " " + "B".repeat(50)), null);
+});
+
+test("validateName: accepts Arabic names", () => {
+  assert.equal(validateName("فارس أحمد"), "فارس أحمد");
+});
+
+test("validateName: accepts hyphens, apostrophes, dots", () => {
+  assert.equal(validateName("Mary-Jane O'Brien"), "Mary-Jane O'Brien");
+  assert.equal(validateName("Dr. John Smith"), "Dr. John Smith");
+});
+
+test("validateName: rejects digits", () => {
+  assert.equal(validateName("Fares 123"), null);
+  assert.equal(validateName("Test2 User"), null);
+});
+
+// ---- Email validation ----
+
+test("validateEmail: normalises to lowercase", () => {
+  assert.equal(validateEmail("Fares@Example.COM"), "fares@example.com");
+});
+
+test("validateEmail: trims whitespace", () => {
+  assert.equal(validateEmail("  a@b.com  "), "a@b.com");
+});
+
+test("validateEmail: rejects empty", () => {
+  assert.equal(validateEmail(""), null);
+  assert.equal(validateEmail("   "), null);
+});
+
+test("validateEmail: rejects too long (> 254)", () => {
+  assert.equal(validateEmail("a".repeat(243) + "@example.com"), null);
+});
+
+test("validateEmail: rejects missing @", () => {
+  assert.equal(validateEmail("not-an-email"), null);
+});
+
+test("validateEmail: rejects missing domain", () => {
+  assert.equal(validateEmail("user@"), null);
+});
+
+// ---- Option lists ----
+
+test("nationality list has the expected entries in order", () => {
+  assert.deepEqual(
+    [...NATIONALITIES],
+    ["Egypt", "Sudan", "Saudi Arabia", "UAE", "Kuwait", "Qatar", "Syria", "Other"]
+  );
+});
+
+test("university list has the expected entries in order", () => {
+  assert.deepEqual(
+    [...UNIVERSITIES],
+    [
+      "Beni Suef National University",
+      "Beni Suef University",
+      "Benha National University",
+      "Alexandria National University",
+      "Mansoura National University",
+      "American University",
+      "New Giza University",
+      "New Valley University",
+      "Other",
+    ]
+  );
+});
+
+test("academic year list has the expected entries in order", () => {
+  assert.deepEqual(
+    [...ACADEMIC_YEARS],
+    ["First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year", "Intern", "Graduate"]
+  );
+});
