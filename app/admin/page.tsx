@@ -20,10 +20,15 @@ import {
   type AnnouncementCategory,
   type LinkTarget,
 } from "@/lib/announcements";
+import { AdminRegistrations } from "@/components/admin-registrations";
 
 /** The only account allowed to read the announcement audit log. Mirrors the
  *  `announcement_log` SELECT policy in supabase/migrations — keep in sync. */
 export const HISTORY_EMAIL = "fares9005@gmail.com";
+
+/** Authorised accounts allowed to view and export conference registrations. Mirrors
+ *  the `is_registration_admin()` SQL function in supabase/migrations — keep in sync. */
+export const REGISTRATION_ADMIN_EMAILS = ["fares9005@gmail.com"];
 
 /** Rows shown in each admin list before "Show more". */
 const ADMIN_COLLAPSED_COUNT = 2;
@@ -111,6 +116,8 @@ export default function AdminPage() {
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[] | null>(null);
   const canSeeHistory = sessionEmail?.toLowerCase() === HISTORY_EMAIL;
+  const canSeeRegistrations =
+    !!sessionEmail && REGISTRATION_ADMIN_EMAILS.some((e) => e.toLowerCase() === sessionEmail.toLowerCase());
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -544,6 +551,10 @@ export default function AdminPage() {
               }}
             />
           </AdminDisclosure>
+ 
+          {/* Registrations list and export. Rendered only for authorized accounts
+              in REGISTRATION_ADMIN_EMAILS. The database RLS policy is the real gate. */}
+          {canSeeRegistrations ? <AdminRegistrations /> : null}
 
           {/* History is rendered only for the privileged account. Hiding it is
               presentation, not security — the RLS policy on announcement_log is
