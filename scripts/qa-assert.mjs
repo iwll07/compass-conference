@@ -32,56 +32,40 @@ await page.goto(BASE + "/", { waitUntil: "networkidle" });
 for (const label of ["About", "Agenda", "Speakers", "Posters", "Sponsors"]) {
   check(`nav link ${label}`, await page.locator(".desktop-nav").getByText(label, { exact: true }).count() === 1);
 }
-// Registration is not open: the header CTA is inert, dimmed text — never a link.
-const navSoon = page.locator(".nav-register");
-check("header reads 'Registration soon'", (await navSoon.textContent())?.trim() === "Registration soon", (await navSoon.textContent())?.trim());
-check("header 'Registration soon' is not a link", await navSoon.evaluate((el) => el.tagName.toLowerCase()) === "span");
-check("header 'Registration soon' is aria-disabled", await navSoon.getAttribute("aria-disabled") === "true");
-check("header 'Registration soon' has no arrow icon", await navSoon.locator("svg").count() === 0);
-check("header 'Registration soon' is dimmed", (await navSoon.evaluate((el) => getComputedStyle(el).opacity)) === "0.55");
-check("no clickable registration link in header", await page.locator('.nav-actions a[href*="registration"]').count() === 0);
+// Registration is open: the header CTA is a real link to /registration.
+const navRegister = page.locator(".nav-actions .nav-register");
+check("header reads 'Register'", (await navRegister.textContent())?.trim() === "Register", (await navRegister.textContent())?.trim());
+check("header 'Register' is a link", await navRegister.evaluate((el) => el.tagName.toLowerCase()) === "a");
+check("header 'Register' links to /registration", await navRegister.getAttribute("href") === "/registration");
 
-// 2b. Hero CTAs: both calls closed 11 Oct 2026, so the CTA row holds TWO
-// items side by side on desktop — an inert solid "Registration soon" badge and
-// the "Discover COMPASS" text link. Mobile: stacked column, centred.
-const heroBadge = page.locator(".hero-cta-row .hero-register-disabled");
-check("hero has an inert 'Registration soon' badge", await heroBadge.count() === 1, `${await heroBadge.count()}`);
-check("hero badge reads 'Registration soon'", (await heroBadge.textContent())?.trim() === "Registration soon", (await heroBadge.textContent())?.trim());
-check("hero badge is a span, not a link", await heroBadge.evaluate((el) => el.tagName.toLowerCase()) === "span");
-check("hero badge is aria-disabled", await heroBadge.getAttribute("aria-disabled") === "true");
-check("hero badge is not focusable", await heroBadge.evaluate((el) => el.tabIndex) === -1);
-check("hero badge ignores the pointer", (await heroBadge.evaluate((el) => getComputedStyle(el).pointerEvents)) === "none");
-// Opacity is 0.75 (slightly higher since the two items sit together)
-check("hero badge is dimmed", (await heroBadge.evaluate((el) => getComputedStyle(el).opacity)) === "0.85", (await heroBadge.evaluate((el) => getComputedStyle(el).opacity)));
-check("hero badge has no arrow icon", await heroBadge.locator("svg").count() === 0);
-// It must be the SOLID primary .button, never .button-secondary — the outline
-// treatment disappears against the dark hero scrim.
-const badgeClass = ((await heroBadge.getAttribute("class")) ?? "").split(" ");
-check("hero badge does not use .button-secondary", !badgeClass.includes("button-secondary"), badgeClass.join(" "));
-check("hero badge uses the primary .button class", badgeClass.includes("button"), badgeClass.join(" "));
-const badgeBg = await heroBadge.evaluate((el) => getComputedStyle(el).backgroundColor);
-check("hero badge keeps a solid background fill", badgeBg !== "transparent" && !/rgba\(\s*\d+,\s*\d+,\s*\d+,\s*0\)/.test(badgeBg), badgeBg);
+// 2b. Hero CTA: "Register now" button linking to /registration with hover-lift,
+// and "Discover COMPASS" text link sitting below it.
+const heroButton = page.locator(".hero-cta-row a.button");
+check("hero has a 'Register now' button", await heroButton.count() === 1, `${await heroButton.count()}`);
+check("hero button reads 'Register now'", (await heroButton.textContent())?.includes("Register now") === true, (await heroButton.textContent())?.trim());
+check("hero button links to /registration", await heroButton.getAttribute("href") === "/registration", String(await heroButton.getAttribute("href")));
+check("hero button has hover-lift", ((await heroButton.getAttribute("class")) ?? "").split(" ").includes("hover-lift") === true);
+check("hero button has an arrow icon", await heroButton.locator("svg").count() === 1);
 
-const heroDiscover = page.locator(".hero-cta-row .hero-link");
+const heroDiscover = page.locator(".hero-actions .hero-link");
 check("hero has an active 'Discover COMPASS' link", await heroDiscover.count() === 1, `${await heroDiscover.count()}`);
 check("hero 'Discover COMPASS' links to /about", await heroDiscover.getAttribute("href") === "/about", String(await heroDiscover.getAttribute("href")));
 check("hero 'Discover COMPASS' label", (await heroDiscover.textContent())?.includes("Discover COMPASS") === true, (await heroDiscover.textContent())?.trim());
 check("hero 'Discover COMPASS' arrow is decorative", await heroDiscover.locator("svg[aria-hidden='true']").count() === 1);
 
-// The text link sits SIDE BY SIDE with the badge on desktop, vertically centered.
+// The text link sits BELOW the button on desktop.
 const ctaRow = await page.locator(".hero-cta-row").boundingBox();
 const discoverBox = await heroDiscover.boundingBox();
 check(
-  "Discover COMPASS sits side by side with badge on desktop (not below)",
-  !!ctaRow && !!discoverBox && discoverBox.x > ctaRow.x + ctaRow.width - 1 && Math.abs(discoverBox.y - ctaRow.y - ctaRow.height / 2) < 8,
+  "Discover COMPASS sits below Register now button on desktop",
+  !!ctaRow && !!discoverBox && discoverBox.y > ctaRow.y + ctaRow.height - 1,
   JSON.stringify({ ctaRow, discoverBox })
 );
 
-// Row holds exactly two items (badge + link).
-check("hero CTA row holds exactly two items", await page.locator(".hero-cta-row > *").count() === 2, `${await page.locator(".hero-cta-row > *").count()}`);
+// Row holds exactly one item (the Register now button).
+check("hero CTA row holds exactly one item", await page.locator(".hero-cta-row > *").count() === 1, `${await page.locator(".hero-cta-row > *").count()}`);
 // No external call link survives anywhere in the hero.
 check("hero has no external call links", await page.locator('.hero-actions a[href*="tally.so"]').count() === 0);
-check("hero no longer links to /registration", await page.locator('.hero-actions a[href*="registration"]').count() === 0);
 
 // 2c. "Last conference" callout (IMPACT): real URLs, not placeholders
 const lastConf = page.locator(".last-conference");
@@ -173,18 +157,12 @@ check("business contact label before email", business.includes("Business contact
 check("email link itself unchanged", await page.locator(".credit-contact a.credit-email").getAttribute("href") === "mailto:MoodITBusiness@gmail.com");
 
 
-// 4. Registration page: coming soon, no form fields, no call links (calls closed)
+// 4. Registration page: open form with controls, no call links
 await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 const formControls = await page.locator("input, select, textarea, form").count();
-check("registration has no form controls yet", formControls === 0, `found ${formControls}`);
+check("registration has form controls", formControls >= 6, `found ${formControls}`);
 const regText = (await page.locator("main").textContent()) ?? "";
-check("registration announces coming soon", regText.toLowerCase().includes("coming soon") === true);
-check(
-  "registration keeps its clean coming-soon empty state",
-  regText.includes("Registration is not open yet. Confirmed registration details will be published here."),
-  regText.replace(/\s+/g, " ").slice(0, 160)
-);
-check("registration no longer has an open-calls list", await page.locator(".open-calls, .open-calls-lead").count() === 0);
+check("registration heading exists", regText.includes("Your place at COMPASS starts here."));
 check("registration has no external Tally links", await page.locator('main a[href*="tally.so"]').count() === 0);
 
 // 5. Empty states are intentional on agenda/speakers/posters/sponsors
@@ -284,19 +262,17 @@ await mpage.goto(BASE + "/", { waitUntil: "networkidle" });
 check("mobile: desktop nav hidden", await mpage.locator(".desktop-nav").isHidden());
 await mpage.click(".menu-toggle");
 check("mobile: menu opens", await mpage.locator("#mobile-nav").isVisible());
-for (const label of ["About", "Agenda", "Speakers", "Posters", "Sponsors", "Registration soon"]) {
+for (const label of ["About", "Agenda", "Speakers", "Posters", "Sponsors", "Register"]) {
   check(`mobile menu contains ${label}`, await mpage.locator("#mobile-nav").getByText(label, { exact: true }).count() === 1);
 }
-const mSoon = mpage.locator("#mobile-nav .nav-register-disabled");
-check("mobile menu 'Registration soon' is a span, not a link", await mSoon.evaluate((el) => el.tagName.toLowerCase()) === "span");
-check("mobile menu 'Registration soon' is aria-disabled", await mSoon.getAttribute("aria-disabled") === "true");
-check("mobile menu 'Registration soon' is dimmed", (await mSoon.evaluate((el) => getComputedStyle(el).opacity)) === "0.55");
-check("mobile menu has no registration link", await mpage.locator('#mobile-nav a[href*="registration"]').count() === 0);
-check("mobile menu 'Registration soon' is not focusable", await mSoon.evaluate((el) => el.tabIndex) === -1);
-// Hero CTAs must stack (not sit side by side) at 390px
-const mBox1 = await mpage.locator(".hero-cta-row a.button").nth(0).boundingBox();
-const mBox2 = await mpage.locator(".hero-cta-row a.button").nth(1).boundingBox();
-check("mobile: hero CTAs stack vertically", !!mBox1 && !!mBox2 && mBox2.y > mBox1.y + mBox1.height - 1, JSON.stringify({ mBox1, mBox2 }));
+const mReg = mpage.locator('#mobile-nav a[href="/registration"]');
+check("mobile menu 'Register' is a link", await mReg.count() === 1);
+check("mobile menu 'Register' has arrow icon", await mReg.locator("svg").count() === 1);
+
+// Mobile: Register now button and Discover COMPASS stack vertically at 390px
+const mBtn = await mpage.locator(".hero-cta-row a.button").boundingBox();
+const mDisc = await mpage.locator(".hero-actions .hero-link").boundingBox();
+check("mobile: hero CTAs stack vertically", !!mBtn && !!mDisc && mDisc.y > mBtn.y + mBtn.height - 1, JSON.stringify({ mBtn, mDisc }));
 await mpage.click('#mobile-nav a[href="/about/"]');
 await mpage.waitForURL("**/about/");
 // close transition holds visibility:visible for 240ms before flipping to hidden - poll instead of instant check

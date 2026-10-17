@@ -1,6 +1,38 @@
 # COMPASS working log
 
 ## Current state
+- **Registration system: public form, Supabase table with RLS, and admin Excel export (2026-10-18):**
+  - **Shared definitions (`lib/registration.ts`):** Single source of truth for option lists (Nationality, University, Academic year in exact order), `normalizeEgyptianPhone` (converts Arabic-Indic digits, strips punctuation, normalises 010/011/012/015 to `+20` + 10 digits), name validation (trimmed 3-100 characters, >=2 words, any script, no digits), and email validation (trimmed, lowercase, <=254 chars). `registrationContact` is exported as `null`. 43 unit tests in `tests/registration.test.ts` verify all rules and assert migration CHECK constraints stay in sync with the option lists.
+  - **Database schema & migration (`supabase/migrations/20261018000000_create_registrations.sql`):**
+    - Table `registrations`: `id` uuid primary key default `gen_random_uuid()`, `created_at` timestamptz default `now()`, and `full_name`, `email`, `phone`, `nationality`, `university`, `academic_year` (all text, not null).
+    - CHECK constraints enforce name length (3-100), email length (3-254), phone format (`^\+20(10|11|12|15)[0-9]{8}$`), and exact nationality, university, and academic year lists. Unique index on `lower(email)`.
+    - **RLS & Column-Level Grants:** `revoke all on registrations from anon, authenticated;` followed by `grant insert (full_name, email, phone, nationality, university, academic_year) on registrations to anon, authenticated;`. Clients cannot set `id` or `created_at`.
+    - SELECT granted only to `authenticated` via `is_registration_admin()` security definer function checking verified JWT claim email via `json_extract_path_text(current_setting('request.jwt.claims', true)::json, 'email')` (never `->>`, which the SQL Editor HTML-escapes). No UPDATE or DELETE policies: registrations are immutable from the client API.
+    - **Safe to re-run:** Structural statements use `if not exists`, `drop policy if exists`, and `create or replace`. Note plainly: changing a CHECK constraint on an existing table requires a new migration file.
+  - **Admin email allow-list (kept in sync):**
+    1. SQL function `is_registration_admin()` in `supabase/migrations/20261018000000_create_registrations.sql`: defaults to `'fares9005@gmail.com'`.
+    2. Client export in `app/admin/page.tsx`: `export const REGISTRATION_ADMIN_EMAILS = ["fares9005@gmail.com"];`.
+    - **How to add an admin:** Add their lowercased email to `REGISTRATION_ADMIN_EMAILS` in `app/admin/page.tsx`, and update the `in ('fares9005@gmail.com', ...)` check in `is_registration_admin()` in Supabase SQL Editor.
+  - **Manual migration step:**
+    - The Supabase CLI is not linked to this project. Mahmoud/admin must copy the contents of `supabase/migrations/20261018000000_create_registrations.sql` and execute it in the Supabase Dashboard SQL Editor BEFORE deploying the site.
+  - **Deleting a registrant:**
+    - Since there are no client-side DELETE or UPDATE policies, deleting a registrant must be done manually by an admin directly in the Supabase Dashboard **Table Editor** (`registrations` table -> select row -> Delete row) or via an explicit `DELETE FROM registrations WHERE email = '...';` query in the SQL Editor.
+  - **Admin Excel Export (`components/admin-registrations.tsx`):**
+    - Renders in `/admin` only for users in `REGISTRATION_ADMIN_EMAILS`. Shows exact count and "Download Excel (.xlsx)" button.
+    - Uses `write-excel-file` (zero new audit vulnerabilities; dynamically imported on click so public pages bundle zero bytes).
+    - Every cell written as plain TEXT (`type: String`, preserving leading `+` on phone numbers and neutralizing formula injection). Bold, frozen header row (`stickyRowsCount: 1`), sensible column widths.
+    - Paginates all rows in batches of 1000 ordered by `created_at, id`, verifies fetched count equals exact count before writing, and generates `compass-registrations-YYYY-MM-DD.xlsx` with Africa/Cairo date.
+    - **Data privacy note:** Exported files contain sensitive personal data (names, emails, phone numbers, academic affiliations). Handle and store exported files securely in compliance with privacy practices.
+  - **Public Form & Confirmation (`components/registration-form.tsx`, `app/registration/page.tsx`):**
+    - Replaces "Coming soon" block. Form groups "Personal information" and "Academic information". Inputs have 16px font-size (no iOS zoom), visible labels, native dropdowns, fixed visible `+20` prefix, inline errors with `aria-describedby` on blur and submit.
+    - Honeypot: invisible off-screen input traps bots and renders confirmation screen without sending network requests.
+    - Supabase insert sends only the 6 allowed columns, does NOT chain `.select()` (since anon lacks SELECT). Handles 23505 unique email collision and gracefully catches missing configuration / errors.
+    - Confirmation screen: renders client-side without navigation. Greets registrant by first name, reflects submitted email/phone, displays conference dates/times formatted from `conferenceWindow`, provides client-generated `.ics` calendar file download, and moves focus with screen reader announcements to the heading.
+  - **Navigation (`components/header.tsx`, `app/page.tsx`, `app/globals.css`):**
+    - Desktop header pill and mobile nav list now link to `/registration/` labelled "Register" with active `aria-current` support.
+    - Homepage hero CTA replaces dimmed badge with active `.button.hover-lift` link "Register now" to `/registration/`, with "Discover COMPASS" positioned below it.
+    - Unused disabled-variant CSS (`.nav-register-disabled`, `.hero-register-disabled`, `.mobile-nav .nav-register-disabled`) safely removed.
+
 - **Both call forms retired + hero CTA replaced with an inert badge (2026-10-11, user request):** the 11 October 2026 submission deadline has passed, so the Organization Call and Speaker / Posters Call are closed and every active external Tally link is gone from the site.
   - **Homepage hero (`app/page.tsx`, `app/globals.css`), refined on user review:** `.hero-cta-row` holds TWO items side by side on desktop (stacked column under 767px): an inert solid badge `<span className="button hero-register-disabled" aria-disabled="true">Registration soon</span>` and the text link `<Link className="text-link hero-link" href="/about">Discover COMPASS <ArrowRightIcon aria-hidden="true" size={18} /></Link>`. The two `openCalls.map(...)` Tally buttons are removed. **The badge is deliberately the PRIMARY `.button`, NOT `.button-secondary`** — `.button-secondary` is a transparent outline (`background: transparent`, `color: var(--ink)` navy `#082a4b`, `border-color: var(--line)`), and over the hero's dark photo scrim an outline loses the shape entirely, whereas the solid `--button` fill at **0.85 opacity** still reads as a filled button. The rule set is exactly `.hero-register-disabled { opacity: 0.85; cursor: default; user-select: none; pointer-events: none; }`. `pointer-events: none` means the badge cannot be clicked, tabbed to, or even hover-targeted. `.hero-link { color: var(--hero-ink); }` is RESTORED so the link stays white over the scrim. Mobile: `.hero-cta-row` stacks to a centred column under 767px with `gap: 16px`. The row uses `align-items: center; gap: 20px` on desktop so the badge and link sit vertically centred.
   - **Registration page (`app/registration/page.tsx`):** the "In the meantime, two calls are open:" lead and the whole `<ul className="open-calls">` list are deleted; only the clean coming-soon empty state remains ("Registration is not open yet. Confirmed registration details will be published here.").

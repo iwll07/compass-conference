@@ -86,6 +86,13 @@ await page.click(".menu-toggle");
 await page.waitForSelector("#mobile-nav.mobile-nav-open", { state: "visible", timeout: 5000 });
 check("mobile menu opens under CSP", await page.locator("#mobile-nav").isVisible());
 
+// Check /registration/ and /admin/ routes for zero CSP violations
+for (const route of ["/registration/", "/admin/"]) {
+  await page.goto(BASE + route, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1000);
+  check(`no CSP violations on ${route}`, cspErrors.length === 0, JSON.stringify(cspErrors.slice(0, 3)));
+}
+
 await browser.close();
 const failed = results.filter((r) => !r.pass);
 console.log(`PASS ${results.length - failed.length}/${results.length}`);
