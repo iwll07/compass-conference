@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   normalizeEgyptianPhone,
   validateName,
@@ -156,4 +157,31 @@ test("academic year list has the expected entries in order", () => {
     [...ACADEMIC_YEARS],
     ["First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year", "Intern", "Graduate"]
   );
+});
+
+// ---- Migration sync check ----
+// Every dropdown value in lib/registration.ts must appear in the corresponding
+// CHECK constraint in the migration SQL. This test catches drift.
+
+test("migration CHECK constraints contain every dropdown value", () => {
+  const sql = readFileSync("supabase/migrations/20261018000000_create_registrations.sql", "utf8");
+
+  for (const nat of NATIONALITIES) {
+    assert.ok(
+      sql.includes(`'${nat}'`),
+      `Nationality "${nat}" missing from migration CHECK`
+    );
+  }
+  for (const uni of UNIVERSITIES) {
+    assert.ok(
+      sql.includes(`'${uni}'`),
+      `University "${uni}" missing from migration CHECK`
+    );
+  }
+  for (const yr of ACADEMIC_YEARS) {
+    assert.ok(
+      sql.includes(`'${yr}'`),
+      `Academic year "${yr}" missing from migration CHECK`
+    );
+  }
 });
