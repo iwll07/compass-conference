@@ -1,0 +1,46 @@
+-- Unique index on registrations.phone
+--
+-- PURPOSE:
+-- Enforces that each phone number can only be registered once for COMPASS.
+-- Phones are already stored normalised (+20 followed by 10 digits), so formatting
+-- variants (spaces, dashes, trunk 0, Arabic digits) collapse to the same value
+-- and are caught by this index.
+--
+-- EXISTING EMAIL INDEX:
+-- The unique index on email was created with an explicit, stable name in
+-- 20261018000000_create_registrations.sql: `registrations_email_unique_idx`.
+--
+-- IMPORTANT (SAFE TO RE-RUN WITH CAVEAT):
+-- `create unique index if not exists` is safe to re-run on an empty table or
+-- a table with distinct phones. HOWEVER, it will FAIL if the table already
+-- contains duplicate phone numbers.
+--
+-- PRE-MIGRATION CHECK (run before applying if table contains data):
+-- If the query below returns any rows, resolve or delete the duplicates first
+-- before running this migration:
+--
+--   select phone, count(*)
+--   from public.registrations
+--   group by phone
+--   having count(*) > 1;
+--
+-- VERIFICATION QUERY (run after applying):
+-- Confirm the unique index exists and is active:
+--
+--   select
+--       c.relname as index_name,
+--       i.indisunique as is_unique
+--   from pg_index i
+--   join pg_class c on c.oid = i.indexrelid
+--   join pg_class t on t.oid = i.indrelid
+--   join pg_namespace n on n.oid = t.relnamespace
+--   where n.nspname = 'public'
+--     and t.relname = 'registrations'
+--     and c.relname = 'registrations_phone_unique';
+--
+-- Expected output:
+--   index_name: registrations_phone_unique | is_unique: true
+--
+
+create unique index if not exists registrations_phone_unique
+    on public.registrations (phone);
