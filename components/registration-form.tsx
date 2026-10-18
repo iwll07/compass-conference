@@ -292,6 +292,9 @@ export function RegistrationForm() {
           <p className="reg-next">
             We&apos;ll contact you using the details you gave us with the next steps before the conference.
           </p>
+          <p className="reg-note">
+            <strong>Please note:</strong> Your attendance is not confirmed until you receive an email with your attendance details.
+          </p>
           <p className="reg-masked-contact">
             {formatMaskedContact(success.email, success.phone)}
           </p>

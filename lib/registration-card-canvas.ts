@@ -89,7 +89,7 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
     ctx.stroke();
     ctx.restore();
 
-    currY += logoH + 60;
+    currY += logoH + 50;
   } else {
     currY += 80;
   }
@@ -105,13 +105,13 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
   ctx.fillText(CARD_LABELS.badge, padX, currY);
   ctx.restore();
 
-  currY += 48;
+  currY += 44;
 
   // Registrant Name (large serif heading font, balanced wrap to <= 3 lines, RTL aware)
   const isArabic = /[\u0600-\u06FF]/.test(attendee.fullName);
   ctx.save();
   ctx.fillStyle = CARD_COLORS.ink;
-  ctx.font = '400 64px "Source Serif 4", Georgia, serif';
+  ctx.font = '400 70px "Source Serif 4", Georgia, serif';
   ctx.textBaseline = "top";
   ctx.direction = isArabic ? "rtl" : "ltr";
   ctx.textAlign = isArabic ? "right" : "left";
@@ -134,19 +134,19 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
   }
   if (currentLine) lines.push(currentLine);
 
-  const lineHeight = 80;
+  const lineHeight = 86;
   for (const line of lines.slice(0, 3)) {
     ctx.fillText(line, nameX, currY);
     currY += lineHeight;
   }
   ctx.restore();
 
-  currY += 16;
+  currY += 18;
 
   // Subheading: {Academic year} · {University}
   ctx.save();
   ctx.fillStyle = CARD_COLORS.muted;
-  ctx.font = '400 30px "Public Sans", sans-serif';
+  ctx.font = '400 32px "Public Sans", sans-serif';
   ctx.textBaseline = "top";
   ctx.direction = isArabic ? "rtl" : "ltr";
   ctx.textAlign = isArabic ? "right" : "left";
@@ -155,7 +155,7 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
   ctx.restore();
 
   // Bottom section: Divider, Event Details, Footer
-  const dividerY = 940;
+  const dividerY = Math.max(currY + 70, 720);
   ctx.save();
   ctx.strokeStyle = CARD_COLORS.line;
   ctx.lineWidth = 2;

@@ -164,6 +164,11 @@ async function setupMock(page, onPayload) {
   const activeId = await page.evaluate(() => document.activeElement?.id);
   check("focus moved to confirmation heading", activeId === "reg-success-heading", activeId);
 
+  // Attendance confirmation note
+  const noteText = (await page.locator(".reg-note").textContent())?.trim();
+  check("attendance confirmation note exists", !!noteText);
+  check("attendance confirmation note contains unconfirmed notice", noteText?.toLowerCase().includes("attendance is not confirmed until you receive an email") === true, noteText);
+
   // Masked contact line
   const maskedText = (await page.locator(".reg-masked-contact").textContent())?.trim();
   check("masked contact line exists", !!maskedText);
@@ -288,6 +293,10 @@ for (const theme of ["light", "dark"]) {
 
   await page.click('button[type="submit"]');
   await page.waitForSelector("#reg-success-heading", { timeout: 4000 });
+  await page.waitForFunction(() => {
+    const el = document.querySelector(".reg-card");
+    return el && getComputedStyle(el).opacity === "1";
+  }, null, { timeout: 3000 });
 
   // Check no horizontal overflow
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
@@ -329,6 +338,10 @@ for (const theme of ["light", "dark"]) {
 
   await page.click('button[type="submit"]');
   await page.waitForSelector("#reg-success-heading", { timeout: 4000 });
+  await page.waitForFunction(() => {
+    const el = document.querySelector(".reg-card");
+    return el && getComputedStyle(el).opacity === "1";
+  }, null, { timeout: 3000 });
 
   const nameEl = page.locator(".reg-card-name");
   const nameText = (await nameEl.textContent())?.trim();
@@ -359,6 +372,10 @@ for (const theme of ["light", "dark"]) {
 
   await page.click('button[type="submit"]');
   await page.waitForSelector("#reg-success-heading", { timeout: 4000 });
+  await page.waitForFunction(() => {
+    const el = document.querySelector(".reg-card");
+    return el && getComputedStyle(el).opacity === "1";
+  }, null, { timeout: 3000 });
 
   const nameEl = page.locator(".reg-card-name");
   const computedDir = await nameEl.evaluate((el) => getComputedStyle(el).direction);
