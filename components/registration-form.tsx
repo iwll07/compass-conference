@@ -12,6 +12,11 @@ import {
   validateEmail,
   formatMaskedContact,
   registrationContact,
+  duplicateField,
+  OTHER_NATIONALITY_MIN,
+  OTHER_NATIONALITY_MAX,
+  OTHER_UNIVERSITY_MIN,
+  OTHER_UNIVERSITY_MAX,
 } from "@/lib/registration";
 import { conferenceWindow } from "@/lib/event";
 import { RegistrationCard } from "@/components/registration-card";
@@ -24,7 +29,9 @@ type RegistrationSuccess = {
   phone: string;
   academicYear: string;
   university: string;
+  universityOther?: string | null;
   nationality: string;
+  nationalityOther?: string | null;
 };
 
 type FormData = {
@@ -83,8 +90,8 @@ function validate(data: FormData): FieldErrors {
   } else if (data.nationality === "Other") {
     const trimmed = data.otherNationality.trim();
     if (!trimmed) errors.otherNationality = "Please specify your nationality.";
-    else if (trimmed.length < 2) errors.otherNationality = "Must be at least 2 characters.";
-    else if (trimmed.length > 60) errors.otherNationality = "Must be at most 60 characters.";
+    else if (trimmed.length < OTHER_NATIONALITY_MIN) errors.otherNationality = `Must be at least ${OTHER_NATIONALITY_MIN} characters.`;
+    else if (trimmed.length > OTHER_NATIONALITY_MAX) errors.otherNationality = `Must be at most ${OTHER_NATIONALITY_MAX} characters.`;
   }
 
   if (!data.university) {
@@ -92,8 +99,8 @@ function validate(data: FormData): FieldErrors {
   } else if (data.university === "Other") {
     const trimmed = data.otherUniversity.trim();
     if (!trimmed) errors.otherUniversity = "Please specify your university.";
-    else if (trimmed.length < 2) errors.otherUniversity = "Must be at least 2 characters.";
-    else if (trimmed.length > 100) errors.otherUniversity = "Must be at most 100 characters.";
+    else if (trimmed.length < OTHER_UNIVERSITY_MIN) errors.otherUniversity = `Must be at least ${OTHER_UNIVERSITY_MIN} characters.`;
+    else if (trimmed.length > OTHER_UNIVERSITY_MAX) errors.otherUniversity = `Must be at most ${OTHER_UNIVERSITY_MAX} characters.`;
   }
 
   if (!data.academicYear) errors.academicYear = "Academic year is required.";
@@ -161,14 +168,10 @@ export function RegistrationForm() {
         email: form.email,
         phone: normalizeEgyptianPhone(form.phone) ?? form.phone,
         academicYear: form.academicYear || "First Year",
-        university:
-          form.university === "Other"
-            ? form.otherUniversity.trim() || "Other"
-            : form.university || "Beni Suef National University",
-        nationality:
-          form.nationality === "Other"
-            ? form.otherNationality.trim() || "Other"
-            : form.nationality || "Egypt",
+        university: form.university || "Beni Suef National University",
+        universityOther: form.university === "Other" ? form.otherUniversity.trim() : null,
+        nationality: form.nationality || "Egypt",
+        nationalityOther: form.nationality === "Other" ? form.otherNationality.trim() : null,
       });
       setTimeout(() => successRef.current?.focus(), 100);
       return;
@@ -187,30 +190,52 @@ export function RegistrationForm() {
     const normalizedPhone = normalizeEgyptianPhone(form.phone)!;
     const normalizedEmail = validateEmail(form.email)!;
     const normalizedName = validateName(form.fullName)!;
-    const resolvedNationality =
-      form.nationality === "Other" ? form.otherNationality.trim() : form.nationality;
-    const resolvedUniversity =
-      form.university === "Other" ? form.otherUniversity.trim() : form.university;
+
+    const insertPayload: Record<string, string> = {
+      full_name: normalizedName,
+      email: normalizedEmail,
+      phone: normalizedPhone,
+      nationality: form.nationality,
+      university: form.university,
+      academic_year: form.academicYear,
+    };
+
+    if (form.nationality === "Other") {
+      insertPayload.nationality_other = form.otherNationality.trim();
+    }
+    if (form.university === "Other") {
+      insertPayload.university_other = form.otherUniversity.trim();
+    }
 
     try {
       if (!isSupabaseConfigured) throw new Error("Registration is not available right now.");
 
       const { error } = await getSupabase()
         .from("registrations")
-        .insert({
-          full_name: normalizedName,
-          email: normalizedEmail,
-          phone: normalizedPhone,
-          nationality: resolvedNationality,
-          university: resolvedUniversity,
-          academic_year: form.academicYear,
-        });
+        .insert(insertPayload);
       // Do NOT chain .select(): anon has no SELECT grant, so it would fail even
       // though the insert itself is allowed.
 
       if (error) {
         if (error.code === "23505") {
-          setSubmitError("This email is already registered.");
+          const clash = duplicateField(error);
+          if (clash === "phone") {
+            setErrors((prev) => ({
+              ...prev,
+              phone: "This phone number is already registered.",
+            }));
+            const el = document.getElementById("reg-phone");
+            el?.focus();
+          } else if (clash === "email") {
+            setErrors((prev) => ({
+              ...prev,
+              email: "This email is already registered.",
+            }));
+            const el = document.getElementById("reg-email");
+            el?.focus();
+          } else {
+            setSubmitError("These details are already registered.");
+          }
         } else {
           setSubmitError("We couldn't submit your registration right now. Please try again.");
           console.warn("Registration insert error:", error.message);
@@ -224,8 +249,10 @@ export function RegistrationForm() {
         email: normalizedEmail,
         phone: normalizedPhone,
         academicYear: form.academicYear,
-        university: resolvedUniversity,
-        nationality: resolvedNationality,
+        university: form.university,
+        universityOther: form.university === "Other" ? form.otherUniversity.trim() : null,
+        nationality: form.nationality,
+        nationalityOther: form.nationality === "Other" ? form.otherNationality.trim() : null,
       });
       setTimeout(() => successRef.current?.focus(), 100);
     } catch (err) {
@@ -261,6 +288,7 @@ export function RegistrationForm() {
           fullName: success.fullName,
           academicYear: success.academicYear,
           university: success.university,
+          universityOther: success.universityOther,
         });
       } catch (err) {
         console.warn("Failed to export card image:", err);
@@ -284,6 +312,7 @@ export function RegistrationForm() {
               fullName: success.fullName,
               academicYear: success.academicYear,
               university: success.university,
+              universityOther: success.universityOther,
             }}
           />
         </div>

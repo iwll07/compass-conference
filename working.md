@@ -7,17 +7,23 @@
     - Table `registrations`: `id` uuid primary key default `gen_random_uuid()`, `created_at` timestamptz default `now()`, and `full_name`, `email`, `phone`, `nationality`, `university`, `academic_year` (all text, not null).
     - CHECK constraints enforce name length (3-100), email length (3-254), phone format (`^\+20(10|11|12|15)[0-9]{8}$`), and exact nationality, university, and academic year lists. Unique index on `lower(email)`.
     - **RLS & Column-Level Grants:** `revoke all on registrations from anon, authenticated;` followed by `grant insert (full_name, email, phone, nationality, university, academic_year) on registrations to anon, authenticated;`. Clients cannot set `id` or `created_at`.
-    - SELECT granted only to `authenticated` via `is_registration_admin()` security definer function checking verified JWT claim email via `json_extract_path_text(current_setting('request.jwt.claims', true)::json, 'email')` (never `->>`, which the SQL Editor HTML-escapes). No UPDATE or DELETE policies: registrations are immutable from the client API.
-    - **Safe to re-run:** Structural statements use `if not exists`, `drop policy if exists`, and `create or replace`. Note plainly: changing a CHECK constraint on an existing table requires a new migration file.
-  - **Admin email allow-list (kept in sync):**
-    1. SQL function `is_registration_admin()` in `supabase/migrations/20261018000000_create_registrations.sql`: defaults to `'fares9005@gmail.com'`.
-    2. Client export in `app/admin/page.tsx`: `export const REGISTRATION_ADMIN_EMAILS = ["fares9005@gmail.com"];`.
-    - **How to add an admin:** Add their lowercased email to `REGISTRATION_ADMIN_EMAILS` in `app/admin/page.tsx`, and update the `in ('fares9005@gmail.com', ...)` check in `is_registration_admin()` in Supabase SQL Editor.
-  - **Manual migration step:**
-    - The Supabase CLI is not linked to this project. Mahmoud/admin must copy the contents of `supabase/migrations/20261018000000_create_registrations.sql` and execute it in the Supabase Dashboard SQL Editor BEFORE deploying the site.
-  - **Deleting a registrant:**
-    - Since there are no client-side DELETE or UPDATE policies, deleting a registrant must be done manually by an admin directly in the Supabase Dashboard **Table Editor** (`registrations` table -> select row -> Delete row) or via an explicit `DELETE FROM registrations WHERE email = '...';` query in the SQL Editor.
-  - **Admin Excel Export (`components/admin-registrations.tsx`):**
+  - **Duplicate-phone enforcement & conflict resolution (2026-10-18):**
+    - Unique index `registrations_phone_unique` on `registrations(phone)`. Since phones are stored normalised (+20 plus 10 digits), all user-typed formatting variants collapse into one unique entry.
+    - **Migration `supabase/migrations/20261018020000_registrations_unique_phone.sql`:** Must be applied manually in Supabase SQL Editor. Will FAIL if duplicate phones already exist in the table. Run `select phone, count(*) from public.registrations group by phone having count(*) > 1;` beforehand to audit.
+    - **Error mapping (`lib/registration.ts`, `components/registration-form.tsx`):**
+      - `duplicateField(error)` helper parses 23505 unique violations.
+      - Phone clashes display inline error *"This phone number is already registered."* under `#reg-phone` and move focus to it.
+      - Email clashes display inline error *"This email is already registered."* under `#reg-email` and move focus to it.
+      - Generic / other clashes display banner *"These details are already registered."*
+      - Note: Postgres evaluates unique constraints sequentially and aborts on first failure, reporting only one clash per attempt.
+  - **"Other" specification columns & constraints (2026-10-18):**
+    - Canonical `nationality` and `university` CHECK constraints remain strictly enforced against dropdown lists.
+    - Two nullable text columns added: `nationality_other` and `university_other`.
+    - CHECK constraints enforce trimmed lengths (nationality: 2-60, university: 2-100) and enforce `nationality_other is not null <=> nationality = 'Other'` and `university_other is not null <=> university = 'Other'`.
+    - **Migration `supabase/migrations/20261018030000_registrations_other_specified.sql`:** Uses idempotent `pg_constraint` checks. Extends column-level INSERT grants to anon and authenticated. Must be applied manually after the phone migration.
+    - **Form submission:** Sends `nationality: "Other"` + `nationality_other` when Other is selected; otherwise omits `nationality_other` (same for university).
+    - **Attendee card & image export:** When university is "Other", displays the specified university in the subtitle (`{Academic year} · {Specified University}`) instead of "Other".
+    - **Admin Excel export:** Retains all existing columns and inserts "Nationality (specified)" and "University (specified)" right after their parent columns. Cells remain empty when not "Other". Every cell is exported as plain text (`type: String`).
     - Renders in `/admin` only for users in `REGISTRATION_ADMIN_EMAILS`. Shows exact count and "Download Excel (.xlsx)" button.
     - Uses `write-excel-file` (zero new audit vulnerabilities; dynamically imported on click so public pages bundle zero bytes).
     - Every cell written as plain TEXT (`type: String`, preserving leading `+` on phone numbers and neutralizing formula injection). Bold, frozen header row (`stickyRowsCount: 1`), sensible column widths.

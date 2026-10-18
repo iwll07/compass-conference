@@ -11,6 +11,15 @@ import {
   NATIONALITIES,
   UNIVERSITIES,
   ACADEMIC_YEARS,
+  REGISTRATION_EMAIL_INDEX,
+  REGISTRATION_PHONE_INDEX,
+  duplicateField,
+  OTHER_NATIONALITY_MIN,
+  OTHER_NATIONALITY_MAX,
+  OTHER_UNIVERSITY_MIN,
+  OTHER_UNIVERSITY_MAX,
+  validateOtherNationality,
+  validateOtherUniversity,
 } from "../lib/registration.ts";
 
 // ---- Phone normalisation ----
@@ -238,5 +247,137 @@ test("RegistrationCard: contains name, year, university, and date; never contain
   assert.ok(!html.includes("+20"), "Card must NOT contain phone number");
   assert.ok(!html.toLowerCase().includes("reference"), "Card must NOT contain reference code");
   assert.ok(!html.toLowerCase().includes("code:"), "Card must NOT contain code prefix");
+});
+
+test("RegistrationCard: shows typed university instead of 'Other' when university is Other", async () => {
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { RegistrationCard } = await import("../components/registration-card.tsx");
+
+  const attendee = {
+    fullName: "Youssef Ibrahim",
+    academicYear: "Fourth Year",
+    university: "Other",
+    universityOther: "Oxford University",
+  };
+
+  const html = renderToStaticMarkup(RegistrationCard({ attendee }));
+  assert.ok(html.includes("Oxford University"), "Card must display specified university");
+  assert.ok(
+    !html.includes("Fourth Year · Other"),
+    "Card must NOT show 'Other' when universityOther is provided"
+  );
+  assert.ok(
+    html.includes("Fourth Year · Oxford University"),
+    "Card must show '{Year} · {Specified University}'"
+  );
+});
+
+// ---- Unique index names and migration drift tests ----
+
+test("unique index names in lib/registration match migration SQL", () => {
+  const emailMigration = readFileSync("supabase/migrations/20261018000000_create_registrations.sql", "utf8");
+  assert.ok(
+    emailMigration.includes(REGISTRATION_EMAIL_INDEX),
+    `Migration 20261018000000 must define index "${REGISTRATION_EMAIL_INDEX}"`
+  );
+
+  const phoneMigration = readFileSync("supabase/migrations/20261018020000_registrations_unique_phone.sql", "utf8");
+  assert.ok(
+    phoneMigration.includes(REGISTRATION_PHONE_INDEX),
+    `Migration 20261018020000 must define index "${REGISTRATION_PHONE_INDEX}"`
+  );
+});
+
+test("migration Other length limits match TypeScript constants", () => {
+  const otherMigration = readFileSync("supabase/migrations/20261018030000_registrations_other_specified.sql", "utf8");
+  assert.ok(
+    otherMigration.includes(`>= ${OTHER_NATIONALITY_MIN}`),
+    `Migration must enforce nationality_other min length ${OTHER_NATIONALITY_MIN}`
+  );
+  assert.ok(
+    otherMigration.includes(`<= ${OTHER_NATIONALITY_MAX}`),
+    `Migration must enforce nationality_other max length ${OTHER_NATIONALITY_MAX}`
+  );
+  assert.ok(
+    otherMigration.includes(`>= ${OTHER_UNIVERSITY_MIN}`),
+    `Migration must enforce university_other min length ${OTHER_UNIVERSITY_MIN}`
+  );
+  assert.ok(
+    otherMigration.includes(`<= ${OTHER_UNIVERSITY_MAX}`),
+    `Migration must enforce university_other max length ${OTHER_UNIVERSITY_MAX}`
+  );
+});
+
+// ---- duplicateField helper tests ----
+
+test("duplicateField: identifies phone clash by index name", () => {
+  assert.equal(
+    duplicateField({
+      code: "23505",
+      message: `duplicate key value violates unique constraint "${REGISTRATION_PHONE_INDEX}"`,
+    }),
+    "phone"
+  );
+});
+
+test("duplicateField: identifies phone clash by Key (phone) pattern", () => {
+  assert.equal(
+    duplicateField({
+      code: "23505",
+      details: "Key (phone)=(+201012345678) already exists.",
+    }),
+    "phone"
+  );
+});
+
+test("duplicateField: identifies email clash by index name", () => {
+  assert.equal(
+    duplicateField({
+      code: "23505",
+      message: `duplicate key value violates unique constraint "${REGISTRATION_EMAIL_INDEX}"`,
+    }),
+    "email"
+  );
+});
+
+test("duplicateField: identifies email clash by Key (lower(email::text)) pattern", () => {
+  assert.equal(
+    duplicateField({
+      code: "23505",
+      details: "Key (lower(email::text))=(user@example.com) already exists.",
+    }),
+    "email"
+  );
+});
+
+test("duplicateField: returns null for unknown clash or non-conflict error", () => {
+  assert.equal(duplicateField(null), null);
+  assert.equal(duplicateField(undefined), null);
+  assert.equal(duplicateField("some generic network error"), null);
+  assert.equal(
+    duplicateField({
+      code: "23514",
+      message: 'new row for relation "registrations" violates check constraint "registrations_name_length"',
+    }),
+    null
+  );
+});
+
+// ---- Other validation helpers tests ----
+
+test("validateOtherNationality: accepts valid length and trims", () => {
+  assert.equal(validateOtherNationality("  Jordan  "), "Jordan");
+  assert.equal(validateOtherNationality("A"), null);
+  assert.equal(validateOtherNationality(""), null);
+  assert.equal(validateOtherNationality("x".repeat(61)), null);
+  assert.equal(validateOtherNationality("x".repeat(60)), "x".repeat(60));
+});
+
+test("validateOtherUniversity: accepts valid length and trims", () => {
+  assert.equal(validateOtherUniversity("  Oxford University  "), "Oxford University");
+  assert.equal(validateOtherUniversity("A"), null);
+  assert.equal(validateOtherUniversity(""), null);
+  assert.equal(validateOtherUniversity("x".repeat(101)), null);
+  assert.equal(validateOtherUniversity("x".repeat(100)), "x".repeat(100));
 });
 

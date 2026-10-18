@@ -388,6 +388,142 @@ for (const theme of ["light", "dark"]) {
   await context.close();
 }
 
+// ---- Test 6: Mocked 409 duplicate phone, email, and generic clashes ----
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
+
+  let conflictToReturn = {
+    code: "23505",
+    message: 'duplicate key value violates unique constraint "registrations_phone_unique"',
+    details: "Key (phone)=(+201012345678) already exists.",
+  };
+
+  await page.route("**/rest/v1/registrations*", (route) => {
+    if (route.request().method() === "POST") {
+      route.fulfill({
+        status: 409,
+        contentType: "application/json",
+        body: JSON.stringify(conflictToReturn),
+      });
+    } else {
+      route.continue();
+    }
+  });
+
+  // A. Phone conflict
+  await page.fill("#reg-name", "Sameh Samir");
+  await page.fill("#reg-email", "sameh@example.com");
+  await page.fill("#reg-phone", "01012345678");
+  await page.selectOption("#reg-nationality", "Egypt");
+  await page.selectOption("#reg-university", "Beni Suef University");
+  await page.selectOption("#reg-year", "Second Year");
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector("#reg-phone-error", { timeout: 3000 });
+
+  const phoneErr = (await page.locator("#reg-phone-error").textContent())?.trim();
+  check("phone duplicate shows inline error", phoneErr === "This phone number is already registered.", phoneErr);
+  const activeAfterPhone = await page.evaluate(() => document.activeElement?.id);
+  check("phone duplicate moves focus to phone field", activeAfterPhone === "reg-phone", activeAfterPhone);
+
+  // B. Email conflict
+  conflictToReturn = {
+    code: "23505",
+    message: 'duplicate key value violates unique constraint "registrations_email_unique_idx"',
+    details: "Key (lower(email::text))=(sameh@example.com) already exists.",
+  };
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector("#reg-email-error", { timeout: 3000 });
+
+  const emailErr = (await page.locator("#reg-email-error").textContent())?.trim();
+  check("email duplicate shows inline error", emailErr === "This email is already registered.", emailErr);
+  const activeAfterEmail = await page.evaluate(() => document.activeElement?.id);
+  check("email duplicate moves focus to email field", activeAfterEmail === "reg-email", activeAfterEmail);
+
+  // C. Generic unique conflict
+  conflictToReturn = {
+    code: "23505",
+    message: "duplicate key value violates unique constraint",
+  };
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector(".reg-submit-error", { timeout: 3000 });
+
+  const genericErr = (await page.locator(".reg-submit-error").textContent())?.trim();
+  check("unspecified duplicate shows generic banner", genericErr === "These details are already registered.", genericErr);
+
+  await context.close();
+}
+
+// ---- Test 7: "Other" nationality and university submission & card rendering ----
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
+
+  let interceptedPayload = null;
+  await setupMock(page, (p) => { interceptedPayload = p; });
+
+  await page.fill("#reg-name", "Karim Tarek");
+  await page.fill("#reg-email", "karim@example.com");
+  await page.fill("#reg-phone", "01211112222");
+
+  // Select "Other" for nationality
+  await page.selectOption("#reg-nationality", "Other");
+  await page.waitForSelector("#reg-other-nationality");
+  await page.fill("#reg-other-nationality", "Jordan");
+
+  // Select "Other" for university
+  await page.selectOption("#reg-university", "Other");
+  await page.waitForSelector("#reg-other-university");
+  await page.fill("#reg-other-university", "Oxford University");
+
+  await page.selectOption("#reg-year", "Intern");
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector("#reg-success-heading", { timeout: 4000 });
+
+  check("Other nationality payload sets nationality: Other", interceptedPayload?.nationality === "Other");
+  check("Other nationality payload sets nationality_other", interceptedPayload?.nationality_other === "Jordan");
+  check("Other university payload sets university: Other", interceptedPayload?.university === "Other");
+  check("Other university payload sets university_other", interceptedPayload?.university_other === "Oxford University");
+
+  // Check card displays Oxford University instead of "Other"
+  const cardText = (await page.locator(".reg-card").textContent()) ?? "";
+  check("card shows specified university", cardText.includes("Oxford University"));
+  check("card subtitle shows {Year} · {Specified University}", cardText.includes("Intern · Oxford University"));
+
+  await context.close();
+}
+
+// ---- Test 8: Non-Other submission payload sends no *_other keys ----
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
+
+  let nonOtherPayload = null;
+  await setupMock(page, (p) => { nonOtherPayload = p; });
+
+  await page.fill("#reg-name", "Mona Zaki");
+  await page.fill("#reg-email", "mona@example.com");
+  await page.fill("#reg-phone", "01099998888");
+  await page.selectOption("#reg-nationality", "Egypt");
+  await page.selectOption("#reg-university", "Mansoura National University");
+  await page.selectOption("#reg-year", "Third Year");
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector("#reg-success-heading", { timeout: 4000 });
+
+  check("non-Other payload has no nationality_other", nonOtherPayload?.nationality_other === undefined);
+  check("non-Other payload has no university_other", nonOtherPayload?.university_other === undefined);
+
+  await context.close();
+}
+
 await browser.close();
 const failed = results.filter((r) => !r.pass);
 console.log(`\nREGISTRATION QA: PASS ${results.length - failed.length}/${results.length}`);

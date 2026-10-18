@@ -10,7 +10,9 @@ export type RegistrationRecord = {
   email: string;
   phone: string;
   nationality: string;
+  nationality_other?: string | null;
   university: string;
+  university_other?: string | null;
   academic_year: string;
 };
 
@@ -103,7 +105,7 @@ export function AdminRegistrations() {
       while (true) {
         const { data, error: fetchErr } = await getSupabase()
           .from("registrations")
-          .select("id,created_at,full_name,email,phone,nationality,university,academic_year")
+          .select("id,created_at,full_name,email,phone,nationality,nationality_other,university,university_other,academic_year")
           .order("created_at", { ascending: true })
           .order("id", { ascending: true })
           .range(from, from + PAGE_SIZE - 1);
@@ -136,7 +138,9 @@ export function AdminRegistrations() {
         { value: "Email", fontWeight: "bold" as const },
         { value: "Phone", fontWeight: "bold" as const },
         { value: "Nationality", fontWeight: "bold" as const },
+        { value: "Nationality (specified)", fontWeight: "bold" as const },
         { value: "University", fontWeight: "bold" as const },
+        { value: "University (specified)", fontWeight: "bold" as const },
         { value: "Academic year", fontWeight: "bold" as const },
       ];
 
@@ -147,7 +151,15 @@ export function AdminRegistrations() {
         { type: String, value: row.email },
         { type: String, value: row.phone },
         { type: String, value: row.nationality },
+        {
+          type: String,
+          value: row.nationality === "Other" && row.nationality_other ? row.nationality_other : "",
+        },
         { type: String, value: row.university },
+        {
+          type: String,
+          value: row.university === "Other" && row.university_other ? row.university_other : "",
+        },
         { type: String, value: row.academic_year },
       ]);
 
@@ -158,7 +170,9 @@ export function AdminRegistrations() {
         { width: 32 },
         { width: 18 },
         { width: 16 },
+        { width: 24 },
         { width: 36 },
+        { width: 32 },
         { width: 16 },
       ];
 

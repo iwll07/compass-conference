@@ -11,6 +11,7 @@ export interface AttendeeCanvasData {
   fullName: string;
   academicYear: string;
   university: string;
+  universityOther?: string | null;
 }
 
 /**
@@ -150,7 +151,11 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
   ctx.textBaseline = "top";
   ctx.direction = isArabic ? "rtl" : "ltr";
   ctx.textAlign = isArabic ? "right" : "left";
-  const metaText = `${attendee.academicYear} · ${attendee.university}`;
+  const displayUniversity =
+    attendee.university === "Other" && attendee.universityOther?.trim()
+      ? attendee.universityOther.trim()
+      : attendee.university;
+  const metaText = `${attendee.academicYear} · ${displayUniversity}`;
   ctx.fillText(metaText, isArabic ? CARD_WIDTH - padX : padX, currY);
   ctx.restore();
 

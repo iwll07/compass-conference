@@ -7,11 +7,16 @@ export interface AttendeeCardData {
   fullName: string;
   academicYear: string;
   university: string;
+  universityOther?: string | null;
 }
 
 export function RegistrationCard({ attendee }: { attendee: AttendeeCardData }) {
   const eventDate = formatEventDate(conferenceWindow);
   const eventTime = formatEventTimeRange(conferenceWindow);
+  const displayUniversity =
+    attendee.university === "Other" && attendee.universityOther?.trim()
+      ? attendee.universityOther.trim()
+      : attendee.university;
 
   return (
     <figure
@@ -49,7 +54,7 @@ export function RegistrationCard({ attendee }: { attendee: AttendeeCardData }) {
           {attendee.fullName}
         </h3>
         <p className="reg-card-meta">
-          {attendee.academicYear} · {attendee.university}
+          {attendee.academicYear} · {displayUniversity}
         </p>
       </div>
 

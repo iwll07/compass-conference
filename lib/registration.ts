@@ -145,6 +145,67 @@ export function formatMaskedContact(email: string, phone: string): string {
   return `Contact details on file: ${maskEmail(email)} · ${maskPhone(phone)}`;
 }
 
+// ---- "Other" specification limits and validators ----------------------------
+
+export const OTHER_NATIONALITY_MIN = 2;
+export const OTHER_NATIONALITY_MAX = 60;
+export const OTHER_UNIVERSITY_MIN = 2;
+export const OTHER_UNIVERSITY_MAX = 100;
+
+export function validateOtherNationality(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (trimmed.length < OTHER_NATIONALITY_MIN || trimmed.length > OTHER_NATIONALITY_MAX) return null;
+  return trimmed;
+}
+
+export function validateOtherUniversity(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (trimmed.length < OTHER_UNIVERSITY_MIN || trimmed.length > OTHER_UNIVERSITY_MAX) return null;
+  return trimmed;
+}
+
+// ---- Database Unique Index Names & Conflict Resolution ----------------------
+
+export const REGISTRATION_EMAIL_INDEX = "registrations_email_unique_idx";
+export const REGISTRATION_PHONE_INDEX = "registrations_phone_unique";
+
+export type DuplicateField = "phone" | "email" | null;
+
+/**
+ * Determine which unique field caused a 23505 unique constraint violation.
+ *
+ * NOTE: If both phone and email clash on the same insert, Postgres evaluates
+ * unique constraints sequentially and aborts at the first failure. Postgres
+ * returns only one constraint violation per insert attempt, so only the first
+ * evaluated clash is reported.
+ */
+export function duplicateField(error: unknown): DuplicateField {
+  if (!error) return null;
+
+  let text = "";
+  if (typeof error === "string") {
+    text = error;
+  } else if (typeof error === "object") {
+    const err = error as Record<string, unknown>;
+    text = [err.message, err.details, err.hint, err.constraint]
+      .filter((v): v is string => typeof v === "string")
+      .join(" ");
+  }
+
+  if (text.includes(REGISTRATION_PHONE_INDEX)) return "phone";
+  if (text.includes(REGISTRATION_EMAIL_INDEX)) return "email";
+
+  // Fallback pattern checks: Key (phone)=... or Key (lower(email::text))=...
+  if (/key\s*\([^)]*phone[^)]*\)/i.test(text) || (/\bphone\b/i.test(text) && text.includes("already exists"))) {
+    return "phone";
+  }
+  if (/key\s*\([^)]*email[^)]*\)/i.test(text) || (/\bemail\b/i.test(text) && text.includes("already exists"))) {
+    return "email";
+  }
+
+  return null;
+}
+
 // ---- Contact for the confirmation screen ----
 
 /** Set to an object with `label` and `href` when a contact link should appear
