@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { conferenceWindow, formatEventDate, formatEventTimeRange } from "@/lib/event";
 import { SITE_HOST, SITE_TAGLINE } from "@/lib/site";
 import { CARD_LABELS } from "@/lib/registration-card-constants";
@@ -10,12 +13,19 @@ export interface AttendeeCardData {
 }
 
 export function RegistrationCard({ attendee }: { attendee: AttendeeCardData }) {
+  const [revealed, setRevealed] = useState(false);
   const eventDate = formatEventDate(conferenceWindow);
   const eventTime = formatEventTimeRange(conferenceWindow);
 
+  useEffect(() => {
+    // Add reveal-visible on mount to trigger the gentle .reveal transition
+    const timer = setTimeout(() => setRevealed(true), 30);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <figure
-      className="reg-card reveal"
+      className={`reg-card reveal ${revealed ? "reveal-visible" : ""}`}
       aria-label={`COMPASS attendee card for ${attendee.fullName}`}
     >
       <div className="reg-card-top">

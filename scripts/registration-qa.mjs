@@ -173,6 +173,15 @@ async function setupMock(page, onPayload) {
   // Card assertions: must contain name, year, university, date, and NO email or phone
   const card = page.locator(".reg-card");
   check("card figure exists", await card.count() === 1);
+
+  // Assert card is visible with opacity 1 (not stuck at opacity 0)
+  await page.waitForFunction(() => {
+    const el = document.querySelector(".reg-card");
+    return el && getComputedStyle(el).opacity === "1";
+  }, null, { timeout: 3000 });
+  const opacity = await card.evaluate((el) => getComputedStyle(el).opacity);
+  check("card is visible with opacity 1", opacity === "1", `opacity: ${opacity}`);
+
   const cardText = (await card.textContent()) ?? "";
 
   check("card contains name", cardText.includes("Ahmed Mahmoud"));
