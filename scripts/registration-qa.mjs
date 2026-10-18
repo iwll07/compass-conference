@@ -199,6 +199,44 @@ async function setupMock(page, onPayload) {
   const lightBg = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
   check("card has white background in light mode", lightBg === "rgb(255, 255, 255)");
 
+  // Buttons in confirmation screen
+  const calBtn = page.locator("button", { hasText: "Add to calendar" });
+  check("Add to calendar button exists", await calBtn.count() === 1);
+
+  const saveBtn = page.locator("button", { hasText: "Save card as image" });
+  check("Save card as image button exists", await saveBtn.count() === 1);
+
+  // Test 1: Fallback download mechanism
+  await page.evaluate(() => {
+    window.navigator.canShare = () => false;
+  });
+
+  const [download] = await Promise.all([
+    page.waitForEvent("download", { timeout: 10000 }),
+    saveBtn.click(),
+  ]);
+  check(
+    "downloaded card filename matches compass-attendee-card.png",
+    download.suggestedFilename() === "compass-attendee-card.png",
+    download.suggestedFilename()
+  );
+
+  // Test 2: Native share sheet when navigator.canShare works
+  await page.evaluate(() => {
+    window.navigator.canShare = (data) => !!data?.files?.length;
+    window.navigator.share = async (data) => {
+      window._sharedData = { title: data.title, fileName: data.files?.[0]?.name };
+    };
+  });
+  await saveBtn.click();
+  await page.waitForTimeout(600);
+  const shared = await page.evaluate(() => window._sharedData);
+  check(
+    "navigator.share called with file when canShare is supported",
+    shared?.fileName === "compass-attendee-card.png",
+    JSON.stringify(shared)
+  );
+
   await page.screenshot({ path: ".playwright-cli/qa/registration-desktop-light.png" });
 
   // Dark mode test: card stays light in dark mode

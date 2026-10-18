@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { conferenceWindow, formatEventDate, formatEventTimeRange } from "@/lib/event";
 import { SITE_HOST, SITE_TAGLINE } from "@/lib/site";
+import { CARD_LABELS } from "@/lib/registration-card-constants";
 
 export interface AttendeeCardData {
   fullName: string;
@@ -43,7 +44,7 @@ export function RegistrationCard({ attendee }: { attendee: AttendeeCardData }) {
           </svg>
         </div>
 
-        <span className="reg-card-badge">REGISTERED</span>
+        <span className="reg-card-badge">{CARD_LABELS.badge}</span>
 
         <h3 className="reg-card-name" dir="auto">
           {attendee.fullName}
@@ -60,7 +61,7 @@ export function RegistrationCard({ attendee }: { attendee: AttendeeCardData }) {
         <div className="reg-card-event">
           {eventDate ? <p className="reg-card-date">{eventDate}</p> : null}
           {eventTime ? <p className="reg-card-time">{eventTime}</p> : null}
-          <p className="reg-card-venue">Faculty of Medicine, Beni Suef National University</p>
+          <p className="reg-card-venue">{CARD_LABELS.venue}</p>
         </div>
 
         <footer className="reg-card-footer">

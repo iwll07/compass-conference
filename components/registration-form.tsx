@@ -131,6 +131,7 @@ export function RegistrationForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState<RegistrationSuccess | null>(null);
+  const [savingImage, setSavingImage] = useState(false);
   const successRef = useRef<HTMLHeadingElement>(null);
 
   function onChange<K extends keyof FormData>(field: K, value: string) {
@@ -251,6 +252,23 @@ export function RegistrationForm() {
       URL.revokeObjectURL(url);
     }
 
+    async function onSaveImage() {
+      if (savingImage || !success) return;
+      setSavingImage(true);
+      try {
+        const { exportCardAsImage } = await import("@/lib/registration-card-canvas");
+        await exportCardAsImage({
+          fullName: success.fullName,
+          academicYear: success.academicYear,
+          university: success.university,
+        });
+      } catch (err) {
+        console.warn("Failed to export card image:", err);
+      } finally {
+        setSavingImage(false);
+      }
+    }
+
     return (
       <section className="reg-confirmation" aria-labelledby="reg-success-heading">
         <div className="reg-confirmed-header">
@@ -283,6 +301,14 @@ export function RegistrationForm() {
                 Add to calendar
               </button>
             ) : null}
+            <button
+              type="button"
+              className="button button-secondary"
+              onClick={onSaveImage}
+              disabled={savingImage}
+            >
+              {savingImage ? "Saving card…" : "Save card as image"}
+            </button>
             <Link href="/" className="text-link reg-home-link">
               Back to home
             </Link>
