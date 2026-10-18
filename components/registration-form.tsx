@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
@@ -9,18 +10,31 @@ import {
   normalizeEgyptianPhone,
   validateName,
   validateEmail,
+  formatMaskedContact,
   registrationContact,
 } from "@/lib/registration";
-import { conferenceWindow, formatEventWindow, formatEventDate } from "@/lib/event";
+import { conferenceWindow } from "@/lib/event";
+import { RegistrationCard } from "@/components/registration-card";
 
 // ---- Types ------------------------------------------------------------------
+
+type RegistrationSuccess = {
+  fullName: string;
+  email: string;
+  phone: string;
+  academicYear: string;
+  university: string;
+  nationality: string;
+};
 
 type FormData = {
   fullName: string;
   email: string;
   phone: string;
   nationality: string;
+  otherNationality: string;
   university: string;
+  otherUniversity: string;
   academicYear: string;
   honeypot: string;
 };
@@ -32,7 +46,9 @@ const EMPTY: FormData = {
   email: "",
   phone: "",
   nationality: "",
+  otherNationality: "",
   university: "",
+  otherUniversity: "",
   academicYear: "",
   honeypot: "",
 };
@@ -62,8 +78,24 @@ function validate(data: FormData): FieldErrors {
     else errors.phone = "Please enter a valid Egyptian mobile number.";
   }
 
-  if (!data.nationality) errors.nationality = "Nationality is required.";
-  if (!data.university) errors.university = "University is required.";
+  if (!data.nationality) {
+    errors.nationality = "Nationality is required.";
+  } else if (data.nationality === "Other") {
+    const trimmed = data.otherNationality.trim();
+    if (!trimmed) errors.otherNationality = "Please specify your nationality.";
+    else if (trimmed.length < 2) errors.otherNationality = "Must be at least 2 characters.";
+    else if (trimmed.length > 60) errors.otherNationality = "Must be at most 60 characters.";
+  }
+
+  if (!data.university) {
+    errors.university = "University is required.";
+  } else if (data.university === "Other") {
+    const trimmed = data.otherUniversity.trim();
+    if (!trimmed) errors.otherUniversity = "Please specify your university.";
+    else if (trimmed.length < 2) errors.otherUniversity = "Must be at least 2 characters.";
+    else if (trimmed.length > 100) errors.otherUniversity = "Must be at most 100 characters.";
+  }
+
   if (!data.academicYear) errors.academicYear = "Academic year is required.";
 
   return errors;
@@ -98,7 +130,7 @@ export function RegistrationForm() {
   const [touched, setTouched] = useState<Set<keyof FormData>>(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<{ fullName: string; email: string; phone: string } | null>(null);
+  const [success, setSuccess] = useState<RegistrationSuccess | null>(null);
   const successRef = useRef<HTMLHeadingElement>(null);
 
   function onChange<K extends keyof FormData>(field: K, value: string) {
@@ -123,7 +155,20 @@ export function RegistrationForm() {
 
     // Honeypot: if filled, pretend success but send nothing.
     if (form.honeypot) {
-      setSuccess({ fullName: form.fullName, email: form.email, phone: normalizeEgyptianPhone(form.phone) ?? form.phone });
+      setSuccess({
+        fullName: form.fullName || "Attendee",
+        email: form.email,
+        phone: normalizeEgyptianPhone(form.phone) ?? form.phone,
+        academicYear: form.academicYear || "First Year",
+        university:
+          form.university === "Other"
+            ? form.otherUniversity.trim() || "Other"
+            : form.university || "Beni Suef National University",
+        nationality:
+          form.nationality === "Other"
+            ? form.otherNationality.trim() || "Other"
+            : form.nationality || "Egypt",
+      });
       setTimeout(() => successRef.current?.focus(), 100);
       return;
     }
@@ -141,6 +186,10 @@ export function RegistrationForm() {
     const normalizedPhone = normalizeEgyptianPhone(form.phone)!;
     const normalizedEmail = validateEmail(form.email)!;
     const normalizedName = validateName(form.fullName)!;
+    const resolvedNationality =
+      form.nationality === "Other" ? form.otherNationality.trim() : form.nationality;
+    const resolvedUniversity =
+      form.university === "Other" ? form.otherUniversity.trim() : form.university;
 
     try {
       if (!isSupabaseConfigured) throw new Error("Registration is not available right now.");
@@ -151,8 +200,8 @@ export function RegistrationForm() {
           full_name: normalizedName,
           email: normalizedEmail,
           phone: normalizedPhone,
-          nationality: form.nationality,
-          university: form.university,
+          nationality: resolvedNationality,
+          university: resolvedUniversity,
           academic_year: form.academicYear,
         });
       // Do NOT chain .select(): anon has no SELECT grant, so it would fail even
@@ -169,7 +218,14 @@ export function RegistrationForm() {
         return;
       }
 
-      setSuccess({ fullName: normalizedName, email: normalizedEmail, phone: normalizedPhone });
+      setSuccess({
+        fullName: normalizedName,
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        academicYear: form.academicYear,
+        university: resolvedUniversity,
+        nationality: resolvedNationality,
+      });
       setTimeout(() => successRef.current?.focus(), 100);
     } catch (err) {
       setSubmitError("We couldn't submit your registration right now. Please try again.");
@@ -182,8 +238,6 @@ export function RegistrationForm() {
 
   if (success) {
     const firstName = success.fullName.split(/\s+/)[0];
-    const eventLine = formatEventWindow(conferenceWindow);
-    const eventDate = formatEventDate(conferenceWindow);
     const ics = generateIcs();
 
     function downloadIcs() {
@@ -199,34 +253,47 @@ export function RegistrationForm() {
 
     return (
       <section className="reg-confirmation" aria-labelledby="reg-success-heading">
-        <h2 id="reg-success-heading" ref={successRef} tabIndex={-1}>Registration received</h2>
-        <p className="reg-thankyou">Thank you, {firstName}.</p>
-        <dl className="reg-details">
-          <div><dt>Email</dt><dd>{success.email}</dd></div>
-          <div><dt>Phone</dt><dd>{success.phone}</dd></div>
-        </dl>
-        <p className="reg-next">We'll contact you using these details with the next steps before the conference.</p>
-        {eventLine || eventDate ? (
-          <div className="reg-event">
-            {eventDate ? <p className="reg-event-date">{eventDate}</p> : null}
-            {eventLine ? <p className="reg-event-line">{eventLine}</p> : null}
-            <p className="reg-event-place">Faculty of Medicine, Beni Suef National University</p>
-          </div>
-        ) : null}
-        <div className="reg-actions">
-          {ics ? (
-            <button type="button" className="button button-secondary" onClick={downloadIcs}>
-              Add to calendar
-            </button>
-          ) : null}
-          <a href="/" className="text-link reg-home-link">Back to home</a>
+        <div className="reg-confirmed-header">
+          <h2 id="reg-success-heading" ref={successRef} tabIndex={-1}>
+            Registration received
+          </h2>
+          <p className="reg-thankyou">Thank you, {firstName}.</p>
         </div>
-        {registrationContact ? (
-          <p className="reg-contact">
-            Something wrong? Contact{" "}
-            <a href={registrationContact.href}>{registrationContact.label}</a>.
+
+        <div className="reg-confirmed-card">
+          <RegistrationCard
+            attendee={{
+              fullName: success.fullName,
+              academicYear: success.academicYear,
+              university: success.university,
+            }}
+          />
+        </div>
+
+        <div className="reg-confirmed-body">
+          <p className="reg-next">
+            We&apos;ll contact you using the details you gave us with the next steps before the conference.
           </p>
-        ) : null}
+          <p className="reg-masked-contact">
+            {formatMaskedContact(success.email, success.phone)}
+          </p>
+          <div className="reg-actions">
+            {ics ? (
+              <button type="button" className="button button-secondary" onClick={downloadIcs}>
+                Add to calendar
+              </button>
+            ) : null}
+            <Link href="/" className="text-link reg-home-link">
+              Back to home
+            </Link>
+          </div>
+          {registrationContact ? (
+            <p className="reg-contact">
+              Something wrong? Contact{" "}
+              <a href={registrationContact.href}>{registrationContact.label}</a>.
+            </p>
+          ) : null}
+        </div>
       </section>
     );
   }
@@ -321,6 +388,28 @@ export function RegistrationForm() {
           {NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
         {fieldError("nationality") ? <p id="reg-nationality-error" className="reg-field-error" role="alert">{fieldError("nationality")}</p> : null}
+
+        {form.nationality === "Other" ? (
+          <>
+            <label htmlFor="reg-other-nationality">Specify nationality</label>
+            <input
+              id="reg-other-nationality"
+              type="text"
+              required
+              placeholder="Your country of nationality"
+              value={form.otherNationality}
+              onChange={(e) => onChange("otherNationality", e.target.value)}
+              onBlur={() => onBlur("otherNationality")}
+              aria-describedby={fieldError("otherNationality") ? "reg-other-nationality-error" : undefined}
+              aria-invalid={fieldError("otherNationality") ? "true" : undefined}
+            />
+            {fieldError("otherNationality") ? (
+              <p id="reg-other-nationality-error" className="reg-field-error" role="alert">
+                {fieldError("otherNationality")}
+              </p>
+            ) : null}
+          </>
+        ) : null}
       </fieldset>
 
       {/* ---- Academic information ---- */}
@@ -341,6 +430,28 @@ export function RegistrationForm() {
           {UNIVERSITIES.map((u) => <option key={u} value={u}>{u}</option>)}
         </select>
         {fieldError("university") ? <p id="reg-university-error" className="reg-field-error" role="alert">{fieldError("university")}</p> : null}
+
+        {form.university === "Other" ? (
+          <>
+            <label htmlFor="reg-other-university">Specify university</label>
+            <input
+              id="reg-other-university"
+              type="text"
+              required
+              placeholder="Your university or institution"
+              value={form.otherUniversity}
+              onChange={(e) => onChange("otherUniversity", e.target.value)}
+              onBlur={() => onBlur("otherUniversity")}
+              aria-describedby={fieldError("otherUniversity") ? "reg-other-university-error" : undefined}
+              aria-invalid={fieldError("otherUniversity") ? "true" : undefined}
+            />
+            {fieldError("otherUniversity") ? (
+              <p id="reg-other-university-error" className="reg-field-error" role="alert">
+                {fieldError("otherUniversity")}
+              </p>
+            ) : null}
+          </>
+        ) : null}
 
         <label htmlFor="reg-year">Academic year</label>
         <select

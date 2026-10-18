@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 
 export type RegistrationRecord = {
@@ -45,30 +45,34 @@ export function AdminRegistrations() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const fetchCount = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { count: total, error: err } = await getSupabase()
-        .from("registrations")
-        .select("id", { count: "exact", head: true });
-      if (err) {
-        setError(`Could not load registration count: ${err.message}`);
-        setCount(null);
-      } else {
-        setCount(total ?? 0);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load registrations");
-      setCount(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchCount();
-  }, [fetchCount]);
+    let active = true;
+    async function loadCount() {
+      try {
+        const { count: total, error: err } = await getSupabase()
+          .from("registrations")
+          .select("id", { count: "exact", head: true });
+        if (!active) return;
+        if (err) {
+          setError(`Could not load registration count: ${err.message}`);
+          setCount(null);
+        } else {
+          setCount(total ?? 0);
+        }
+      } catch (e: unknown) {
+        if (!active) return;
+        setError(e instanceof Error ? e.message : "Failed to load registrations");
+        setCount(null);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    loadCount();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function exportToExcel() {
     if (exporting || count === null || count === 0) return;

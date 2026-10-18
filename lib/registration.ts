@@ -112,8 +112,42 @@ export function validateEmail(raw: string): string | null {
   return trimmed;
 }
 
+// ---- Masked contact line helpers ----
+
+/**
+ * Mask an email address for privacy: keeps first character, three bullets, and the full domain.
+ * e.g. "ibrahim@gmail.com" -> "i•••@gmail.com"
+ */
+export function maskEmail(email: string): string {
+  const trimmed = email.trim().toLowerCase();
+  const atIndex = trimmed.indexOf("@");
+  if (atIndex <= 0) return trimmed;
+  const firstChar = trimmed[0];
+  const domain = trimmed.slice(atIndex);
+  return `${firstChar}•••${domain}`;
+}
+
+/**
+ * Mask an Egyptian phone number for privacy: keeps +20 prefix, bullets, and only the last 3 digits.
+ * e.g. "+201012345321" -> "+20 ••• ••• 321"
+ */
+export function maskPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  const last3 = digits.length >= 3 ? digits.slice(-3) : digits;
+  return `+20 ••• ••• ${last3}`;
+}
+
+/**
+ * Format the combined masked contact string for the confirmation screen.
+ * e.g. "Contact details on file: i•••@gmail.com · +20 ••• ••• 321"
+ */
+export function formatMaskedContact(email: string, phone: string): string {
+  return `Contact details on file: ${maskEmail(email)} · ${maskPhone(phone)}`;
+}
+
 // ---- Contact for the confirmation screen ----
 
 /** Set to an object with `label` and `href` when a contact link should appear
  *  on the confirmation screen. Null means "don't show a contact line". */
 export const registrationContact: { label: string; href: string } | null = null;
+

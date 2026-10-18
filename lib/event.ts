@@ -34,6 +34,24 @@ export function formatEventDate(event: EventWindow | null): string | null {
   }
 }
 
+// Time range with timezone only (e.g. "09:00–17:00 Africa/Cairo")
+export function formatEventTimeRange(event: EventWindow | null): string | null {
+  if (!event) return null;
+  const start = Date.parse(event.startsAt);
+  const end = Date.parse(event.endsAt);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+  try {
+    const time = new Intl.DateTimeFormat("en-GB", {
+      timeZone: event.timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `${time.format(new Date(start))}–${time.format(new Date(end))} ${event.timeZone}`;
+  } catch {
+    return null;
+  }
+}
+
 export function getEventState(event: EventWindow | null, now: number): EventState {
   if (!event || !Number.isFinite(now)) return { phase: "unannounced" };
   const zoned = /(?:Z|[+-]\d{2}:\d{2})$/;

@@ -36,20 +36,20 @@ for (const label of ["About", "Agenda", "Speakers", "Posters", "Sponsors"]) {
 const navRegister = page.locator(".nav-actions .nav-register");
 check("header reads 'Register'", (await navRegister.textContent())?.trim() === "Register", (await navRegister.textContent())?.trim());
 check("header 'Register' is a link", await navRegister.evaluate((el) => el.tagName.toLowerCase()) === "a");
-check("header 'Register' links to /registration", await navRegister.getAttribute("href") === "/registration");
+check("header 'Register' links to /registration", (await navRegister.getAttribute("href"))?.replace(/\/$/, "") === "/registration");
 
 // 2b. Hero CTA: "Register now" button linking to /registration with hover-lift,
 // and "Discover COMPASS" text link sitting below it.
 const heroButton = page.locator(".hero-cta-row a.button");
 check("hero has a 'Register now' button", await heroButton.count() === 1, `${await heroButton.count()}`);
 check("hero button reads 'Register now'", (await heroButton.textContent())?.includes("Register now") === true, (await heroButton.textContent())?.trim());
-check("hero button links to /registration", await heroButton.getAttribute("href") === "/registration", String(await heroButton.getAttribute("href")));
+check("hero button links to /registration", (await heroButton.getAttribute("href"))?.replace(/\/$/, "") === "/registration", String(await heroButton.getAttribute("href")));
 check("hero button has hover-lift", ((await heroButton.getAttribute("class")) ?? "").split(" ").includes("hover-lift") === true);
 check("hero button has an arrow icon", await heroButton.locator("svg").count() === 1);
 
 const heroDiscover = page.locator(".hero-actions .hero-link");
 check("hero has an active 'Discover COMPASS' link", await heroDiscover.count() === 1, `${await heroDiscover.count()}`);
-check("hero 'Discover COMPASS' links to /about", await heroDiscover.getAttribute("href") === "/about", String(await heroDiscover.getAttribute("href")));
+check("hero 'Discover COMPASS' links to /about", (await heroDiscover.getAttribute("href"))?.replace(/\/$/, "") === "/about", String(await heroDiscover.getAttribute("href")));
 check("hero 'Discover COMPASS' label", (await heroDiscover.textContent())?.includes("Discover COMPASS") === true, (await heroDiscover.textContent())?.trim());
 check("hero 'Discover COMPASS' arrow is decorative", await heroDiscover.locator("svg[aria-hidden='true']").count() === 1);
 
@@ -265,7 +265,7 @@ check("mobile: menu opens", await mpage.locator("#mobile-nav").isVisible());
 for (const label of ["About", "Agenda", "Speakers", "Posters", "Sponsors", "Register"]) {
   check(`mobile menu contains ${label}`, await mpage.locator("#mobile-nav").getByText(label, { exact: true }).count() === 1);
 }
-const mReg = mpage.locator('#mobile-nav a[href="/registration"]');
+const mReg = mpage.locator('#mobile-nav a[href*="registration"]');
 check("mobile menu 'Register' is a link", await mReg.count() === 1);
 check("mobile menu 'Register' has arrow icon", await mReg.locator("svg").count() === 1);
 

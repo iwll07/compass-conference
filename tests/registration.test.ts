@@ -5,6 +5,9 @@ import {
   normalizeEgyptianPhone,
   validateName,
   validateEmail,
+  maskEmail,
+  maskPhone,
+  formatMaskedContact,
   NATIONALITIES,
   UNIVERSITIES,
   ACADEMIC_YEARS,
@@ -185,3 +188,55 @@ test("migration CHECK constraints contain every dropdown value", () => {
     );
   }
 });
+
+// ---- Masked contact line tests ----
+
+test("maskEmail: masks local part keeping first char, bullets, and domain", () => {
+  assert.equal(maskEmail("ibrahim@gmail.com"), "i•••@gmail.com");
+  assert.equal(maskEmail("fares9005@gmail.com"), "f•••@gmail.com");
+  assert.equal(maskEmail("a@example.org"), "a•••@example.org");
+  assert.equal(maskEmail("  JOHN.DOE@DOMAIN.CO.UK  "), "j•••@domain.co.uk");
+});
+
+test("maskPhone: keeps +20 prefix, bullets, and last 3 digits", () => {
+  assert.equal(maskPhone("+201012345321"), "+20 ••• ••• 321");
+  assert.equal(maskPhone("+201012345678"), "+20 ••• ••• 678");
+  assert.equal(maskPhone("01012345321"), "+20 ••• ••• 321");
+  assert.equal(maskPhone("123"), "+20 ••• ••• 123");
+});
+
+test("formatMaskedContact: formats full masked line matching spec", () => {
+  assert.equal(
+    formatMaskedContact("ibrahim@gmail.com", "+201012345321"),
+    "Contact details on file: i•••@gmail.com · +20 ••• ••• 321"
+  );
+});
+
+// ---- Attendee Card contents and privacy test ----
+
+test("RegistrationCard: contains name, year, university, and date; never contains email, phone, or reference code", async () => {
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { RegistrationCard } = await import("../components/registration-card.tsx");
+
+  const attendee = {
+    fullName: "Ahmed Mahmoud",
+    academicYear: "Third Year",
+    university: "Beni Suef National University",
+  };
+
+  const html = renderToStaticMarkup(RegistrationCard({ attendee }));
+
+  // Must contain essential attendee and conference information
+  assert.ok(html.includes("Ahmed Mahmoud"), "Card must include registrant name");
+  assert.ok(html.includes("Third Year"), "Card must include academic year");
+  assert.ok(html.includes("Beni Suef National University"), "Card must include university");
+  assert.ok(html.includes("REGISTERED"), "Card must include REGISTERED label");
+  assert.ok(html.includes("24 November 2026"), "Card must include conference date");
+
+  // Privacy assertions: MUST NOT contain email, phone, or reference code
+  assert.ok(!html.includes("@"), "Card must NOT contain email address");
+  assert.ok(!html.includes("+20"), "Card must NOT contain phone number");
+  assert.ok(!html.toLowerCase().includes("reference"), "Card must NOT contain reference code");
+  assert.ok(!html.toLowerCase().includes("code:"), "Card must NOT contain code prefix");
+});
+

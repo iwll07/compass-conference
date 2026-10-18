@@ -3,6 +3,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { CLOUDFLARE_ANALYTICS_TOKEN } from "@/lib/analytics";
+import { SITE_ORIGIN } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,11 +11,11 @@ export const metadata: Metadata = {
   description: "Conference of Medical Practice and Scientific Studies at Beni Suef National University.",
   icons: { icon: "/tab-compass.png", apple: "/tab-compass.png" },
   // Required so og:/twitter: image URLs render as absolute URLs in previews
-  metadataBase: new URL("https://compassbsnu.page"),
+  metadataBase: new URL(SITE_ORIGIN),
   openGraph: {
     title: "COMPASS | Directing the Future of Healthcare",
     description: "Conference of Medical Practice and Scientific Studies at Beni Suef National University.",
-    url: "https://compassbsnu.page",
+    url: SITE_ORIGIN,
     siteName: "COMPASS",
     images: [{ url: "/compass-banner.jpg", width: 1280, height: 853 }],
     type: "website",

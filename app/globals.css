@@ -222,22 +222,93 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .reg-form .button:disabled { opacity: .55; cursor: default; }
 .reg-privacy { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 8px; max-width: 48ch; }
 
-.reg-confirmation { max-width: 580px; margin-top: 40px; }
+.reg-confirmation {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "header"
+    "card"
+    "body";
+  gap: 28px;
+  max-width: 440px;
+  margin-top: 40px;
+}
+.reg-confirmed-header { grid-area: header; }
+.reg-confirmed-card { grid-area: card; width: 100%; max-width: 420px; }
+.reg-confirmed-body { grid-area: body; }
+
 .reg-confirmation h2 { font-size: clamp(2.2rem, 4vw, 3rem); margin-bottom: 8px; outline: none; }
 .reg-thankyou { font-size: 18px; color: var(--ink); margin-top: 8px; }
-.reg-details { margin: 24px 0 20px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 2px; display: grid; gap: 12px; }
-.reg-details > div { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; }
-.reg-details dt { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
-.reg-details dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink); text-align: right; word-break: break-all; }
-.reg-next { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
-.reg-event { padding: 18px 22px; background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 2px 2px 0; margin-bottom: 28px; }
-.reg-event-date { font-weight: 600; font-size: 15px; color: var(--ink); margin-bottom: 4px; }
-.reg-event-line { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-.reg-event-place { font-size: 13px; color: var(--muted); }
-.reg-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.reg-next { font-size: 14px; color: var(--muted); margin-bottom: 12px; line-height: 1.6; max-width: 48ch; }
+.reg-masked-contact { font-size: 12px; color: var(--muted); margin-bottom: 24px; font-variant-numeric: tabular-nums; line-height: 1.5; }
+.reg-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .reg-home-link { color: var(--accent); }
 .reg-contact { margin-top: 24px; font-size: 13px; color: var(--muted); }
 .reg-contact a { color: var(--accent); }
+
+@media (min-width: 900px) {
+  .reg-confirmation {
+    grid-template-columns: 1fr 360px;
+    grid-template-areas:
+      "header card"
+      "body   card";
+    column-gap: 65px;
+    row-gap: 16px;
+    align-items: start;
+    max-width: 920px;
+  }
+  .reg-confirmed-card { justify-self: end; }
+}
+
+/* Attendee card: light palette scoped via custom properties so the card
+   looks identical on light and dark pages. 4:5 aspect ratio, ~18px radius,
+   0.5px border, and soft elevation shadow. */
+.reg-card {
+  --card-bg: #ffffff;
+  --card-ink: #082a4b;
+  --card-muted: #526570;
+  --card-accent: #06797f;
+  --card-accent-soft: #d9edee;
+  --card-line: #ccd7d4;
+  --card-shadow: 0 16px 36px -12px rgba(8, 42, 75, 0.12), 0 3px 10px -2px rgba(8, 42, 75, 0.05);
+
+  position: relative;
+  background: var(--card-bg);
+  color: var(--card-ink);
+  border: 0.5px solid var(--card-line);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 26px 24px 20px;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 4 / 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 0;
+  text-align: left;
+}
+
+@media (max-width: 899px) {
+  .reg-card { max-width: 420px; }
+}
+
+.reg-card-top { display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
+.reg-card-brand { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 14px; }
+.reg-card-logo { height: 22px; width: auto; object-fit: contain; }
+.reg-card-pulse { height: 16px; width: 85px; color: var(--card-accent); }
+.reg-card-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--card-accent); margin-top: 16px; }
+.reg-card-name { font-family: "Source Serif 4", Georgia, serif; font-size: clamp(20px, 4.2vw, 24px); font-weight: 400; line-height: 1.25; color: var(--card-ink); text-wrap: balance; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-top: 8px; margin-bottom: 6px; width: 100%; }
+.reg-card-meta { font-size: 12px; color: var(--card-muted); line-height: 1.45; max-width: 100%; }
+.reg-card-bottom { display: flex; flex-direction: column; width: 100%; margin-top: 12px; }
+.reg-card-divider { border: 0; border-top: 0.5px solid var(--card-line); margin: 0 0 12px 0; width: 100%; }
+.reg-card-event { display: flex; flex-direction: column; gap: 3px; font-size: 12px; line-height: 1.4; }
+.reg-card-date { font-weight: 600; color: var(--card-ink); }
+.reg-card-time { color: var(--card-muted); font-size: 11px; }
+.reg-card-venue { color: var(--card-muted); font-size: 11px; }
+.reg-card-footer { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 10px; border-top: 0.5px solid var(--card-line); }
+.reg-card-tagline { font-family: "Source Serif 4", Georgia, serif; font-style: italic; font-size: 12px; color: var(--card-ink); line-height: 1.2; }
+.reg-card-host { font-size: 9px; letter-spacing: .04em; color: var(--card-muted); white-space: nowrap; }
 
 /* ---- Motion (reveal, hover treatments, icon swaps) -------------------- */
 /* Reference feel: 160ms cubic-bezier(.23,1,.32,1), same curve as .button.

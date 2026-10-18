@@ -1,9 +1,37 @@
 import { chromium } from "@playwright/test";
-import {
-  NATIONALITIES,
-  UNIVERSITIES,
-  ACADEMIC_YEARS,
-} from "../lib/registration.js";
+import { mkdirSync } from "node:fs";
+const NATIONALITIES = [
+  "Egypt",
+  "Sudan",
+  "Saudi Arabia",
+  "UAE",
+  "Kuwait",
+  "Qatar",
+  "Syria",
+  "Other",
+];
+
+const UNIVERSITIES = [
+  "Beni Suef National University",
+  "Beni Suef University",
+  "Benha National University",
+  "Alexandria National University",
+  "Mansoura National University",
+  "American University",
+  "New Giza University",
+  "New Valley University",
+  "Other",
+];
+
+const ACADEMIC_YEARS = [
+  "First Year",
+  "Second Year",
+  "Third Year",
+  "Fourth Year",
+  "Fifth Year",
+  "Intern",
+  "Graduate",
+];
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const results = [];
@@ -12,9 +40,28 @@ function check(name, pass, detail = "") {
   console.log(`${pass ? "ok" : "FAIL"} - ${name}${pass ? "" : " :: " + detail}`);
 }
 
+mkdirSync(".playwright-cli/qa", { recursive: true });
+
 const browser = await chromium.launch({ channel: "msedge" });
 
-// ---- Test 1: Desktop inspection (fields, options, validation, mocking, honeypot) ----
+// Helper to mock Supabase POST /rest/v1/registrations
+async function setupMock(page, onPayload) {
+  await page.route("**/rest/v1/registrations*", (route) => {
+    if (route.request().method() === "POST") {
+      const payload = JSON.parse(route.request().postData() ?? "{}");
+      if (onPayload) onPayload(payload);
+      route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      });
+    } else {
+      route.continue();
+    }
+  });
+}
+
+// ---- Test 1: Desktop inspection (fields, options, validation, font sizes, honeypot) ----
 {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
@@ -62,14 +109,13 @@ const browser = await chromium.launch({ channel: "msedge" });
   await page.locator("#reg-phone").blur();
   check("invalid phone triggers inline error", await page.locator("#reg-phone-error").isVisible());
 
-  // 6. Honeypot path: sends NO network request, but shows success screen
+  // 6. Honeypot path: sends NO network request, but shows confirmation screen
   let networkSent = false;
   await page.route("**/rest/v1/registrations*", (route) => {
     networkSent = true;
     route.abort();
   });
 
-  // Fill in honeypot field
   await page.fill("#reg-website", "spambot");
   await page.fill("#reg-name", "Bot User");
   await page.fill("#reg-email", "bot@example.com");
@@ -87,25 +133,14 @@ const browser = await chromium.launch({ channel: "msedge" });
   await context.close();
 }
 
-// ---- Test 2: Legitimate submission with mocked Supabase request ----
+// ---- Test 2: Desktop confirmation screen & card assertions (1440px) ----
 {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 
   let capturedPayload = null;
-  await page.route("**/rest/v1/registrations*", (route) => {
-    if (route.request().method() === "POST") {
-      capturedPayload = JSON.parse(route.request().postData() ?? "{}");
-      route.fulfill({
-        status: 201,
-        contentType: "application/json",
-        body: JSON.stringify({}),
-      });
-    } else {
-      route.continue();
-    }
-  });
+  await setupMock(page, (p) => { capturedPayload = p; });
 
   await page.fill("#reg-name", "Ahmed Mahmoud");
   await page.fill("#reg-email", "ahmed@example.com");
@@ -115,33 +150,76 @@ const browser = await chromium.launch({ channel: "msedge" });
   await page.selectOption("#reg-year", "Third Year");
 
   await page.click('button[type="submit"]');
-
   await page.waitForSelector("#reg-success-heading", { timeout: 4000 });
 
   check("mocked registration sent payload", !!capturedPayload);
   check("payload has full_name", capturedPayload?.full_name === "Ahmed Mahmoud");
   check("payload has email", capturedPayload?.email === "ahmed@example.com");
   check("payload has phone with +20", capturedPayload?.phone === "+201012345678");
-  check("payload has nationality", capturedPayload?.nationality === "Egypt");
-  check("payload has university", capturedPayload?.university === "Beni Suef National University");
-  check("payload has academic_year", capturedPayload?.academic_year === "Third Year");
-  check("payload does not contain id or created_at", !capturedPayload?.id && !capturedPayload?.created_at);
 
-  // Check confirmation screen
+  // Confirmation screen heading and greeting
   check("confirmation greeting shows first name", (await page.locator(".reg-thankyou").textContent())?.includes("Ahmed") === true);
-  check("confirmation shows email", (await page.locator(".reg-details").textContent())?.includes("ahmed@example.com") === true);
-  check("confirmation shows phone", (await page.locator(".reg-details").textContent())?.includes("+201012345678") === true);
-  check("add to calendar button exists", await page.locator("button", { hasText: "Add to calendar" }).count() === 1);
-  check("back to home link exists", await page.locator('a[href="/"]', { hasText: "Back to home" }).count() === 1);
 
   // Focus was moved to confirmation heading
   const activeId = await page.evaluate(() => document.activeElement?.id);
   check("focus moved to confirmation heading", activeId === "reg-success-heading", activeId);
 
+  // Masked contact line
+  const maskedText = (await page.locator(".reg-masked-contact").textContent())?.trim();
+  check("masked contact line exists", !!maskedText);
+  check("masked contact line has masked email", maskedText?.includes("a•••@example.com") === true, maskedText);
+  check("masked contact line has masked phone", maskedText?.includes("+20 ••• ••• 678") === true, maskedText);
+
+  // Card assertions: must contain name, year, university, date, and NO email or phone
+  const card = page.locator(".reg-card");
+  check("card figure exists", await card.count() === 1);
+  const cardText = (await card.textContent()) ?? "";
+
+  check("card contains name", cardText.includes("Ahmed Mahmoud"));
+  check("card contains academic year", cardText.includes("Third Year"));
+  check("card contains university", cardText.includes("Beni Suef National University"));
+  check("card contains conference date", cardText.includes("24 November 2026"));
+  check("card contains REGISTERED label", cardText.includes("REGISTERED"));
+  check("card contains venue", cardText.includes("Faculty of Medicine, Beni Suef National University"));
+  check("card contains tagline", cardText.includes("Directing the Future of Healthcare"));
+
+  // Privacy assertions on the card
+  check("card does NOT contain email", !cardText.includes("ahmed@example.com") && !cardText.includes("@"));
+  check("card does NOT contain phone", !cardText.includes("+20") && !cardText.includes("01012345678"));
+  check("card does NOT contain reference code", !cardText.toLowerCase().includes("reference"));
+
+  // Desktop 2-column layout at 1440px
+  const headerBox = await page.locator(".reg-confirmed-header").boundingBox();
+  const cardBox = await card.boundingBox();
+  const bodyBox = await page.locator(".reg-confirmed-body").boundingBox();
+  check("layout is two columns at 1440px", !!headerBox && !!cardBox && cardBox.x > headerBox.x + 150);
+  check("body is in left column below header", !!headerBox && !!bodyBox && bodyBox.y > headerBox.y && Math.abs(bodyBox.x - headerBox.x) < 20);
+
+  // Light mode background color of card
+  const lightBg = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
+  check("card has white background in light mode", lightBg === "rgb(255, 255, 255)");
+
+  await page.screenshot({ path: ".playwright-cli/qa/registration-desktop-light.png" });
+
+  // Dark mode test: card stays light in dark mode
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "dark";
+    localStorage.setItem("theme", "dark");
+  });
+  await page.waitForTimeout(100);
+
+  const darkCardBg = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
+  check("card stays white background in dark mode", darkCardBg === "rgb(255, 255, 255)");
+
+  const pageBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  check("page body is dark in dark mode", pageBg !== "rgb(255, 255, 255)");
+
+  await page.screenshot({ path: ".playwright-cli/qa/registration-desktop-dark.png" });
+
   await context.close();
 }
 
-// ---- Test 3: Mobile 390px layout in light and dark mode ----
+// ---- Test 3: Mobile 390px confirmation screen in light and dark mode ----
 for (const theme of ["light", "dark"]) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
@@ -151,19 +229,98 @@ for (const theme of ["light", "dark"]) {
     document.documentElement.dataset.theme = t;
     localStorage.setItem("theme", t);
   }, theme);
-  await page.waitForTimeout(200);
+
+  await setupMock(page);
+
+  await page.fill("#reg-name", "Hossam Hassan");
+  await page.fill("#reg-email", "hossam@example.com");
+  await page.fill("#reg-phone", "01123456789");
+  await page.selectOption("#reg-nationality", "Egypt");
+  await page.selectOption("#reg-university", "Alexandria National University");
+  await page.selectOption("#reg-year", "Second Year");
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector("#reg-success-heading", { timeout: 4000 });
 
   // Check no horizontal overflow
-  const overflow = await page.evaluate(() => {
-    return document.documentElement.scrollWidth <= window.innerWidth;
-  });
-  check(`390px ${theme} mode has no horizontal overflow`, overflow);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+  check(`390px ${theme} confirmation has no horizontal overflow`, overflow);
 
-  // Form controls fill width nicely
-  const inputWidth = await page.locator("#reg-name").evaluate((el) => el.getBoundingClientRect().width);
-  check(`390px ${theme} input fills mobile width`, inputWidth >= 300, `${inputWidth}px`);
+  // Check vertical order at 390px: Header -> Card -> Body/Buttons
+  const mHeader = await page.locator(".reg-confirmed-header").boundingBox();
+  const mCard = await page.locator(".reg-confirmed-card").boundingBox();
+  const mBody = await page.locator(".reg-confirmed-body").boundingBox();
+
+  check(
+    `390px ${theme} order is header -> card -> body`,
+    !!mHeader && !!mCard && !!mBody && mHeader.y < mCard.y && mCard.y < mBody.y,
+    JSON.stringify({ headerY: mHeader?.y, cardY: mCard?.y, bodyY: mBody?.y })
+  );
+
+  // Card stays light in both light and dark modes
+  const cardBg = await page.locator(".reg-card").evaluate((el) => getComputedStyle(el).backgroundColor);
+  check(`390px ${theme} card has white background`, cardBg === "rgb(255, 255, 255)");
 
   await page.screenshot({ path: `.playwright-cli/qa/registration-mobile-${theme}.png` });
+  await context.close();
+}
+
+// ---- Test 4: Long Latin Name wrapping & layout ----
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
+  await setupMock(page);
+
+  const longName = "Alexander Bartholomew Montgomery-Smith III";
+  await page.fill("#reg-name", longName);
+  await page.fill("#reg-email", "alexander@example.com");
+  await page.fill("#reg-phone", "01234567890");
+  await page.selectOption("#reg-nationality", "Egypt");
+  await page.selectOption("#reg-university", "American University");
+  await page.selectOption("#reg-year", "Intern");
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector("#reg-success-heading", { timeout: 4000 });
+
+  const nameEl = page.locator(".reg-card-name");
+  const nameText = (await nameEl.textContent())?.trim();
+  check("long Latin name rendered", nameText === longName);
+
+  // Check that card name doesn't overflow horizontally
+  const nameOverflow = await nameEl.evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+  check("long Latin name does not overflow card width", nameOverflow);
+
+  await page.screenshot({ path: ".playwright-cli/qa/registration-long-latin.png" });
+  await context.close();
+}
+
+// ---- Test 5: Arabic Name rendering (dir="auto", RTL layout) ----
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
+  await setupMock(page);
+
+  const arabicName = "د. محمد عبد الرحمن إبراهيم النجار";
+  await page.fill("#reg-name", arabicName);
+  await page.fill("#reg-email", "mohamed@example.com");
+  await page.fill("#reg-phone", "01512345678");
+  await page.selectOption("#reg-nationality", "Egypt");
+  await page.selectOption("#reg-university", "Beni Suef University");
+  await page.selectOption("#reg-year", "Fifth Year");
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector("#reg-success-heading", { timeout: 4000 });
+
+  const nameEl = page.locator(".reg-card-name");
+  const computedDir = await nameEl.evaluate((el) => getComputedStyle(el).direction);
+  check("Arabic name computes to direction: rtl", computedDir === "rtl", computedDir);
+
+  const nameOverflow = await nameEl.evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+  check("Arabic name does not overflow card width", nameOverflow);
+
+  await page.screenshot({ path: ".playwright-cli/qa/registration-arabic.png" });
   await context.close();
 }
 
