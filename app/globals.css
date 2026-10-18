@@ -238,28 +238,35 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .reg-confirmed-body { grid-area: body; }
 
 .reg-confirmation h2 { font-size: clamp(2.2rem, 4vw, 3rem); margin-bottom: 8px; outline: none; }
-.reg-thankyou { font-size: 18px; color: var(--ink); margin-top: 8px; }
-.reg-next { font-size: 14px; color: var(--muted); margin-bottom: 10px; line-height: 1.6; max-width: 48ch; }
-.reg-note { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; max-width: 48ch; }
+.reg-thankyou { font-size: 18px; color: var(--ink); margin-top: 8px; max-width: 44ch; }
+.reg-next { font-size: 14px; color: var(--muted); margin-bottom: 10px; line-height: 1.6; max-width: 44ch; }
+.reg-note { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; max-width: 44ch; }
 .reg-note strong { color: var(--ink); font-weight: 600; }
-.reg-masked-contact { font-size: 12px; color: var(--muted); margin-bottom: 24px; font-variant-numeric: tabular-nums; line-height: 1.5; }
+.reg-masked-contact { font-size: 12px; color: var(--muted); margin-bottom: 24px; font-variant-numeric: tabular-nums; line-height: 1.5; max-width: 44ch; }
 .reg-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .reg-home-link { color: var(--accent); }
-.reg-contact { margin-top: 24px; font-size: 13px; color: var(--muted); }
+.reg-contact { margin-top: 24px; font-size: 13px; color: var(--muted); max-width: 44ch; }
 .reg-contact a { color: var(--accent); }
 
 @media (min-width: 900px) {
   .reg-confirmation {
-    grid-template-columns: 1fr 360px;
+    grid-template-columns: 1fr 1fr;
     grid-template-areas:
       "header card"
       "body   card";
     column-gap: 65px;
     row-gap: 16px;
     align-items: start;
-    max-width: 920px;
+    max-width: 100%;
+    width: 100%;
   }
-  .reg-confirmed-card { justify-self: end; }
+  .reg-confirmed-card {
+    justify-self: center;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 /* Attendee card: light palette scoped via custom properties so the card
@@ -282,7 +289,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
   box-shadow: var(--card-shadow);
   padding: 26px 24px 20px;
   width: 100%;
-  max-width: 350px;
+  max-width: 375px;
   display: flex;
   flex-direction: column;
   gap: 20px;

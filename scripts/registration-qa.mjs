@@ -206,8 +206,30 @@ async function setupMock(page, onPayload) {
   const headerBox = await page.locator(".reg-confirmed-header").boundingBox();
   const cardBox = await card.boundingBox();
   const bodyBox = await page.locator(".reg-confirmed-body").boundingBox();
+  const gridBox = await page.locator(".reg-confirmation").boundingBox();
+
   check("layout is two columns at 1440px", !!headerBox && !!cardBox && cardBox.x > headerBox.x + 150);
   check("body is in left column below header", !!headerBox && !!bodyBox && bodyBox.y > headerBox.y && Math.abs(bodyBox.x - headerBox.x) < 20);
+
+  // Card top is aligned with the heading
+  check("card top aligns with heading", !!headerBox && !!cardBox && Math.abs(headerBox.y - cardBox.y) < 20, JSON.stringify({ headerY: headerBox?.y, cardY: cardBox?.y }));
+
+  // Two equal columns 1fr 1fr
+  const gridCols = await page.locator(".reg-confirmation").evaluate((el) => getComputedStyle(el).gridTemplateColumns);
+  const colWidths = gridCols.split(" ").map(parseFloat);
+  check("grid columns are two equal columns", colWidths.length === 2 && Math.abs(colWidths[0] - colWidths[1]) < 2, gridCols);
+
+  // Card is horizontally centered in the right column
+  const cardColBox = await page.locator(".reg-confirmed-card").boundingBox();
+  if (cardColBox && cardBox) {
+    const col2Center = cardColBox.x + cardColBox.width / 2;
+    const cardCenter = cardBox.x + cardBox.width / 2;
+    check("card is horizontally centered in right column", Math.abs(cardCenter - col2Center) < 2, JSON.stringify({ col2Center, cardCenter }));
+  }
+
+  // Left column paragraphs have 44ch max-width
+  const pMaxWidth = await page.locator(".reg-next").evaluate((el) => getComputedStyle(el).maxWidth);
+  check("left column paragraphs have max-width about 44ch", !!pMaxWidth && pMaxWidth !== "none", pMaxWidth);
 
   // Light mode background color of card
   const lightBg = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -252,6 +274,7 @@ async function setupMock(page, onPayload) {
   );
 
   await page.screenshot({ path: ".playwright-cli/qa/registration-desktop-light.png" });
+  await page.screenshot({ path: ".playwright-cli/qa/registration-1440-light.png" });
 
   // Dark mode test: card stays light in dark mode
   await page.evaluate(() => {
@@ -267,6 +290,22 @@ async function setupMock(page, onPayload) {
   check("page body is dark in dark mode", pageBg !== "rgb(255, 255, 255)");
 
   await page.screenshot({ path: ".playwright-cli/qa/registration-desktop-dark.png" });
+  await page.screenshot({ path: ".playwright-cli/qa/registration-1440-dark.png" });
+
+  // Additional desktop viewports: 1280 and 1920 in light and dark
+  for (const w of [1280, 1920]) {
+    await page.setViewportSize({ width: w, height: 900 });
+    for (const theme of ["light", "dark"]) {
+      await page.evaluate((t) => {
+        document.documentElement.dataset.theme = t;
+        localStorage.setItem("theme", t);
+      }, theme);
+      await page.waitForTimeout(50);
+      const noOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+      check(`${w}px ${theme} confirmation has no horizontal overflow`, noOverflow);
+      await page.screenshot({ path: `.playwright-cli/qa/registration-${w}-${theme}.png` });
+    }
+  }
 
   await context.close();
 }
@@ -318,6 +357,7 @@ for (const theme of ["light", "dark"]) {
   check(`390px ${theme} card has white background`, cardBg === "rgb(255, 255, 255)");
 
   await page.screenshot({ path: `.playwright-cli/qa/registration-mobile-${theme}.png` });
+  await page.screenshot({ path: `.playwright-cli/qa/registration-390-${theme}.png` });
   await context.close();
 }
 

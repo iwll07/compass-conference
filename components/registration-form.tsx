@@ -367,7 +367,19 @@ export function RegistrationForm() {
           (only bots tab through hidden fields), the form silently succeeds
           without sending anything. */}
       <div
-        style={{ position: "absolute", left: "-9999px", top: "-9999px" }}
+        style={{
+          position: "absolute",
+          width: "1px",
+          height: "1px",
+          padding: 0,
+          margin: 0,
+          overflow: "hidden",
+          clip: "rect(0, 0, 0, 0)",
+          whiteSpace: "nowrap",
+          border: 0,
+          opacity: 0,
+          pointerEvents: "none",
+        }}
         aria-hidden="true"
       >
         <label htmlFor="reg-website">Website</label>
