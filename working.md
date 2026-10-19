@@ -20,6 +20,11 @@
     - Displays a prominent status bar at the top: `Admin Form Preview — Public status is currently: {status}` with a direct link back to admin.
     - Wrapped in `<Suspense>` boundary to preserve Next.js static export compatibility.
 
+- **Registration status hydration & refresh polish (2026-10-19):**
+  - **Hydration mismatch resolved:** Switched `useRegistrationStatus` hook to `useSyncExternalStore` (`subscribeToRegistrationStatus`, `getRegistrationStatusSnapshot`, `getRegistrationStatusServerSnapshot`). Server snapshot returns `DEFAULT_REGISTRATION_STATUS` ("soon") to match SSR static prerendering byte-for-byte; client snapshot instantly syncs from `localStorage`.
+  - **Script tag warning eliminated:** The console error (`Encountered a script tag while rendering React component... RootLayout: <script src="/theme-init.js" />`) was a direct cascade caused when React 19 attempted to regenerate the entire component tree on the client after `<Header>` failed hydration. With zero hydration mismatch, RootLayout never re-mounts on the client and the script warning is eliminated.
+  - **Zero flash on refresh:** In `components/registration-page-content.tsx`, while `loading && !isPreview`, returns `null` rather than rendering the "Coming soon" empty state. When registration is open, refreshing `/registration` mounts the form immediately from cached status without flashing "Coming soon".
+
 - **Theme initialization: Light mode default for first-time visitors (2026-10-19):**
   - In `public/theme-init.js`, first-time visitors (no `compass-theme` in `localStorage`) now strictly default to light mode (`document.documentElement.dataset.theme = 'light'`) rather than checking system OS `prefers-color-scheme`.
   - Visitors can toggle the theme anytime using the header icon button; their choice is persisted to `localStorage['compass-theme']` and respected on subsequent visits and reloads.

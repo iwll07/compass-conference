@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { getSupabase } from "@/lib/supabase";
 
 export type RegistrationStatus = "soon" | "open" | "closed";
@@ -102,21 +102,46 @@ export async function updateRegistrationStatus(
   }
 }
 
+function subscribeToRegistrationStatus(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("compass-reg-status-changed", callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener("compass-reg-status-changed", callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function getRegistrationStatusSnapshot(): RegistrationStatus {
+  return getCachedRegistrationStatus() ?? DEFAULT_REGISTRATION_STATUS;
+}
+
+function getRegistrationStatusServerSnapshot(): RegistrationStatus {
+  return DEFAULT_REGISTRATION_STATUS;
+}
+
 /**
  * React hook to read the registration status with instant cache-first lookup and live updates.
  */
 export function useRegistrationStatus() {
-  const [status, setStatus] = useState<RegistrationStatus>(() => {
-    return getCachedRegistrationStatus() ?? DEFAULT_REGISTRATION_STATUS;
-  });
+  const status = useSyncExternalStore(
+    subscribeToRegistrationStatus,
+    getRegistrationStatusSnapshot,
+    getRegistrationStatusServerSnapshot
+  );
+
   const [loading, setLoading] = useState<boolean>(() => {
-    return getCachedRegistrationStatus() === null;
+    return typeof window === "undefined" || getCachedRegistrationStatus() === null;
   });
 
   const refresh = useCallback(async () => {
     const next = await fetchRegistrationStatus();
     setCachedRegistrationStatus(next);
-    setStatus(next);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("compass-reg-status-changed", { detail: { status: next } })
+      );
+    }
     setLoading(false);
   }, []);
 
@@ -125,40 +150,27 @@ export function useRegistrationStatus() {
     fetchRegistrationStatus().then((s) => {
       if (active) {
         setCachedRegistrationStatus(s);
-        setStatus(s);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("compass-reg-status-changed", { detail: { status: s } })
+          );
+        }
         setLoading(false);
       }
     });
-
-    const onCustomChange = (e: Event) => {
-      const custom = e as CustomEvent<{ status: RegistrationStatus }>;
-      if (custom.detail?.status) {
-        setCachedRegistrationStatus(custom.detail.status);
-        setStatus(custom.detail.status);
-        setLoading(false);
-      } else {
-        refresh();
-      }
-    };
-
-    const onStorageChange = (e: StorageEvent) => {
-      if (e.key === REGISTRATION_STATUS_CACHE_KEY && e.newValue) {
-        const val = e.newValue as RegistrationStatus;
-        if (val === "soon" || val === "open" || val === "closed") {
-          setStatus(val);
-          setLoading(false);
-        }
-      }
-    };
-
-    window.addEventListener("compass-reg-status-changed", onCustomChange);
-    window.addEventListener("storage", onStorageChange);
     return () => {
       active = false;
-      window.removeEventListener("compass-reg-status-changed", onCustomChange);
-      window.removeEventListener("storage", onStorageChange);
     };
-  }, [refresh]);
+  }, []);
+
+  const setStatus = useCallback((next: RegistrationStatus) => {
+    setCachedRegistrationStatus(next);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("compass-reg-status-changed", { detail: { status: next } })
+      );
+    }
+  }, []);
 
   return { status, loading, setStatus, refresh };
 }
