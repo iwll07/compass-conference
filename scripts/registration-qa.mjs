@@ -206,7 +206,6 @@ async function setupMock(page, onPayload) {
   const headerBox = await page.locator(".reg-confirmed-header").boundingBox();
   const cardBox = await card.boundingBox();
   const bodyBox = await page.locator(".reg-confirmed-body").boundingBox();
-  const gridBox = await page.locator(".reg-confirmation").boundingBox();
 
   check("layout is two columns at 1440px", !!headerBox && !!cardBox && cardBox.x > headerBox.x + 150);
   check("body is in left column below header", !!headerBox && !!bodyBox && bodyBox.y > headerBox.y && Math.abs(bodyBox.x - headerBox.x) < 20);
@@ -564,6 +563,226 @@ for (const theme of ["light", "dark"]) {
   await context.close();
 }
 
+// ---- Admin Registrations QA (mocked Supabase auth & data) ----
+
+const MOCK_SUMMARY = {
+  total: 42,
+  by_university: [
+    { university: "Beni Suef National University", count: 25 },
+    { university: "Mansoura National University", count: 10 },
+    { university: "Other", count: 7 },
+  ],
+  by_academic_year: [
+    { academic_year: "First Year", count: 15 },
+    { academic_year: "Second Year", count: 12 },
+    { academic_year: "Third Year", count: 8 },
+    { academic_year: "Graduate", count: 7 },
+  ],
+};
+
+const MOCK_REGISTRATIONS = [
+  {
+    id: "11111111-1111-1111-1111-111111111111",
+    created_at: "2026-10-18T10:00:00Z",
+    full_name: "Ahmed Mahmoud",
+    email: "ahmed@example.com",
+    phone: "+201012345678",
+    nationality: "Egypt",
+    nationality_other: null,
+    university: "Beni Suef National University",
+    university_other: null,
+    academic_year: "Third Year",
+    total_count: 2,
+  },
+  {
+    id: "22222222-2222-2222-2222-222222222222",
+    created_at: "2026-10-18T11:00:00Z",
+    full_name: "Sarah Connor",
+    email: "sarah@example.com",
+    phone: "+201098765432",
+    nationality: "Other",
+    nationality_other: "USA",
+    university: "Other",
+    university_other: "MIT",
+    academic_year: "Graduate",
+    total_count: 2,
+  },
+];
+
+// Setup mock admin environment for a given user email
+async function setupAdminMock(page, userEmail) {
+  // Mock Supabase auth session token & user endpoints
+  await page.route("**/auth/v1/user*", (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: "mock-user-id",
+        email: userEmail,
+        role: "authenticated",
+        app_metadata: {},
+        user_metadata: {},
+      }),
+    });
+  });
+
+  await page.route("**/auth/v1/token*", (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        access_token: "mock-token",
+        token_type: "bearer",
+        expires_in: 3600,
+        refresh_token: "mock-refresh",
+        user: { id: "mock-user-id", email: userEmail },
+      }),
+    });
+  });
+
+  // Mock RPC calls
+  await page.route("**/rest/v1/rpc/registration_summary*", (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_SUMMARY),
+    });
+  });
+
+  await page.route("**/rest/v1/rpc/search_registrations*", (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(MOCK_REGISTRATIONS),
+    });
+  });
+
+  // Mock registration delete
+  await page.route("**/rest/v1/registrations?id=eq.*", (route) => {
+    if (route.request().method() === "DELETE") {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "content-range": "0-0/1" },
+        body: JSON.stringify([MOCK_REGISTRATIONS[0]]),
+      });
+    } else {
+      route.continue();
+    }
+  });
+
+  // Mock registration log
+  await page.route("**/rest/v1/registration_log*", (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([
+        {
+          id: "log-1",
+          deleted_at: "2026-10-19T08:00:00Z",
+          deleted_by: "fares9005@gmail.com",
+          registration_id: "00000000-0000-0000-0000-000000000000",
+          full_name: "Deleted Person",
+        },
+      ]),
+    });
+  });
+
+  // Mock announcements
+  await page.route("**/rest/v1/announcements*", (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    });
+  });
+}
+
+// Test 9: Admin registrations UI for fares9005@gmail.com (delete admin)
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await setupAdminMock(page, "fares9005@gmail.com");
+
+  // Enter admin page via Supabase magic link hash
+  await page.goto(
+    BASE + "/admin/#access_token=mock-token&refresh_token=mock-refresh&expires_in=3600&token_type=bearer&type=recovery",
+    { waitUntil: "networkidle" }
+  );
+
+  // Summary rendering
+  const summarySection = page.locator(".reg-summary-section");
+  await page.waitForSelector(".reg-summary-section", { timeout: 5000 });
+  check("admin: summary section exists", await summarySection.count() === 1);
+  const summaryText = await summarySection.textContent();
+  check("admin: summary displays total count 42", summaryText?.includes("42") === true);
+  check("admin: summary displays Beni Suef National University", summaryText?.includes("Beni Suef National University") === true);
+
+  // Search & filter fields exist
+  check("admin: search input exists", await page.locator(".reg-filter-field input[type='search']").count() === 1);
+  check("admin: university filter exists", await page.locator(".reg-filter-field select").first().count() === 1);
+
+  // Rows rendered
+  const rows = page.locator(".reg-row-item");
+  check("admin: registration rows rendered", await rows.count() === 2);
+  const firstRowText = await rows.first().textContent();
+  check("admin: row shows name Ahmed Mahmoud", firstRowText?.includes("Ahmed Mahmoud") === true);
+  check("admin: row shows email ahmed@example.com", firstRowText?.includes("ahmed@example.com") === true);
+
+  // Delete button visible for fares9005@gmail.com
+  const deleteBtns = page.locator(".reg-delete-btn");
+  check("admin: delete buttons rendered for delete admin", await deleteBtns.count() === 2);
+
+  // Click delete button opens confirmation modal
+  await deleteBtns.first().click();
+  const modal = page.locator(".reg-modal-backdrop");
+  check("admin: delete modal opens on click", await modal.isVisible() === true);
+  const modalText = await modal.textContent();
+  check("admin: modal shows person's name and university", modalText?.includes("Ahmed Mahmoud") === true && modalText?.includes("Beni Suef National University") === true);
+
+  // Cancel closes modal
+  await modal.getByRole("button", { name: "Cancel" }).click();
+  check("admin: cancel button closes modal", await modal.count() === 0);
+
+  // Deletion log visible for fares
+  const delLog = page.locator(".reg-log-collapse");
+  check("admin: deletion log visible for fares9005@gmail.com", await delLog.count() === 1);
+
+  // Filter-aware Excel export button
+  const exportBtn = page.locator(".reg-export-btn");
+  check("admin: export button exists", await exportBtn.count() === 1);
+  check("admin: export button shows total matches", (await exportBtn.textContent())?.includes("2") === true);
+
+  await context.close();
+}
+
+// Test 10: Non-delete admin (e.g. member@example.com) has search/export but NO delete buttons or log
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await setupAdminMock(page, "member@example.com");
+
+  await page.goto(
+    BASE + "/admin/#access_token=mock-token&refresh_token=mock-refresh&expires_in=3600&token_type=bearer&type=recovery",
+    { waitUntil: "networkidle" }
+  );
+
+  // Rows are still visible
+  await page.waitForSelector(".reg-row-item", { timeout: 5000 });
+  const rows = page.locator(".reg-row-item");
+  check("non-delete admin: registration rows visible", await rows.count() === 2);
+
+  // Delete buttons strictly hidden
+  const deleteBtns = page.locator(".reg-delete-btn");
+  check("non-delete admin: delete buttons are NOT rendered", await deleteBtns.count() === 0);
+
+  // Deletion log strictly hidden
+  const delLog = page.locator(".reg-log-collapse");
+  check("non-delete admin: deletion log is NOT rendered", await delLog.count() === 0);
+
+  await context.close();
+}
+
 await browser.close();
 const failed = results.filter((r) => !r.pass);
 console.log(`\nREGISTRATION QA: PASS ${results.length - failed.length}/${results.length}`);
@@ -571,3 +790,4 @@ if (failed.length) {
   console.log(JSON.stringify(failed, null, 2));
 }
 process.exit(failed.length ? 1 : 0);
+

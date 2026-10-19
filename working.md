@@ -41,6 +41,34 @@
       - **Attendance confirmation note:** Explicit notice in the confirmation body (`.reg-note`): `Please note: Your attendance is not confirmed until you receive an email with your attendance details.`
       - **Card visual isolation & privacy:** Scoped custom properties (`--card-bg: #fff`, `--card-ink`, `--card-muted`, `--card-accent`, `--card-line`, `--card-shadow`) ensure the card renders identically as a crisp light card in both light and dark mode for consistent screenshots. The card strictly omits email, phone number, and any reference codes (guarded by automated tests).
       - **Save card as image (`lib/registration-card-canvas.ts`):** Native HTML5 Canvas 2D exporter generating a 1080x1350 PNG with zero external dependencies. Dynamically imported on button click. Awaits webfonts (`document.fonts.load`), wraps Latin and RTL Arabic text, supports `navigator.share({ files })` where supported (e.g. mobile share sheet), and falls back to direct client-side download as `compass-attendee-card.png`. Shares layout constants with the HTML card via `lib/registration-card-constants.ts`.
+    - **Registrations admin upgrade: access rules, summary, search/filters, delete, and filtered export (2026-10-19):**
+      - **Admin definition & project access:** Any signed-in user in Supabase (`auth.users`) is an admin because sign-ups are disabled. To add or remove an admin, add or remove their email in the Supabase Dashboard under Authentication -> Users.
+      - **Permission & RLS model:**
+        - **Read (SELECT):** Replaced email-restricted SELECT policy with `"authenticated users can read registrations"` on `public.registrations`. All signed-in admins can view all columns (including `id`, `created_at`, `nationality_other`, `university_other`).
+        - **Obsolete function dropped:** Dropped `is_registration_admin()` to eliminate stale hardcoded email logic from the schema.
+        - **Delete (DELETE):** Table-level DELETE granted to `authenticated`. The DELETE policy `"fares can delete registrations"` strictly verifies `lower(json_extract_path_text(current_setting('request.jwt.claims', true)::json, 'email')) = 'fares9005@gmail.com'`. Uses `json_extract_path_text` (never `->>`). UI visibility is gated by `REGISTRATION_DELETE_EMAILS = ["fares9005@gmail.com"]` in `lib/registration.ts`, while the database RLS policy is the real gate.
+        - **Anon restrictions maintained:** `anon` retains INSERT only on the 8 data columns and zero SELECT/DELETE access.
+      - **Deletion audit trail (`registration_log`):**
+        - Table `public.registration_log` (`id`, `deleted_at`, `deleted_by`, `registration_id`, `full_name`).
+        - Data privacy: strictly excludes email, phone, and other personal contact details.
+        - Written via AFTER DELETE trigger `registrations_deletion_audit` using a `security definer` function (`set search_path = public`). Clients have zero INSERT privileges.
+        - SELECT policy restricted strictly to `fares9005@gmail.com`.
+      - **Summary and Search RPC functions (`security invoker`):**
+        - `public.registration_summary()`: returns JSON containing `total`, counts by university (highest count first), and counts by academic year in canonical order (First Year ... Graduate).
+        - `public.search_registrations(q, p_university, p_academic_year, p_nationality, p_limit, p_offset)`: parameterised query searching `full_name`, `email`, and `phone` (with space, dash, and leading 0 stripping), plus exact matches on dropdowns. Returns rows with windowed `total_count`.
+        - Explicitly revoked EXECUTE from public and anon, granted to authenticated only.
+      - **Admin UI (`components/admin-registrations.tsx`, `app/admin/page.tsx`, `app/globals.css`):**
+        - Displayed to any signed-in user (removed obsolete `REGISTRATION_ADMIN_EMAILS` check).
+        - **Summary:** Top section shows total registered attendees, followed by a 2-column breakdown of university and academic year counts with thin teal percentage bars. Always reflects overall counts regardless of active filters.
+        - **Search & Filters:** Search box (debounced 300ms) matching name, email, or phone. Dropdowns for university, academic year, and nationality with "All". Clear filters action.
+        - **Records & Pagination:** Shows name, email, phone, university (with specified other), academic year, and registered-at Cairo time. Mobile layout stacks row fields. Paginated at 25 per page with Previous/Next controls and match counters.
+        - **Single Registration Delete:** Delete button (rendered only for `fares9005@gmail.com`) opens confirmation modal displaying name and university. Double-click guarded with `.delete({ count: 'exact' }).eq('id', id)` verifying count is exactly 1.
+        - **Deletion Log:** Collapsible audit trail panel visible exclusively to `fares9005@gmail.com` displaying the last 20 deletions.
+        - **Filter-Aware Excel Export:** Exports all records matching current filters across pages (or all attendees if no filters set). Verifies fetched row count equals exact filter count. Dynamic import of `write-excel-file/browser`. Generates `compass-registrations-YYYY-MM-DD[-filtered].xlsx`.
+      - **Migration Application Order:**
+        1. `supabase/migrations/20261019010000_registrations_admin_access.sql` (Access policies & delete permissions)
+        2. `supabase/migrations/20261019020000_registrations_deletion_log.sql` (Deletion audit table & trigger)
+        3. `supabase/migrations/20261019030000_registrations_functions.sql` (Summary & search RPCs)
     - Confirmation screen: renders client-side without navigation. Greets registrant by first name, reflects submitted email/phone in a masked line, displays attendance confirmation notice, displays attendee card, provides client-generated `.ics` calendar file download and native canvas PNG export, and moves focus with screen reader announcements to the heading.
   - **Navigation (`components/header.tsx`, `app/page.tsx`, `app/globals.css`):**
     - Desktop header pill and mobile nav list now link to `/registration/` labelled "Register" with active `aria-current` support.

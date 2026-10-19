@@ -206,6 +206,66 @@ export function duplicateField(error: unknown): DuplicateField {
   return null;
 }
 
+// ---- Admin permissions & helpers ----
+
+/** Accounts allowed to permanently delete conference registrations.
+ *  Mirrors the DELETE policy in supabase/migrations/20261019010000_registrations_admin_access.sql — keep in sync.
+ *  This array only controls UI visibility; the database RLS policy is the real gate. */
+export const REGISTRATION_DELETE_EMAILS: readonly string[] = ["fares9005@gmail.com"];
+
+export function canDeleteRegistrations(email?: string | null): boolean {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  return REGISTRATION_DELETE_EMAILS.some((admin) => admin.toLowerCase() === clean);
+}
+
+/**
+ * Normalise a user-typed phone search term to match the stored +201... numbers.
+ * Strips non-digits, and removes any leading '0' so "010..." matches "10...".
+ */
+export function cleanPhoneForSearch(query: string): string {
+  const digits = query.replace(/[^0-9]/g, "");
+  return digits.startsWith("0") ? digits.slice(1) : digits;
+}
+
+export type RegistrationFilterParams = {
+  q?: string;
+  university?: string;
+  academicYear?: string;
+  nationality?: string;
+};
+
+/**
+ * Checks whether any filter (text or dropdown) is actively set.
+ */
+export function hasActiveFilters(filters: RegistrationFilterParams): boolean {
+  return Boolean(
+    (filters.q && filters.q.trim().length > 0) ||
+      (filters.university && filters.university !== "All") ||
+      (filters.academicYear && filters.academicYear !== "All") ||
+      (filters.nationality && filters.nationality !== "All")
+  );
+}
+
+/**
+ * Generate the Excel export filename based on the Cairo date stamp and active filter state.
+ */
+export function getExportFilename(cairoDate: string, isFiltered: boolean): string {
+  return `compass-registrations-${cairoDate}${isFiltered ? "-filtered" : ""}.xlsx`;
+}
+
+/**
+ * Sorts academic year count entries in canonical order (First Year ... Graduate).
+ */
+export function sortAcademicYearCounts<T extends { academic_year: string }>(items: T[]): T[] {
+  const orderMap = new Map<string, number>(ACADEMIC_YEARS.map((y, idx) => [y, idx]));
+  return [...items].sort((a, b) => {
+    const orderA = orderMap.has(a.academic_year) ? (orderMap.get(a.academic_year) as number) : 999;
+    const orderB = orderMap.has(b.academic_year) ? (orderMap.get(b.academic_year) as number) : 999;
+    return orderA - orderB;
+  });
+}
+
 // ---- Contact for the confirmation screen ----
 
 /** Set to an object with `label` and `href` when a contact link should appear

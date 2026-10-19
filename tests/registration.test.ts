@@ -381,3 +381,114 @@ test("validateOtherUniversity: accepts valid length and trims", () => {
   assert.equal(validateOtherUniversity("x".repeat(100)), "x".repeat(100));
 });
 
+// ---- Admin upgrade helpers & migration tests ----
+
+import {
+  canDeleteRegistrations,
+  cleanPhoneForSearch,
+  hasActiveFilters,
+  getExportFilename,
+  sortAcademicYearCounts,
+  REGISTRATION_DELETE_EMAILS,
+} from "../lib/registration.ts";
+
+test("canDeleteRegistrations: permits only allowlisted delete admins (fares9005@gmail.com)", () => {
+  assert.ok(REGISTRATION_DELETE_EMAILS.includes("fares9005@gmail.com"));
+  assert.equal(canDeleteRegistrations("fares9005@gmail.com"), true);
+  assert.equal(canDeleteRegistrations("  FARES9005@GMAIL.COM  "), true);
+  assert.equal(canDeleteRegistrations("other@example.com"), false);
+  assert.equal(canDeleteRegistrations(""), false);
+  assert.equal(canDeleteRegistrations(null), false);
+  assert.equal(canDeleteRegistrations(undefined), false);
+});
+
+test("cleanPhoneForSearch: strips non-digits and leading zero", () => {
+  assert.equal(cleanPhoneForSearch("01012345678"), "1012345678");
+  assert.equal(cleanPhoneForSearch("1012345678"), "1012345678");
+  assert.equal(cleanPhoneForSearch("+20 10 1234 5678"), "201012345678");
+  assert.equal(cleanPhoneForSearch("011-9876-5432"), "1198765432");
+  assert.equal(cleanPhoneForSearch("Ahmed"), "");
+});
+
+test("hasActiveFilters: correctly identifies filter state", () => {
+  assert.equal(hasActiveFilters({}), false);
+  assert.equal(
+    hasActiveFilters({ q: "", university: "All", academicYear: "All", nationality: "All" }),
+    false
+  );
+  assert.equal(hasActiveFilters({ q: "Ahmed" }), true);
+  assert.equal(hasActiveFilters({ university: "Beni Suef National University" }), true);
+  assert.equal(hasActiveFilters({ academicYear: "Second Year" }), true);
+  assert.equal(hasActiveFilters({ nationality: "Egypt" }), true);
+});
+
+test("getExportFilename: adds -filtered tag when filters are active", () => {
+  assert.equal(getExportFilename("2026-10-19", false), "compass-registrations-2026-10-19.xlsx");
+  assert.equal(getExportFilename("2026-10-19", true), "compass-registrations-2026-10-19-filtered.xlsx");
+});
+
+test("sortAcademicYearCounts: sorts academic years in canonical sequence", () => {
+  const input = [
+    { academic_year: "Graduate", count: 5 },
+    { academic_year: "First Year", count: 20 },
+    { academic_year: "Intern", count: 8 },
+    { academic_year: "Second Year", count: 15 },
+  ];
+  const sorted = sortAcademicYearCounts(input);
+  assert.deepEqual(
+    sorted.map((s) => s.academic_year),
+    ["First Year", "Second Year", "Intern", "Graduate"]
+  );
+});
+
+test("migration (a) access: policy names, grant statements, and fares9005@gmail.com check", () => {
+  const sql = readFileSync("supabase/migrations/20261019010000_registrations_admin_access.sql", "utf8");
+  assert.ok(
+    sql.includes('"authenticated users can read registrations"'),
+    "Must create policy 'authenticated users can read registrations'"
+  );
+  assert.ok(
+    sql.includes('"fares can delete registrations"'),
+    "Must create policy 'fares can delete registrations'"
+  );
+  assert.ok(
+    sql.includes("fares9005@gmail.com"),
+    "Must explicitly scope delete policy to fares9005@gmail.com"
+  );
+  assert.ok(
+    sql.includes("grant select, delete on public.registrations to authenticated"),
+    "Must grant select and delete to authenticated"
+  );
+  assert.ok(
+    sql.includes("drop function if exists public.is_registration_admin()"),
+    "Must clean up obsolete is_registration_admin"
+  );
+});
+
+test("migration (b) deletion log: table, trigger and security definer function", () => {
+  const sql = readFileSync("supabase/migrations/20261019020000_registrations_deletion_log.sql", "utf8");
+  assert.ok(sql.includes("create table if not exists public.registration_log"), "Must create registration_log table");
+  assert.ok(sql.includes("registrations_deletion_audit"), "Must create audit trigger");
+  assert.ok(sql.includes("security definer"), "Trigger function must be security definer");
+  assert.ok(sql.includes("fares9005@gmail.com"), "Log read policy must be restricted to fares9005@gmail.com");
+  // Privacy assertion: audit log must NOT store email or phone
+  assert.ok(!sql.toLowerCase().includes("old.email"), "Trigger must NOT store email");
+  assert.ok(!sql.toLowerCase().includes("old.phone"), "Trigger must NOT store phone");
+});
+
+test("migration (c) functions: summary and search functions with security invoker", () => {
+  const sql = readFileSync("supabase/migrations/20261019030000_registrations_functions.sql", "utf8");
+  assert.ok(sql.includes("public.registration_summary()"), "Must create registration_summary function");
+  assert.ok(sql.includes("public.search_registrations("), "Must create search_registrations function");
+  assert.ok(sql.includes("security invoker"), "Functions must use security invoker");
+  assert.ok(
+    sql.includes("revoke execute on function public.registration_summary() from public, anon"),
+    "Must revoke execute from anon on summary"
+  );
+  assert.ok(
+    sql.includes("grant execute on function public.registration_summary() to authenticated"),
+    "Must grant execute to authenticated on summary"
+  );
+});
+
+

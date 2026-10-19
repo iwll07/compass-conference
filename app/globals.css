@@ -207,6 +207,74 @@ svg { flex-shrink: 0; vertical-align: middle; }
    while reaching for a single-row Delete. */
 .admin-clear-history { margin-top: 22px; min-height: 44px; }
 
+/* ---- Registrations Admin UI (/admin) -------------------------------- */
+.reg-summary-section { margin-top: 18px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.reg-summary-header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.reg-summary-title { font-size: 18px; font-family: "Source Serif 4", Georgia, serif; }
+.reg-summary-overall { font-size: 13px; color: var(--muted); }
+.reg-summary-overall strong { color: var(--ink); font-size: 15px; }
+.reg-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.reg-summary-column { display: flex; flex-direction: column; gap: 10px; }
+.reg-summary-col-heading { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.reg-summary-list { display: flex; flex-direction: column; gap: 8px; }
+.reg-summary-item { display: flex; flex-direction: column; gap: 4px; }
+.reg-summary-item-text { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 12px; }
+.reg-summary-label { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reg-summary-count { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; }
+.reg-summary-bar-bg { width: 100%; height: 3px; background: var(--line); border-radius: 1px; overflow: hidden; }
+.reg-summary-bar-fill { height: 100%; background: var(--accent); transition: width 200ms ease-out; }
+
+.reg-filter-section { margin-top: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.reg-filter-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 16px; align-items: flex-end; }
+.reg-filter-field { display: flex; flex-direction: column; gap: 6px; }
+.reg-filter-field label { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.reg-filter-field input, .reg-filter-field select { width: 100%; min-height: 42px; padding: 8px 12px; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 2px; }
+.reg-filter-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.reg-clear-btn { min-height: 40px; padding: 8px 14px; font-size: 12px; }
+.reg-export-btn { min-height: 40px; padding: 8px 16px; font-size: 13px; }
+
+.reg-results-section { margin-top: 24px; }
+.reg-results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.reg-results-count { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.reg-rows-list { list-style: none; margin: 0; padding: 0; }
+.reg-row-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.reg-row-main { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.reg-row-primary { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.reg-row-name { font-size: 16px; font-weight: 600; color: var(--ink); }
+.reg-row-date { font-size: 11px; color: var(--muted); }
+.reg-row-details { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--muted); }
+.reg-row-detail-item strong { color: var(--ink); font-weight: 500; margin-right: 3px; }
+.reg-row-actions { display: flex; align-items: center; flex-shrink: 0; }
+.reg-delete-btn { min-height: 36px; padding: 6px 12px; font-size: 12px; color: #b91c1c; border-color: color-mix(in srgb, #b91c1c 40%, var(--line)); }
+.reg-delete-btn:hover { background: color-mix(in srgb, #b91c1c 8%, transparent); }
+
+.reg-pagination { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 24px; padding-top: 12px; }
+.reg-page-indicator { font-size: 12px; color: var(--muted); }
+
+.reg-log-list { list-style: none; margin: 12px 0 0; padding: 0; }
+.reg-log-item { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+.reg-log-meta { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* Single registration delete confirmation modal */
+.reg-modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+.reg-modal-box { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 16px 36px rgba(0, 0, 0, .25); max-width: 440px; width: 100%; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.reg-modal-title { font-size: 20px; font-family: "Source Serif 4", Georgia, serif; margin: 0; }
+.reg-modal-copy { font-size: 14px; line-height: 1.5; margin: 0; color: var(--ink); }
+.reg-modal-warn { font-size: 12px; color: var(--muted); margin: 0; }
+.reg-modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+.reg-modal-delete-btn { background: #b91c1c; color: #fff; border: 1px solid #991b1b; }
+.reg-modal-delete-btn:hover { background: #991b1b; }
+
+@media (max-width: 767px) {
+  .reg-summary-grid { grid-template-columns: 1fr; gap: 20px; }
+  .reg-filter-grid { grid-template-columns: 1fr; gap: 12px; }
+  .reg-filter-actions { justify-content: stretch; flex-direction: column; }
+  .reg-filter-actions button { width: 100%; }
+  .reg-row-item { flex-direction: column; gap: 14px; }
+  .reg-row-details { flex-direction: column; gap: 6px; }
+  .reg-row-actions { width: 100%; justify-content: flex-start; }
+}
+
 /* ---- Registration (/registration) --------------------------------------- */
 .reg-form { max-width: 540px; margin-top: 40px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .reg-fieldset { width: 100%; border: 0; padding: 0; margin: 0 0 20px 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
