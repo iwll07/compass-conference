@@ -14,14 +14,6 @@ export function RegistrationPageContent() {
   // If preview mode is requested or registration is open, render the live form
   const showForm = isPreview || status === "open";
 
-  const subhead = isPreview
-    ? "Admin preview — test the live registration form before opening."
-    : status === "closed"
-    ? "Registration for COMPASS 2026 is now closed."
-    : status === "open"
-    ? "Your place at COMPASS starts here."
-    : "Your place at COMPASS starts here, once registration opens.";
-
   return (
     <>
       {isPreview && (
@@ -39,19 +31,12 @@ export function RegistrationPageContent() {
         </aside>
       )}
 
-      <header className="page-heading">
-        <h1 className="reveal">Registration</h1>
-        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>
-          {subhead}
-        </p>
-      </header>
-
       {showForm ? (
-        <div className="reveal" style={{ "--reveal-delay": "160ms" } as React.CSSProperties}>
+        <div className="reveal reveal-visible" style={{ "--reveal-delay": "160ms" } as React.CSSProperties}>
           <RegistrationForm />
         </div>
       ) : status === "closed" ? (
-        <section className="empty-state reveal" aria-labelledby="registration-closed">
+        <section className="empty-state reveal reveal-visible" aria-labelledby="registration-closed">
           <Compass className="empty-mark" size={72} weight="light" aria-hidden="true" />
           <h2 id="registration-closed">Registration closed.</h2>
           <p>
@@ -59,7 +44,7 @@ export function RegistrationPageContent() {
           </p>
         </section>
       ) : (
-        <section className="empty-state reveal" aria-labelledby="registration-coming-soon">
+        <section className="empty-state reveal reveal-visible" aria-labelledby="registration-coming-soon">
           <Compass className="empty-mark" size={72} weight="light" aria-hidden="true" />
           <h2 id="registration-coming-soon">Coming soon.</h2>
           <p>

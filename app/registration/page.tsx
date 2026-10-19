@@ -11,21 +11,16 @@ export const metadata: Metadata = {
 export default function RegistrationPage() {
   return (
     <main id="main-content" className="page-shell">
-      <Suspense
-        fallback={
-          <div>
-            <header className="page-heading">
-              <h1 className="reveal">Registration</h1>
-              <p
-                className="reveal"
-                style={{ "--reveal-delay": "80ms" } as React.CSSProperties}
-              >
-                Your place at COMPASS starts here.
-              </p>
-            </header>
-          </div>
-        }
-      >
+      <header className="page-heading">
+        <h1 className="reveal">Registration</h1>
+        <p
+          className="reveal"
+          style={{ "--reveal-delay": "80ms" } as React.CSSProperties}
+        >
+          Your place at COMPASS starts here.
+        </p>
+      </header>
+      <Suspense fallback={null}>
         <RegistrationPageContent />
       </Suspense>
     </main>
