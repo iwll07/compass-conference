@@ -48,6 +48,14 @@
         - **Obsolete function dropped:** Dropped `is_registration_admin()` to eliminate stale hardcoded email logic from the schema.
         - **Delete (DELETE):** Table-level DELETE granted to `authenticated`. The DELETE policy `"authenticated users can delete registrations"` allows any signed-in admin to delete individual attendee records. Deleting a row opens a confirmation modal verifying the person's name and university, and double-clicks are guarded by requiring `count === 1`.
         - **Bulk Delete ("Delete all registrations"):** Strictly restricted to `fares9005@gmail.com` via the database function `public.clear_all_registrations()` (`security definer`), which checks JWT claims and raises an exception for any other user. UI visibility is guarded by `REGISTRATION_DELETE_ALL_EMAILS = ["fares9005@gmail.com"]` in `lib/registration.ts`.
+        - **Hardened Delete-All Confirmation Flow:**
+          - Fetches current total fresh on modal open (`select id { count: exact, head: true }`), displaying `"This will permanently delete all {N} registrations."`
+          - Permanent loss notice: `"Emails and phone numbers cannot be recovered, and only names stay in the deletion log."`
+          - `"Download Excel first"` button reuses the Excel export function with `exportAll = true` to backup all rows before deletion.
+          - Requires typing exact case-sensitive `DELETE` before the delete button is enabled.
+          - Initial focus is set on the Cancel button; pressing Escape closes the modal; double clicks are guarded via `isDeletingAll`.
+          - Afterwards displays `"{N} registrations deleted."` (or an explicit error if unauthorized) and refreshes list, summary, and deletion log.
+        - **WHERE true safety requirement (`20261019040000_clear_all_registrations_where_true.sql`):** Updates `clear_all_registrations()` from `delete from public.registrations` to `delete from public.registrations where true` to satisfy Supabase / PostgREST safety extensions (such as `pg_safeupdate`) that reject unqualified deletes.
         - **Anon restrictions maintained:** `anon` retains INSERT only on the 8 data columns and zero SELECT/DELETE access.
       - **Deletion audit trail (`registration_log`):**
         - Table `public.registration_log` (`id`, `deleted_at`, `deleted_by`, `registration_id`, `full_name`).
@@ -71,6 +79,7 @@
         1. `supabase/migrations/20261019010000_registrations_admin_access.sql` (Access policies & delete permissions)
         2. `supabase/migrations/20261019020000_registrations_deletion_log.sql` (Deletion audit table, trigger, and select/delete policies for fares)
         3. `supabase/migrations/20261019030000_registrations_functions.sql` (Summary & search RPCs)
+        4. `supabase/migrations/20261019040000_clear_all_registrations_where_true.sql` (Adds `WHERE true` to `clear_all_registrations` for unqualified DELETE safety)
     - Confirmation screen: renders client-side without navigation. Greets registrant by first name, reflects submitted email/phone in a masked line, displays attendance confirmation notice, displays attendee card, provides client-generated `.ics` calendar file download and native canvas PNG export, and moves focus with screen reader announcements to the heading.
   - **Navigation (`components/header.tsx`, `app/page.tsx`, `app/globals.css`):**
     - Desktop header pill and mobile nav list now link to `/registration/` labelled "Register" with active `aria-current` support.

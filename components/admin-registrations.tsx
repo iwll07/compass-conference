@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import {
   ACADEMIC_YEARS,
@@ -103,6 +103,10 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
   // Delete all modal state (fares only)
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [typedConfirm, setTypedConfirm] = useState("");
+  const [freshTotal, setFreshTotal] = useState<number | null>(null);
+  const [freshTotalLoading, setFreshTotalLoading] = useState(false);
+  const cancelDeleteAllRef = useRef<HTMLButtonElement>(null);
 
   // Deletion log state (fares only)
   const [deletionLog, setDeletionLog] = useState<RegistrationLogRecord[] | null>(null);
@@ -123,6 +127,27 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
     }, 300);
     return () => clearTimeout(timer);
   }, [queryInput]);
+
+  // Focus cancel button and listen to Escape for Delete All modal
+  useEffect(() => {
+    if (!showDeleteAllModal) return;
+    const focusTimer = setTimeout(() => {
+      cancelDeleteAllRef.current?.focus();
+    }, 40);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isDeletingAll) {
+        setShowDeleteAllModal(false);
+        setTypedConfirm("");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      clearTimeout(focusTimer);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showDeleteAllModal, isDeletingAll]);
 
   // Load summary (all totals regardless of filters)
   const loadSummary = useCallback(async () => {
@@ -359,9 +384,31 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
     }
   }
 
+  // Open Delete all modal with fresh total count
+  async function openDeleteAllModal() {
+    setTypedConfirm("");
+    setShowDeleteAllModal(true);
+    setFreshTotalLoading(true);
+    setFreshTotal(null);
+    try {
+      const { count, error: countErr } = await getSupabase()
+        .from("registrations")
+        .select("id", { count: "exact", head: true });
+      if (!countErr && typeof count === "number") {
+        setFreshTotal(count);
+      } else {
+        setFreshTotal(summary?.total ?? 0);
+      }
+    } catch {
+      setFreshTotal(summary?.total ?? 0);
+    } finally {
+      setFreshTotalLoading(false);
+    }
+  }
+
   // Delete all registrations handler (strictly fares9005@gmail.com)
   async function confirmDeleteAll() {
-    if (!canDeleteAll || isDeletingAll) return;
+    if (!canDeleteAll || isDeletingAll || typedConfirm !== "DELETE") return;
     setIsDeletingAll(true);
     setError(null);
     setNotice(null);
@@ -369,39 +416,51 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
     try {
       const { data, error: delErr } = await getSupabase().rpc("clear_all_registrations");
       if (delErr) {
+        if (delErr.message && delErr.message.toLowerCase().includes("unauthorized")) {
+          throw new Error("Unauthorized: Only fares9005@gmail.com is permitted to delete all registrations.");
+        }
         // Fallback: direct table delete if RPC is not yet created
         const { count, error: tableDelErr } = await getSupabase()
           .from("registrations")
           .delete({ count: "exact" })
           .neq("id", "00000000-0000-0000-0000-000000000000");
 
-        if (tableDelErr) throw tableDelErr;
-        setNotice(`Deleted all ${count ?? 0} registrations.`);
+        if (tableDelErr) {
+          if (tableDelErr.message && tableDelErr.message.toLowerCase().includes("unauthorized")) {
+            throw new Error("Unauthorized: Only fares9005@gmail.com is permitted to delete all registrations.");
+          }
+          throw tableDelErr;
+        }
+        setNotice(`${count ?? 0} registrations deleted.`);
       } else {
-        setNotice(`Deleted all ${data ?? 0} registrations.`);
+        setNotice(`${data ?? 0} registrations deleted.`);
       }
 
       setShowDeleteAllModal(false);
+      setTypedConfirm("");
       await Promise.all([loadRows(), loadSummary(), loadDeletionLog()]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to delete all registrations.");
+      await Promise.all([loadRows(), loadSummary(), loadDeletionLog()]);
     } finally {
       setIsDeletingAll(false);
     }
   }
 
-  // Filter-aware Excel export
-  async function exportToExcel() {
-    if (exporting || totalMatches === 0) return;
+  // Filter-aware Excel export (supports exportAll override)
+  async function exportToExcel(exportAll = false) {
+    const isFiltered = !exportAll && activeFilters;
+    const targetCount = exportAll ? (freshTotal ?? summary?.total ?? 0) : totalMatches;
+    if (exporting || targetCount === 0) return;
     setExporting(true);
     setError(null);
     setNotice(null);
 
     try {
-      const cleanQ = debouncedQuery.trim();
-      const pUni = universityFilter === "All" ? null : universityFilter;
-      const pYear = academicYearFilter === "All" ? null : academicYearFilter;
-      const pNat = nationalityFilter === "All" ? null : nationalityFilter;
+      const cleanQ = exportAll ? "" : debouncedQuery.trim();
+      const pUni = exportAll || universityFilter === "All" ? null : universityFilter;
+      const pYear = exportAll || academicYearFilter === "All" ? null : academicYearFilter;
+      const pNat = exportAll || nationalityFilter === "All" ? null : nationalityFilter;
 
       // Paged retrieval across all matching records
       const EXPORT_PAGE = 1000;
@@ -454,9 +513,9 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
       }
 
       // Verify fetched count equals expected exact match total
-      if (allExportRows.length !== totalMatches) {
+      if (allExportRows.length !== targetCount) {
         throw new Error(
-          `Count mismatch: expected ${totalMatches} rows, but fetched ${allExportRows.length}. Export aborted to prevent partial file.`
+          `Count mismatch: expected ${targetCount} rows, but fetched ${allExportRows.length}. Export aborted to prevent partial file.`
         );
       }
 
@@ -509,7 +568,7 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
       ];
 
       const cairoDate = getCairoDateStamp();
-      const filename = getExportFilename(cairoDate, activeFilters);
+      const filename = getExportFilename(cairoDate, isFiltered);
 
       type WriteXlsxBrowser = (
         sheetData: unknown,
@@ -677,7 +736,7 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
             <button
               type="button"
               className="button button-secondary reg-export-btn"
-              onClick={exportToExcel}
+              onClick={() => exportToExcel(false)}
               disabled={exporting || totalMatches === 0}
             >
               <span className="button-label">
@@ -693,7 +752,8 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
               <button
                 type="button"
                 className="button reg-delete-all-btn"
-                onClick={() => setShowDeleteAllModal(true)}
+                onClick={openDeleteAllModal}
+                disabled={isDeletingAll}
               >
                 Delete all registrations
               </button>
@@ -922,21 +982,62 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
 
         {/* ---- 6. Delete All Registrations Confirmation Modal (fares9005@gmail.com only) ---- */}
         {showDeleteAllModal ? (
-          <div className="reg-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="del-all-modal-title">
+          <div
+            className="reg-modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="del-all-modal-title"
+          >
             <div className="reg-modal-box">
               <h3 id="del-all-modal-title" className="reg-modal-title">Delete ALL Registrations</h3>
               <p className="reg-modal-copy">
-                Are you absolutely sure you want to permanently delete <strong>all {summary?.total ?? 0} registrations</strong>?
+                This will permanently delete all{" "}
+                <strong>{freshTotalLoading ? "…" : (freshTotal ?? summary?.total ?? 0)}</strong>{" "}
+                registrations.
               </p>
               <p className="reg-modal-warn" style={{ color: "#b91c1c", fontWeight: 600 }}>
-                WARNING: This will permanently wipe the entire registrations table. This action cannot be undone.
+                Emails and phone numbers cannot be recovered, and only names stay in the deletion log.
               </p>
+
+              <div className="reg-modal-export-prompt">
+                <button
+                  type="button"
+                  className="button button-secondary reg-modal-excel-btn"
+                  onClick={() => exportToExcel(true)}
+                  disabled={exporting || isDeletingAll}
+                >
+                  <span className="button-label">
+                    {exporting ? "Downloading Excel…" : "Download Excel first"}
+                  </span>
+                </button>
+              </div>
+
+              <div className="reg-modal-confirm-input-wrap">
+                <label htmlFor="confirm-delete-all-input" className="reg-modal-input-label">
+                  Type <strong>DELETE</strong> (exact, case-sensitive) to confirm:
+                </label>
+                <input
+                  id="confirm-delete-all-input"
+                  type="text"
+                  className="reg-modal-input"
+                  value={typedConfirm}
+                  onChange={(e) => setTypedConfirm(e.target.value)}
+                  placeholder="DELETE"
+                  autoComplete="off"
+                  disabled={isDeletingAll}
+                />
+              </div>
 
               <div className="reg-modal-actions">
                 <button
+                  ref={cancelDeleteAllRef}
                   type="button"
                   className="button button-secondary"
-                  onClick={() => setShowDeleteAllModal(false)}
+                  onClick={() => {
+                    if (isDeletingAll) return;
+                    setShowDeleteAllModal(false);
+                    setTypedConfirm("");
+                  }}
                   disabled={isDeletingAll}
                 >
                   Cancel
@@ -945,9 +1046,9 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
                   type="button"
                   className="button reg-modal-delete-btn"
                   onClick={confirmDeleteAll}
-                  disabled={isDeletingAll}
+                  disabled={isDeletingAll || typedConfirm !== "DELETE"}
                 >
-                  {isDeletingAll ? "Deleting all…" : "Yes, delete everything"}
+                  {isDeletingAll ? "Deleting all…" : "Delete all registrations"}
                 </button>
               </div>
             </div>

@@ -649,11 +649,29 @@ async function setupAdminMock(page, userEmail) {
     });
   });
 
+  await page.route("**/rest/v1/rpc/clear_all_registrations*", (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(42),
+    });
+  });
+
   await page.route("**/rest/v1/rpc/search_registrations*", (route) => {
     route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(MOCK_REGISTRATIONS),
+    });
+  });
+
+  // Mock registrations count query (HEAD / select=id)
+  await page.route("**/rest/v1/registrations?select=id*", (route) => {
+    route.fulfill({
+      status: 200,
+      headers: { "content-range": "0-0/42" },
+      contentType: "application/json",
+      body: JSON.stringify([]),
     });
   });
 
@@ -757,6 +775,52 @@ async function setupAdminMock(page, userEmail) {
   // Delete all registrations button visible for fares
   const deleteAllBtn = page.locator(".reg-delete-all-btn");
   check("admin: delete all button visible for fares9005@gmail.com", await deleteAllBtn.count() === 1);
+
+  // Click Delete all button opens hardened confirmation dialog
+  await deleteAllBtn.click();
+  const allModal = page.locator(".reg-modal-backdrop");
+  check("admin: delete all modal opens on click", await allModal.isVisible() === true);
+
+  // Assert fresh count is shown
+  const allModalText = await allModal.textContent();
+  check("admin: delete all modal shows fresh total count 42", allModalText?.includes("42") === true);
+  check("admin: delete all modal warns that emails and phones cannot be recovered", allModalText?.includes("Emails and phone numbers cannot be recovered") === true);
+  check("admin: delete all modal notes only names stay in deletion log", allModalText?.includes("only names stay in the deletion log") === true);
+
+  // Assert Download Excel first button exists
+  const excelFirstBtn = allModal.locator(".reg-modal-excel-btn");
+  check("admin: download excel first button exists", await excelFirstBtn.count() === 1);
+
+  // Assert Cancel button initially focused
+  const cancelAllBtn = allModal.getByRole("button", { name: "Cancel" });
+  await page.waitForTimeout(100);
+  check("admin: cancel button initially focused", await cancelAllBtn.evaluate((el) => el === document.activeElement));
+
+  // Assert confirm Delete button is initially disabled
+  const confirmDeleteAllBtn = allModal.locator(".reg-modal-delete-btn");
+  check("admin: delete all confirm button initially disabled", await confirmDeleteAllBtn.isDisabled() === true);
+
+  // Typing non-matching text keeps it disabled
+  const confirmInput = allModal.locator("#confirm-delete-all-input");
+  await confirmInput.fill("delete");
+  check("admin: lowercase delete keeps button disabled", await confirmDeleteAllBtn.isDisabled() === true);
+
+  // Typing exact case-sensitive DELETE enables the button
+  await confirmInput.fill("DELETE");
+  check("admin: exact uppercase DELETE enables confirm button", await confirmDeleteAllBtn.isEnabled() === true);
+
+  // Escape key closes modal
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(100);
+  check("admin: escape key closes delete all modal", await page.locator(".reg-modal-backdrop").count() === 0);
+
+  // Re-open and execute deletion
+  await deleteAllBtn.click();
+  await page.locator("#confirm-delete-all-input").fill("DELETE");
+  await page.locator(".reg-modal-delete-btn").click();
+  await page.waitForSelector(".admin-notice", { timeout: 4000 });
+  const allNotice = await page.locator(".admin-notice").textContent();
+  check("admin: notice shows 42 registrations deleted", allNotice?.includes("42 registrations deleted") === true);
 
   // Deletion log visible for fares
   const delLog = page.locator(".reg-log-collapse");

@@ -503,4 +503,20 @@ test("migration (c) functions: summary and search functions with security invoke
   );
 });
 
+test("migration (d) clear_all_registrations_where_true: adds where true for safety and checks fares9005", () => {
+  const sql = readFileSync("supabase/migrations/20261019040000_clear_all_registrations_where_true.sql", "utf8");
+  assert.ok(sql.includes("clear_all_registrations()"), "Must define clear_all_registrations function");
+  assert.ok(sql.includes("delete from public.registrations"), "Must delete from registrations");
+  assert.ok(sql.includes("where true"), "Must contain 'where true' clause for safety");
+  assert.ok(sql.includes("fares9005@gmail.com"), "Must restrict to fares9005@gmail.com");
+  assert.ok(
+    sql.includes("revoke execute on function public.clear_all_registrations() from public, anon"),
+    "Must revoke execute from anon"
+  );
+  assert.ok(
+    sql.includes("grant execute on function public.clear_all_registrations() to authenticated"),
+    "Must grant execute to authenticated"
+  );
+});
+
 
