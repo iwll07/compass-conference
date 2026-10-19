@@ -2,14 +2,27 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useSyncExternalStore } from "react";
 import { Compass } from "@phosphor-icons/react";
 import { RegistrationForm } from "@/components/registration-form";
 import { useRegistrationStatus } from "@/lib/registration-status";
+
+const emptySubscribe = () => () => {};
 
 export function RegistrationPageContent() {
   const searchParams = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";
   const { status, loading } = useRegistrationStatus();
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+
+  // During SSR and initial hydration pass, return null to match server HTML exactly
+  if (!isMounted && !isPreview) {
+    return null;
+  }
 
   // If preview mode is requested or registration is open, render the live form
   const showForm = isPreview || status === "open";
