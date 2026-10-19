@@ -107,6 +107,8 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
   // Deletion log state (fares only)
   const [deletionLog, setDeletionLog] = useState<RegistrationLogRecord[] | null>(null);
   const [deletionLogLoading, setDeletionLogLoading] = useState(false);
+  const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
+  const [isClearingLog, setIsClearingLog] = useState(false);
 
   const searchInputId = useId();
   const uniSelectId = useId();
@@ -167,6 +169,45 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
       setDeletionLogLoading(false);
     }
   }, [canDeleteAll]);
+
+  // Delete single deletion log entry (fares only)
+  async function removeLogEntry(entry: RegistrationLogRecord) {
+    if (!canDeleteAll) return;
+    setError(null);
+    setDeletingLogId(entry.id);
+    try {
+      const { error: err } = await getSupabase()
+        .from("registration_log")
+        .delete()
+        .eq("id", entry.id);
+      if (err) throw err;
+      await loadDeletionLog();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Could not delete log entry.");
+    } finally {
+      setDeletingLogId(null);
+    }
+  }
+
+  // Clear all deletion history (fares only)
+  async function clearRegistrationLog() {
+    if (!canDeleteAll) return;
+    setError(null);
+    setIsClearingLog(true);
+    try {
+      const { error: err } = await getSupabase()
+        .from("registration_log")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+      if (err) throw err;
+      setNotice("Deletion history cleared.");
+      await loadDeletionLog();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Could not clear deletion log.");
+    } finally {
+      setIsClearingLog(false);
+    }
+  }
 
   // Load registrations with current filters and pagination
   const loadRows = useCallback(async () => {
@@ -790,18 +831,51 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
               ) : !deletionLog || deletionLog.length === 0 ? (
                 <p className="admin-note">No deletions recorded.</p>
               ) : (
-                <ul className="reg-log-list">
-                  {deletionLog.map((log) => (
-                    <li key={log.id} className="reg-log-item">
-                      <div>
-                        <strong>{log.full_name}</strong>
-                        <span className="reg-log-meta">
-                          Deleted by {log.deleted_by} on {formatCairoDateTime(log.deleted_at)}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <ul className="reg-log-list">
+                    {deletionLog.map((log) => (
+                      <li key={log.id} className="reg-log-item">
+                        <div>
+                          <strong>{log.full_name}</strong>
+                          <span className="reg-log-meta">
+                            Deleted by {log.deleted_by} on {formatCairoDateTime(log.deleted_at)}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="button button-secondary admin-row-button reg-log-delete-btn"
+                          onClick={() => removeLogEntry(log)}
+                          aria-label={`Delete log entry for ${log.full_name}`}
+                          disabled={deletingLogId === log.id}
+                        >
+                          <span className="button-label">
+                            {deletingLogId === log.id ? "Deleting…" : "Delete"}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    className="button button-secondary admin-clear-history reg-clear-log-btn"
+                    disabled={isClearingLog}
+                    onClick={() => {
+                      if (typeof window === "undefined") return;
+                      if (
+                        window.confirm(
+                          `Delete all ${deletionLog.length} deletion history entries? This cannot be undone.`
+                        )
+                      ) {
+                        clearRegistrationLog();
+                      }
+                    }}
+                  >
+                    <span className="button-label">
+                      {isClearingLog ? "Clearing…" : "Clear all deletion history"}
+                    </span>
+                  </button>
+                </>
               )}
             </div>
           </details>

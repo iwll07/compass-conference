@@ -53,7 +53,8 @@
         - Table `public.registration_log` (`id`, `deleted_at`, `deleted_by`, `registration_id`, `full_name`).
         - Data privacy: strictly excludes email, phone, and other personal contact details.
         - Written via AFTER DELETE trigger `registrations_deletion_audit` using a `security definer` function (`set search_path = public`). Clients have zero INSERT privileges.
-        - SELECT policy restricted strictly to `fares9005@gmail.com`.
+        - SELECT and DELETE policies restricted strictly to `fares9005@gmail.com`.
+        - Deletion history entries can be deleted individually by `fares9005@gmail.com` or completely wiped via "Clear all deletion history" (with confirmation dialog), mirroring the `announcement_log` pattern.
       - **Summary and Search RPC functions (`security invoker`):**
         - `public.registration_summary()`: returns JSON containing `total`, counts by university (highest count first), and counts by academic year in canonical order (First Year ... Graduate).
         - `public.search_registrations(q, p_university, p_academic_year, p_nationality, p_limit, p_offset)`: parameterised query searching `full_name`, `email`, and `phone` (with space, dash, and leading 0 stripping), plus exact matches on dropdowns. Returns rows with windowed `total_count`.
@@ -63,12 +64,12 @@
         - **Summary:** Top section shows total registered attendees, followed by a 2-column breakdown of university and academic year counts with thin teal percentage bars. Always reflects overall counts regardless of active filters.
         - **Search & Filters:** Search box (debounced 300ms) matching name, email, or phone. Dropdowns for university, academic year, and nationality with "All". Clear filters action.
         - **Records & Pagination:** Shows name, email, phone, university (with specified other), academic year, and registered-at Cairo time. Mobile layout stacks row fields. Paginated at 25 per page with Previous/Next controls and match counters.
-        - **Single Registration Delete:** Delete button (rendered only for `fares9005@gmail.com`) opens confirmation modal displaying name and university. Double-click guarded with `.delete({ count: 'exact' }).eq('id', id)` verifying count is exactly 1.
-        - **Deletion Log:** Collapsible audit trail panel visible exclusively to `fares9005@gmail.com` displaying the last 20 deletions.
+        - **Single Registration Delete:** Delete button (rendered for all signed-in admins) opens confirmation modal displaying name and university. Double-click guarded with `.delete({ count: 'exact' }).eq('id', id)` verifying count is exactly 1.
+        - **Deletion Log:** Collapsible audit trail panel visible exclusively to `fares9005@gmail.com` displaying the last 20 deletions, with per-item Delete buttons and a "Clear all deletion history" action.
         - **Filter-Aware Excel Export:** Exports all records matching current filters across pages (or all attendees if no filters set). Verifies fetched row count equals exact filter count. Dynamic import of `write-excel-file/browser`. Generates `compass-registrations-YYYY-MM-DD[-filtered].xlsx`.
       - **Migration Application Order:**
         1. `supabase/migrations/20261019010000_registrations_admin_access.sql` (Access policies & delete permissions)
-        2. `supabase/migrations/20261019020000_registrations_deletion_log.sql` (Deletion audit table & trigger)
+        2. `supabase/migrations/20261019020000_registrations_deletion_log.sql` (Deletion audit table, trigger, and select/delete policies for fares)
         3. `supabase/migrations/20261019030000_registrations_functions.sql` (Summary & search RPCs)
     - Confirmation screen: renders client-side without navigation. Greets registrant by first name, reflects submitted email/phone in a masked line, displays attendance confirmation notice, displays attendee card, provides client-generated `.ics` calendar file download and native canvas PNG export, and moves focus with screen reader announcements to the heading.
   - **Navigation (`components/header.tsx`, `app/page.tsx`, `app/globals.css`):**

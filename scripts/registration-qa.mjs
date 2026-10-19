@@ -672,20 +672,30 @@ async function setupAdminMock(page, userEmail) {
   });
 
   // Mock registration log
+  let currentLog = [
+    {
+      id: "log-1",
+      deleted_at: "2026-10-19T08:00:00Z",
+      deleted_by: "fares9005@gmail.com",
+      registration_id: "00000000-0000-0000-0000-000000000000",
+      full_name: "Deleted Person",
+    },
+  ];
   await page.route("**/rest/v1/registration_log*", (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify([
-        {
-          id: "log-1",
-          deleted_at: "2026-10-19T08:00:00Z",
-          deleted_by: "fares9005@gmail.com",
-          registration_id: "00000000-0000-0000-0000-000000000000",
-          full_name: "Deleted Person",
-        },
-      ]),
-    });
+    if (route.request().method() === "DELETE") {
+      currentLog = [];
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      });
+    } else {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(currentLog),
+      });
+    }
   });
 
   // Mock announcements
@@ -751,6 +761,15 @@ async function setupAdminMock(page, userEmail) {
   // Deletion log visible for fares
   const delLog = page.locator(".reg-log-collapse");
   check("admin: deletion log visible for fares9005@gmail.com", await delLog.count() === 1);
+  await delLog.locator("summary").click();
+
+  // Log item delete button
+  const logDeleteBtn = page.locator(".reg-log-delete-btn");
+  check("admin: deletion log item delete button rendered", await logDeleteBtn.count() === 1);
+
+  // Clear all deletion history button
+  const clearLogBtn = page.locator(".reg-clear-log-btn");
+  check("admin: clear all deletion history button rendered", await clearLogBtn.count() === 1);
 
   // Filter-aware Excel export button
   const exportBtn = page.locator(".reg-export-btn");

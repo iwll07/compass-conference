@@ -18,8 +18,8 @@
 --    to registration_log even though clients have zero INSERT privileges on it.
 -- 3. Row Level Security on registration_log:
 --    - RLS enabled.
---    - SELECT granted to authenticated, but restricted by policy strictly to 'fares9005@gmail.com'.
---    - Clients have NO INSERT, UPDATE, or DELETE grants on registration_log.
+--    - SELECT and DELETE granted to authenticated, but restricted by policies strictly to 'fares9005@gmail.com'.
+--    - Clients have NO INSERT or UPDATE grants on registration_log.
 
 create table if not exists public.registration_log (
     id uuid primary key default gen_random_uuid(),
@@ -33,12 +33,26 @@ alter table public.registration_log enable row level security;
 
 -- Revoke all direct client modifications; clients must never directly write or mutate the audit log
 revoke all on public.registration_log from anon, authenticated;
-grant select on public.registration_log to authenticated;
+grant select, delete on public.registration_log to authenticated;
 
 -- SELECT policy: only fares9005@gmail.com can read the deletion log
 drop policy if exists "fares can read registration deletion log" on public.registration_log;
 create policy "fares can read registration deletion log"
     on public.registration_log for select
+    to authenticated
+    using (
+        lower(
+            json_extract_path_text(
+                current_setting('request.jwt.claims', true)::json,
+                'email'
+            )
+        ) = 'fares9005@gmail.com'
+    );
+
+-- DELETE policy: only fares9005@gmail.com can delete from the deletion log
+drop policy if exists "fares can delete registration deletion log" on public.registration_log;
+create policy "fares can delete registration deletion log"
+    on public.registration_log for delete
     to authenticated
     using (
         lower(

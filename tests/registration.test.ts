@@ -469,12 +469,20 @@ test("migration (a) access: policy names, grant statements, and bulk delete chec
   );
 });
 
-test("migration (b) deletion log: table, trigger and security definer function", () => {
+test("migration (b) deletion log: table, trigger, security definer function, and delete policy for fares", () => {
   const sql = readFileSync("supabase/migrations/20261019020000_registrations_deletion_log.sql", "utf8");
   assert.ok(sql.includes("create table if not exists public.registration_log"), "Must create registration_log table");
   assert.ok(sql.includes("registrations_deletion_audit"), "Must create audit trigger");
   assert.ok(sql.includes("security definer"), "Trigger function must be security definer");
-  assert.ok(sql.includes("fares9005@gmail.com"), "Log read policy must be restricted to fares9005@gmail.com");
+  assert.ok(sql.includes("fares9005@gmail.com"), "Log read and delete policies must be restricted to fares9005@gmail.com");
+  assert.ok(
+    sql.includes("grant select, delete on public.registration_log to authenticated"),
+    "Must grant select and delete on registration_log to authenticated"
+  );
+  assert.ok(
+    sql.includes('"fares can delete registration deletion log"'),
+    "Must create delete policy for fares on registration_log"
+  );
   // Privacy assertion: audit log must NOT store email or phone
   assert.ok(!sql.toLowerCase().includes("old.email"), "Trigger must NOT store email");
   assert.ok(!sql.toLowerCase().includes("old.phone"), "Trigger must NOT store phone");
