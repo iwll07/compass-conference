@@ -44,6 +44,23 @@ mkdirSync(".playwright-cli/qa", { recursive: true });
 
 const browser = await chromium.launch({ channel: "msedge" });
 
+// Helper to create a browser context with registration_settings defaulting to 'open'
+async function createContext(options = {}) {
+  const context = await browser.newContext(options);
+  await context.route("**/rest/v1/registration_settings*", (route) => {
+    if (route.request().method() === "GET") {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: "current", status: "open" }),
+      });
+    } else {
+      route.continue();
+    }
+  });
+  return context;
+}
+
 // Helper to mock Supabase POST /rest/v1/registrations
 async function setupMock(page, onPayload) {
   await page.route("**/rest/v1/registrations*", (route) => {
@@ -63,7 +80,7 @@ async function setupMock(page, onPayload) {
 
 // ---- Test 1: Desktop inspection (fields, options, validation, font sizes, honeypot) ----
 {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await createContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 
@@ -135,7 +152,7 @@ async function setupMock(page, onPayload) {
 
 // ---- Test 2: Desktop confirmation screen & card assertions (1440px) ----
 {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await createContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 
@@ -311,7 +328,7 @@ async function setupMock(page, onPayload) {
 
 // ---- Test 3: Mobile 390px confirmation screen in light and dark mode ----
 for (const theme of ["light", "dark"]) {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const context = await createContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 
@@ -362,7 +379,7 @@ for (const theme of ["light", "dark"]) {
 
 // ---- Test 4: Long Latin Name wrapping & layout ----
 {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await createContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
   await setupMock(page);
@@ -396,7 +413,7 @@ for (const theme of ["light", "dark"]) {
 
 // ---- Test 5: Arabic Name rendering (dir="auto", RTL layout) ----
 {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await createContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
   await setupMock(page);
@@ -429,7 +446,7 @@ for (const theme of ["light", "dark"]) {
 
 // ---- Test 6: Mocked 409 duplicate phone, email, and generic clashes ----
 {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await createContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 
@@ -499,7 +516,7 @@ for (const theme of ["light", "dark"]) {
 
 // ---- Test 7: "Other" nationality and university submission & card rendering ----
 {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await createContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 
@@ -540,7 +557,7 @@ for (const theme of ["light", "dark"]) {
 
 // ---- Test 8: Non-Other submission payload sends no *_other keys ----
 {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await createContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await page.goto(BASE + "/registration/", { waitUntil: "networkidle" });
 
@@ -728,7 +745,7 @@ async function setupAdminMock(page, userEmail) {
 
 // Test 9: Admin registrations UI for fares9005@gmail.com (delete admin)
 {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await createContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await setupAdminMock(page, "fares9005@gmail.com");
 
@@ -845,7 +862,7 @@ async function setupAdminMock(page, userEmail) {
 
 // Test 10: Non-owner admin (e.g. member@example.com) CAN delete single rows, but CANNOT see "Delete all" or Deletion log
 {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const context = await createContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   await setupAdminMock(page, "member@example.com");
 
@@ -872,6 +889,127 @@ async function setupAdminMock(page, userEmail) {
   check("other admin: deletion log is NOT rendered", await delLog.count() === 0);
 
   await context.close();
+}
+
+// ---- Test 11: 3-State Registration Status & Admin Preview ----
+{
+  // 1. When status is 'soon'
+  const soonContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await soonContext.route("**/rest/v1/registration_settings*", (route) => {
+    if (route.request().method() === "GET") {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: "current", status: "soon" }),
+      });
+    } else {
+      route.continue();
+    }
+  });
+  const soonPage = await soonContext.newPage();
+
+  // (a) Homepage hero and header show disabled badge "Registration soon"
+  await soonPage.goto(BASE + "/", { waitUntil: "networkidle" });
+  const heroSoon = soonPage.locator(".hero-cta-row .hero-register-disabled");
+  check("status soon: hero shows disabled badge", await heroSoon.count() === 1);
+  check("status soon: hero badge text", (await heroSoon.textContent())?.trim() === "Registration soon");
+  const navSoon = soonPage.locator(".nav-actions .nav-register-disabled");
+  check("status soon: desktop header shows disabled badge", await navSoon.count() === 1);
+  check("status soon: header badge text", (await navSoon.textContent())?.trim() === "Registration soon");
+
+  // (b) /registration shows coming soon empty state
+  await soonPage.goto(BASE + "/registration/", { waitUntil: "networkidle" });
+  const emptySoon = soonPage.locator("#registration-coming-soon");
+  check("status soon: /registration shows Coming soon empty state", await emptySoon.count() === 1);
+  check("status soon: form is not mounted", await soonPage.locator("#reg-name").count() === 0);
+
+  // (c) /registration?preview=true bypasses 'soon' and renders live form with preview banner
+  await soonPage.goto(BASE + "/registration/?preview=true", { waitUntil: "networkidle" });
+  const previewBanner = soonPage.locator(".admin-preview-banner");
+  check("preview mode: banner is rendered", await previewBanner.count() === 1);
+  check("preview mode: banner indicates current status", (await previewBanner.textContent())?.includes("soon") === true);
+  check("preview mode: live form is mounted", await soonPage.locator("#reg-name").count() === 1);
+  await soonContext.close();
+
+  // 2. When status is 'closed'
+  const closedContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await closedContext.route("**/rest/v1/registration_settings*", (route) => {
+    if (route.request().method() === "GET") {
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: "current", status: "closed" }),
+      });
+    } else {
+      route.continue();
+    }
+  });
+  const closedPage = await closedContext.newPage();
+
+  // (a) Homepage hero and header show disabled badge "Registration closed"
+  await closedPage.goto(BASE + "/", { waitUntil: "networkidle" });
+  const heroClosed = closedPage.locator(".hero-cta-row .hero-register-disabled");
+  check("status closed: hero shows disabled badge", await heroClosed.count() === 1);
+  check("status closed: hero badge text", (await heroClosed.textContent())?.trim() === "Registration closed");
+  const navClosed = closedPage.locator(".nav-actions .nav-register-disabled");
+  check("status closed: desktop header shows disabled badge", await navClosed.count() === 1);
+  check("status closed: header badge text", (await navClosed.textContent())?.trim() === "Registration closed");
+
+  // (b) /registration shows closed empty state
+  await closedPage.goto(BASE + "/registration/", { waitUntil: "networkidle" });
+  const emptyClosed = closedPage.locator("#registration-closed");
+  check("status closed: /registration shows closed empty state", await emptyClosed.count() === 1);
+  check("status closed: form is not mounted", await closedPage.locator("#reg-name").count() === 0);
+
+  // (c) /registration?preview=true bypasses 'closed' and renders live form with preview banner
+  await closedPage.goto(BASE + "/registration/?preview=true", { waitUntil: "networkidle" });
+  check("status closed + preview: banner is rendered", await closedPage.locator(".admin-preview-banner").count() === 1);
+  check("status closed + preview: live form is mounted", await closedPage.locator("#reg-name").count() === 1);
+  await closedContext.close();
+
+  // 3. Admin status control section
+  const adminContext = await createContext({ viewport: { width: 1440, height: 900 } });
+  let updatedStatusPayload = null;
+  await adminContext.route("**/rest/v1/registration_settings*", (route) => {
+    if (route.request().method() === "PATCH" || route.request().method() === "PUT") {
+      updatedStatusPayload = JSON.parse(route.request().postData() ?? "{}");
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: "current", status: updatedStatusPayload.status }),
+      });
+    } else {
+      route.continue();
+    }
+  });
+  const adminPage = await adminContext.newPage();
+  await setupAdminMock(adminPage, "fares9005@gmail.com");
+  await adminPage.goto(
+    BASE + "/admin/#access_token=mock-token&refresh_token=mock-refresh&expires_in=3600&token_type=bearer&type=recovery",
+    { waitUntil: "networkidle" }
+  );
+
+  // Check section exists
+  await adminPage.waitForSelector(".reg-status-section", { timeout: 5000 });
+  check("admin: reg-status-section exists", await adminPage.locator(".reg-status-section").count() === 1);
+
+  // Check preview button
+  const previewBtn = adminPage.locator(".reg-preview-btn");
+  check("admin: 'Open form preview' button exists", await previewBtn.count() === 1);
+  check("admin: preview button links to /registration?preview=true", (await previewBtn.getAttribute("href")) === "/registration?preview=true");
+  check("admin: preview button opens in new tab", (await previewBtn.getAttribute("target")) === "_blank");
+
+  // Check the 3 status pills
+  const pills = adminPage.locator(".reg-status-pill");
+  check("admin: exactly 3 status pills rendered", await pills.count() === 3);
+
+  // Click 'Closed' pill and verify update request is dispatched
+  const closedPill = adminPage.locator(".reg-status-pill", { hasText: "Closed" });
+  await closedPill.click();
+  await adminPage.waitForTimeout(300);
+  check("admin: toggling status sends update payload with 'closed'", updatedStatusPayload?.status === "closed");
+
+  await adminContext.close();
 }
 
 await browser.close();

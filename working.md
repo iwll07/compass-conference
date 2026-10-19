@@ -1,6 +1,25 @@
 # COMPASS working log
 
 ## Current state
+- **Registration status control & admin preview (2026-10-19):**
+  - **3-State System:**
+    - `"soon"` (default): Public homepage hero and header show disabled, solid primary `.button` badge "Registration soon" (`opacity: 0.85; pointer-events: none;`); `/registration` renders Coming soon empty state.
+    - `"open"`: Public hero shows active link "Register now" to `/registration` with hover-lift; header shows active link "Register"; `/registration` mounts the live registration form.
+    - `"closed"`: Public hero and header show disabled badge "Registration closed"; `/registration` renders Closed empty state ("Registration for COMPASS 2026 is now closed. Thank you to everyone who registered.").
+  - **Database schema & migration (`supabase/migrations/20261019050000_create_registration_settings.sql`):**
+    - Table `public.registration_settings`: single row (`id text primary key default 'current'`), `status text not null default 'soon' check (status in ('soon', 'open', 'closed'))`, `updated_at timestamptz default now()`, and `updated_by text`.
+    - Initial row seeded with `'soon'`.
+    - RLS enabled: `anon` and `authenticated` have SELECT; `authenticated` has UPDATE on `(status)` with check `auth.role() = 'authenticated'` avoiding linter warnings.
+    - Trigger `registration_settings_touch` automatically records `updated_at` and `updated_by` from JWT email. Client EXECUTE revoked from public, anon, and authenticated.
+  - **Admin controls (`components/admin-registrations.tsx`, `app/globals.css`):**
+    - Section 0 in Registrations admin panel displays 3 interactive status pills (`Coming soon`, `Open`, `Closed`) with colored indicator dots (amber, green, slate). All signed-in admins can switch status.
+    - Status updates dispatch Supabase update and notify all open tabs/components via `compass-reg-status-changed` event.
+    - `"Open form preview"` button links to `/registration?preview=true` in a new tab.
+  - **Admin Form Preview Mode (`components/registration-page-content.tsx`, `app/registration/page.tsx`):**
+    - Query parameter `?preview=true` overrides the public status check and renders the live registration form even when status is `"soon"` or `"closed"`.
+    - Displays a prominent status bar at the top: `Admin Form Preview — Public status is currently: {status}` with a direct link back to admin.
+    - Wrapped in `<Suspense>` boundary to preserve Next.js static export compatibility.
+
 - **Theme initialization: Light mode default for first-time visitors (2026-10-19):**
   - In `public/theme-init.js`, first-time visitors (no `compass-theme` in `localStorage`) now strictly default to light mode (`document.documentElement.dataset.theme = 'light'`) rather than checking system OS `prefers-color-scheme`.
   - Visitors can toggle the theme anytime using the header icon button; their choice is persisted to `localStorage['compass-theme']` and respected on subsequent visits and reloads.

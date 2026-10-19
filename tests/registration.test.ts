@@ -519,4 +519,44 @@ test("migration (d) clear_all_registrations_where_true: adds where true for safe
   );
 });
 
+import {
+  DEFAULT_REGISTRATION_STATUS,
+  REGISTRATION_STATUS_LABELS,
+} from "../lib/registration-status.ts";
+
+test("registration status module defaults and labels", () => {
+  assert.equal(DEFAULT_REGISTRATION_STATUS, "soon");
+  assert.equal(REGISTRATION_STATUS_LABELS.soon, "Registration soon");
+  assert.equal(REGISTRATION_STATUS_LABELS.open, "Register now");
+  assert.equal(REGISTRATION_STATUS_LABELS.closed, "Registration closed");
+});
+
+test("migration (e) registration_settings: table, 3-state check, grants, trigger, and linter-safe policies", () => {
+  const sql = readFileSync("supabase/migrations/20261019050000_create_registration_settings.sql", "utf8");
+  assert.ok(sql.includes("public.registration_settings"), "Must create registration_settings table");
+  assert.ok(
+    sql.includes("check (status in ('soon', 'open', 'closed'))"),
+    "Must enforce 3 states: soon, open, closed"
+  );
+  assert.ok(sql.includes("values ('current', 'soon')"), "Must seed initial row as 'soon'");
+  assert.ok(sql.includes("enable row level security"), "Must enable RLS");
+  assert.ok(
+    sql.includes("grant select (id, status, updated_at, updated_by) on public.registration_settings to anon, authenticated"),
+    "Must grant SELECT on settings to anon and authenticated"
+  );
+  assert.ok(
+    sql.includes("grant update (status) on public.registration_settings to authenticated"),
+    "Must grant UPDATE (status) to authenticated"
+  );
+  assert.ok(
+    sql.includes("auth.role() = 'authenticated'"),
+    "Must check auth.role() = 'authenticated' to avoid permissive rls_policy_always_true warning"
+  );
+  assert.ok(
+    sql.includes("revoke execute on function public.touch_registration_settings() from public, anon, authenticated"),
+    "Must revoke trigger function execution to avoid anon_security_definer_function_executable"
+  );
+});
+
+
 

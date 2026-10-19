@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { getSupabase } from "@/lib/supabase";
+import {
+  RegistrationStatus,
+  updateRegistrationStatus,
+  useRegistrationStatus,
+} from "@/lib/registration-status";
 import {
   ACADEMIC_YEARS,
   NATIONALITIES,
@@ -75,6 +81,31 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
   // Overall summary state (independent of filters)
   const [summary, setSummary] = useState<RegistrationSummaryData | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
+
+  // Registration public status state (all admins can view and toggle)
+  const { status: regStatus, loading: regStatusLoading, setStatus: setRegStatus } = useRegistrationStatus();
+  const [statusUpdating, setStatusUpdating] = useState(false);
+
+  async function handleStatusChange(nextStatus: RegistrationStatus) {
+    if (nextStatus === regStatus || statusUpdating) return;
+    setStatusUpdating(true);
+    setError(null);
+    setNotice(null);
+    const { error: updateErr } = await updateRegistrationStatus(nextStatus);
+    setStatusUpdating(false);
+    if (updateErr) {
+      setError(`Failed to update registration status: ${updateErr.message}`);
+    } else {
+      setRegStatus(nextStatus);
+      const label =
+        nextStatus === "open"
+          ? "Open"
+          : nextStatus === "closed"
+          ? "Closed"
+          : "Coming soon";
+      setNotice(`Registration status updated to "${label}".`);
+    }
+  }
 
   // Filters state
   const [queryInput, setQueryInput] = useState("");
@@ -598,6 +629,75 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
       </summary>
 
       <div className="admin-collapse-body">
+        {/* ---- 0. Registration Status Control & Preview ---- */}
+        <section className="reg-status-section" aria-label="Registration status control">
+          <div className="reg-status-header">
+            <div className="reg-status-info">
+              <h3 className="reg-status-title">Registration Status</h3>
+              <p className="reg-status-desc">
+                Controls public access across the site. All admins can toggle the status.
+              </p>
+            </div>
+            <a
+              href="/registration?preview=true"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="button button-secondary reg-preview-btn"
+              title="Open the live registration form in preview mode"
+            >
+              Open form preview
+              <ArrowUpRightIcon size={16} aria-hidden="true" />
+            </a>
+          </div>
+
+          <div className="reg-status-options" role="radiogroup" aria-label="Public registration status">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={regStatus === "soon"}
+              disabled={statusUpdating || regStatusLoading}
+              className={`reg-status-pill ${regStatus === "soon" ? "reg-status-pill-active" : ""}`}
+              onClick={() => handleStatusChange("soon")}
+            >
+              <span className="reg-status-dot reg-status-dot-soon" aria-hidden="true" />
+              <span className="reg-status-pill-text">
+                <span className="reg-status-pill-label">Coming soon</span>
+                <span className="reg-status-pill-sub">Badge: &ldquo;Registration soon&rdquo;</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              role="radio"
+              aria-checked={regStatus === "open"}
+              disabled={statusUpdating || regStatusLoading}
+              className={`reg-status-pill ${regStatus === "open" ? "reg-status-pill-active" : ""}`}
+              onClick={() => handleStatusChange("open")}
+            >
+              <span className="reg-status-dot reg-status-dot-open" aria-hidden="true" />
+              <span className="reg-status-pill-text">
+                <span className="reg-status-pill-label">Open</span>
+                <span className="reg-status-pill-sub">Live form &amp; &ldquo;Register now&rdquo;</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              role="radio"
+              aria-checked={regStatus === "closed"}
+              disabled={statusUpdating || regStatusLoading}
+              className={`reg-status-pill ${regStatus === "closed" ? "reg-status-pill-active" : ""}`}
+              onClick={() => handleStatusChange("closed")}
+            >
+              <span className="reg-status-dot reg-status-dot-closed" aria-hidden="true" />
+              <span className="reg-status-pill-text">
+                <span className="reg-status-pill-label">Closed</span>
+                <span className="reg-status-pill-sub">Badge: &ldquo;Registration closed&rdquo;</span>
+              </span>
+            </button>
+          </div>
+        </section>
+
         {/* ---- 1. Summary Section ---- */}
         <section className="reg-summary-section" aria-label="Registration overview">
           <div className="reg-summary-header">

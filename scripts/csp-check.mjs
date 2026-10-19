@@ -6,6 +6,17 @@ const results = [];
 function check(name, pass, detail = "") { results.push({ name, pass: !!pass, detail }); }
 
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+await context.route("**/rest/v1/registration_settings*", (route) => {
+  if (route.request().method() === "GET") {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "current", status: "soon" }),
+    });
+  } else {
+    route.continue();
+  }
+});
 const page = await context.newPage();
 const cspErrors = [];
 const consoleErrors = [];

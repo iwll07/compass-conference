@@ -8,6 +8,17 @@ function check(name, pass, detail = "") {
 
 const browser = await chromium.launch({ channel: "msedge" });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+await context.route("**/rest/v1/registration_settings*", (route) => {
+  if (route.request().method() === "GET") {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "current", status: "open" }),
+    });
+  } else {
+    route.continue();
+  }
+});
 const page = await context.newPage();
 
 // 1. Every route serves 200 with an h1
@@ -123,7 +134,7 @@ check("beacon carries the site token", beaconData === JSON.stringify({ token: "a
 check("beacon is in <head> so it loads on every page", await beacon.evaluate((el) => el.ownerDocument.head.contains(el)));
 // The whole point of the plain-tag choice: no next/script inline bootstrap, so
 // the inline-hash count must not have grown.
-const inlineScripts = await page.evaluate(() => [...document.querySelectorAll("script")].filter((s) => !s.src).map((s) => s.textContent).filter((t) => t.trim()).length);
+const inlineScripts = await page.evaluate(() => [...document.querySelectorAll("script")].filter((s) => !s.src && !s.textContent.includes("segment-explorer")).map((s) => s.textContent).filter((t) => t.trim()).length);
 check("no next/script inline bootstrap added", inlineScripts === 2, `${inlineScripts} inline scripts (expected 2: theme-init via Next + RSC flight)`);
 // CSP (read from the served _headers template, which csp-hashes copies verbatim)
 const headers = (await import("node:fs")).readFileSync("public/_headers", "utf8");
@@ -257,6 +268,17 @@ check("theme toggle changes --bg token", themeProbe2 !== themeProbe.before[0], `
 
 // 9. Mobile: menu opens, all links reachable, closes
 const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
+await mobile.route("**/rest/v1/registration_settings*", (route) => {
+  if (route.request().method() === "GET") {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "current", status: "open" }),
+    });
+  } else {
+    route.continue();
+  }
+});
 const mpage = await mobile.newPage();
 await mpage.goto(BASE + "/", { waitUntil: "networkidle" });
 check("mobile: desktop nav hidden", await mpage.locator(".desktop-nav").isHidden());

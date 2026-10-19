@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRightIcon, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Countdown } from "@/components/countdown";
 import { Announcements } from "@/components/announcements";
+import { HeroRegistrationCta } from "@/components/hero-registration-cta";
 import { lastConference } from "@/lib/calls";
 import type { CSSProperties } from "react";
 
@@ -24,7 +25,7 @@ export default function HomePage() {
           Decorative, so alt is empty and the wrapper stays aria-hidden. */}
       {/* eslint-disable-next-line @next/next/no-img-element -- a plain <img> is required here: next/image would emit its own wrapper and lazy-loading behaviour, and the goal is a single discoverable, high-priority image element. */}
       <div className="hero-bg" aria-hidden="true"><img src="/college.jpeg" alt="" width={800} height={533} fetchPriority="high" /></div>
-      <div className="hero-copy"><h1 className="reveal">Directing the future of <em>healthcare.</em></h1><p className="reveal" style={stagger(80)}>Conference of Medical Practice and Scientific Studies</p><div className="hero-actions reveal" style={stagger(160)}><div className="hero-cta-row"><Link className="button hover-lift" href="/registration">Register now<ArrowRightIcon size={18} aria-hidden="true" /></Link></div><Link className="text-link hero-link" href="/about">Discover COMPASS <ArrowRightIcon size={18} aria-hidden="true" /></Link></div><div className="hero-definition">A student-led meeting of medical practice, scientific inquiry,<br />and the people who will shape what comes next.</div></div>
+      <div className="hero-copy"><h1 className="reveal">Directing the future of <em>healthcare.</em></h1><p className="reveal" style={stagger(80)}>Conference of Medical Practice and Scientific Studies</p><div className="hero-actions reveal" style={stagger(160)}><HeroRegistrationCta /><Link className="text-link hero-link" href="/about">Discover COMPASS <ArrowRightIcon size={18} aria-hidden="true" /></Link></div><div className="hero-definition">A student-led meeting of medical practice, scientific inquiry,<br />and the people who will shape what comes next.</div></div>
     </section>
     <section className="event-strip" aria-label="Conference details"><Countdown /><a className="event-place" href="https://maps.app.goo.gl/hGkvafW5MgV6WBia9" target="_blank" rel="noopener noreferrer" aria-label="Beni Suef National University on Google Maps"><strong className="event-place-name">Beni Suef National University<ArrowUpRightIcon size={13} aria-hidden="true" /></strong><span>Faculty of Medicine · Egypt</span></a><Link href="/agenda" className="text-link">The program <ArrowRightIcon size={18} aria-hidden="true" /></Link></section>
     {/* Announcements sit after the event strip (countdown + location), framed
