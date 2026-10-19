@@ -6,12 +6,9 @@ import { MoonIcon, SunIcon } from "@phosphor-icons/react";
 function subscribe(callback: () => void) {
   window.addEventListener("compass-theme", callback);
   window.addEventListener("storage", callback);
-  const media = window.matchMedia("(prefers-color-scheme: dark)");
-  media.addEventListener("change", callback);
   return () => {
     window.removeEventListener("compass-theme", callback);
     window.removeEventListener("storage", callback);
-    media.removeEventListener("change", callback);
   };
 }
 

@@ -1,6 +1,11 @@
 # COMPASS working log
 
 ## Current state
+- **Theme initialization: Light mode default for first-time visitors (2026-10-19):**
+  - In `public/theme-init.js`, first-time visitors (no `compass-theme` in `localStorage`) now strictly default to light mode (`document.documentElement.dataset.theme = 'light'`) rather than checking system OS `prefers-color-scheme`.
+  - Visitors can toggle the theme anytime using the header icon button; their choice is persisted to `localStorage['compass-theme']` and respected on subsequent visits and reloads.
+  - In `components/theme-toggle.tsx`, removed unnecessary `prefers-color-scheme` media listener so theme state is driven exclusively by user toggle and `compass-theme` storage events.
+
 - **Registration system: public form, Supabase table with RLS, and admin Excel export (2026-10-18):**
   - **Shared definitions (`lib/registration.ts`):** Single source of truth for option lists (Nationality, University, Academic year in exact order), `normalizeEgyptianPhone` (converts Arabic-Indic digits, strips punctuation, normalises 010/011/012/015 to `+20` + 10 digits), name validation (trimmed 3-100 characters, >=2 words, any script, no digits), and email validation (trimmed, lowercase, <=254 chars). `registrationContact` is exported as `null`. 43 unit tests in `tests/registration.test.ts` verify all rules and assert migration CHECK constraints stay in sync with the option lists.
   - **Database schema & migration (`supabase/migrations/20261018000000_create_registrations.sql`):**

@@ -10,6 +10,6 @@
 if (location.hostname === "compass.bsnu.workers.dev") {
   location.replace("https://compassbsnu.page" + location.pathname + location.search + location.hash);
 } else {
-  document.documentElement.classList.add('js');try{var t=localStorage.getItem('compass-theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch{}
+  document.documentElement.classList.add('js');try{var t=localStorage.getItem('compass-theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:'light'}catch{}
 }
 
