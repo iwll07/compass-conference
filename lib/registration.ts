@@ -270,3 +270,32 @@ export function sortAcademicYearCounts<T extends { academic_year: string }>(item
  *  on the confirmation screen. Null means "don't show a contact line". */
 export const registrationContact: { label: string; href: string } | null = null;
 
+// ---- RLS Status Enforcement Helpers ----------------------------------------
+
+/**
+ * Detects whether a Supabase / Postgres error is an RLS policy rejection
+ * (Postgres code 42501 insufficient_privilege or text indicating RLS check violation).
+ */
+export function isRegistrationRlsError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { code?: string; message?: string; details?: string };
+  if (e.code === "42501") return true;
+  const text = `${e.message ?? ""} ${e.details ?? ""}`.toLowerCase();
+  return (
+    text.includes("row-level security") ||
+    text.includes("violates rls") ||
+    text.includes("permission denied")
+  );
+}
+
+/**
+ * Pure mapping helper that returns the appropriate user-facing message
+ * when an insert fails due to registration being closed or not yet open.
+ */
+export function getRegistrationRlsErrorMessage(status?: string | null): string {
+  if (status === "soon") {
+    return "Registration hasn't opened yet.";
+  }
+  return "Registration is currently closed.";
+}
+

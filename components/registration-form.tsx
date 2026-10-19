@@ -13,11 +13,17 @@ import {
   formatMaskedContact,
   registrationContact,
   duplicateField,
+  isRegistrationRlsError,
+  getRegistrationRlsErrorMessage,
   OTHER_NATIONALITY_MIN,
   OTHER_NATIONALITY_MAX,
   OTHER_UNIVERSITY_MIN,
   OTHER_UNIVERSITY_MAX,
 } from "@/lib/registration";
+import {
+  fetchRegistrationStatus,
+  setCachedRegistrationStatus,
+} from "@/lib/registration-status";
 import { conferenceWindow } from "@/lib/event";
 import { RegistrationCard } from "@/components/registration-card";
 
@@ -236,6 +242,16 @@ export function RegistrationForm() {
           } else {
             setSubmitError("These details are already registered.");
           }
+        } else if (isRegistrationRlsError(error)) {
+          const freshStatus = await fetchRegistrationStatus();
+          setCachedRegistrationStatus(freshStatus);
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("compass-reg-status-changed", { detail: { status: freshStatus } })
+            );
+          }
+          const msg = getRegistrationRlsErrorMessage(freshStatus);
+          setSubmitError(msg);
         } else {
           setSubmitError("We couldn't submit your registration right now. Please try again.");
           console.warn("Registration insert error:", error.message);

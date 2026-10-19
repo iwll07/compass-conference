@@ -558,5 +558,49 @@ test("migration (e) registration_settings: table, 3-state check, grants, trigger
   );
 });
 
+import {
+  isRegistrationRlsError,
+  getRegistrationRlsErrorMessage,
+} from "../lib/registration.ts";
+
+test("isRegistrationRlsError: identifies 42501 code and message variants", () => {
+  assert.equal(isRegistrationRlsError({ code: "42501", message: "insufficient_privilege" }), true);
+  assert.equal(
+    isRegistrationRlsError({
+      code: "P0001",
+      message: 'new row violates row-level security policy for table "registrations"',
+    }),
+    true
+  );
+  assert.equal(isRegistrationRlsError({ message: "permission denied for table registrations" }), true);
+  assert.equal(isRegistrationRlsError({ code: "23505", message: "duplicate key value" }), false);
+  assert.equal(isRegistrationRlsError(null), false);
+  assert.equal(isRegistrationRlsError("random string"), false);
+});
+
+test("getRegistrationRlsErrorMessage: returns distinct messages for soon vs closed", () => {
+  assert.equal(getRegistrationRlsErrorMessage("soon"), "Registration hasn't opened yet.");
+  assert.equal(getRegistrationRlsErrorMessage("closed"), "Registration is currently closed.");
+  assert.equal(getRegistrationRlsErrorMessage("open"), "Registration is currently closed.");
+  assert.equal(getRegistrationRlsErrorMessage(null), "Registration is currently closed.");
+  assert.equal(getRegistrationRlsErrorMessage(undefined), "Registration is currently closed.");
+});
+
+test("migration (f) enforce_registration_status_rls: registration_is_open function and role-based policies", () => {
+  const sql = readFileSync("supabase/migrations/20261020000000_enforce_registration_status_rls.sql", "utf8");
+  assert.ok(sql.includes("create or replace function public.registration_is_open()"), "Must create registration_is_open function");
+  assert.ok(sql.includes("security definer"), "Must be security definer");
+  assert.ok(sql.includes("set search_path = public"), "Must set search_path = public");
+  assert.ok(sql.includes("status = 'open'"), "Must check status = 'open'");
+  assert.ok(sql.includes("revoke execute on function public.registration_is_open() from public"), "Must revoke execute from public");
+  assert.ok(sql.includes("grant execute on function public.registration_is_open() to anon, authenticated"), "Must grant execute to anon, authenticated");
+  assert.ok(sql.includes('drop policy if exists "anyone can register" on public.registrations'), "Must drop old permissive policy");
+  assert.ok(sql.includes('create policy "anon can register when open"'), "Must create anon policy");
+  assert.ok(sql.includes("with check (public.registration_is_open())"), "Anon policy must check registration_is_open()");
+  assert.ok(sql.includes('create policy "authenticated can register in preview"'), "Must create authenticated policy");
+  assert.ok(sql.includes("with check (true)"), "Authenticated policy must have with check (true)");
+});
+
+
 
 

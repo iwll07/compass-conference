@@ -511,6 +511,18 @@ for (const theme of ["light", "dark"]) {
   const genericErr = (await page.locator(".reg-submit-error").textContent())?.trim();
   check("unspecified duplicate shows generic banner", genericErr === "These details are already registered.", genericErr);
 
+  // D. RLS 42501 rejection (registration closed in DB)
+  conflictToReturn = {
+    code: "42501",
+    message: 'new row violates row-level security policy for table "registrations"',
+  };
+
+  await page.click('button[type="submit"]');
+  await page.waitForSelector(".reg-submit-error", { timeout: 3000 });
+
+  const rlsErr = (await page.locator(".reg-submit-error").textContent())?.trim();
+  check("rls error shows closed banner", rlsErr === "Registration is currently closed.", rlsErr);
+
   await context.close();
 }
 
@@ -923,13 +935,36 @@ async function setupAdminMock(page, userEmail) {
   check("status soon: /registration shows Coming soon empty state", await emptySoon.count() === 1);
   check("status soon: form is not mounted", await soonPage.locator("#reg-name").count() === 0);
 
-  // (c) /registration?preview=true bypasses 'soon' and renders live form with preview banner
+  // (c) Signed-out visitor with /registration/?preview=true is IGNORED and sees Coming soon
   await soonPage.goto(BASE + "/registration/?preview=true", { waitUntil: "networkidle" });
-  const previewBanner = soonPage.locator(".admin-preview-banner");
-  check("preview mode: banner is rendered", await previewBanner.count() === 1);
-  check("preview mode: banner indicates current status", (await previewBanner.textContent())?.includes("soon") === true);
-  check("preview mode: live form is mounted", await soonPage.locator("#reg-name").count() === 1);
+  check("signed-out soon + preview: banner is NOT rendered", await soonPage.locator(".admin-preview-banner").count() === 0);
+  check("signed-out soon + preview: shows Coming soon empty state", await soonPage.locator("#registration-coming-soon").count() === 1);
+  check("signed-out soon + preview: form is not mounted", await soonPage.locator("#reg-name").count() === 0);
   await soonContext.close();
+
+  // (d) Signed-in admin with /registration/?preview=true renders live form with updated preview banner
+  const adminSoonContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await adminSoonContext.route("**/rest/v1/registration_settings*", (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "current", status: "soon" }),
+    });
+  });
+  const adminSoonPage = await adminSoonContext.newPage();
+  await setupAdminMock(adminSoonPage, "fares9005@gmail.com");
+  await adminSoonPage.goto(
+    BASE + "/admin/#access_token=mock-token&refresh_token=mock-refresh&expires_in=3600&token_type=bearer&type=recovery",
+    { waitUntil: "networkidle" }
+  );
+  await adminSoonPage.goto(BASE + "/registration/?preview=true", { waitUntil: "networkidle" });
+  const previewBanner = adminSoonPage.locator(".admin-preview-banner");
+  check("signed-in admin soon + preview: banner is rendered", await previewBanner.count() === 1);
+  const bannerText = (await previewBanner.textContent()) ?? "";
+  check("signed-in admin soon + preview: banner indicates current status", bannerText.includes("soon"));
+  check("signed-in admin soon + preview: banner notes real submissions", bannerText.includes("Submissions made in preview are real registrations."));
+  check("signed-in admin soon + preview: live form is mounted", await adminSoonPage.locator("#reg-name").count() === 1);
+  await adminSoonContext.close();
 
   // 2. When status is 'closed'
   const closedContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -961,10 +996,11 @@ async function setupAdminMock(page, userEmail) {
   check("status closed: /registration shows closed empty state", await emptyClosed.count() === 1);
   check("status closed: form is not mounted", await closedPage.locator("#reg-name").count() === 0);
 
-  // (c) /registration?preview=true bypasses 'closed' and renders live form with preview banner
+  // (c) Signed-out visitor with /registration/?preview=true is IGNORED and sees closed empty state
   await closedPage.goto(BASE + "/registration/?preview=true", { waitUntil: "networkidle" });
-  check("status closed + preview: banner is rendered", await closedPage.locator(".admin-preview-banner").count() === 1);
-  check("status closed + preview: live form is mounted", await closedPage.locator("#reg-name").count() === 1);
+  check("signed-out closed + preview: banner is NOT rendered", await closedPage.locator(".admin-preview-banner").count() === 0);
+  check("signed-out closed + preview: shows closed empty state", await closedPage.locator("#registration-closed").count() === 1);
+  check("signed-out closed + preview: form is not mounted", await closedPage.locator("#reg-name").count() === 0);
   await closedContext.close();
 
   // 3. Admin status control section

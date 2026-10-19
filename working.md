@@ -1,6 +1,34 @@
 # COMPASS working log
 
 ## Current state
+- **Registration status database RLS enforcement & secure preview (2026-10-20):**
+  - **Database enforcement (`supabase/migrations/20261020000000_enforce_registration_status_rls.sql`):**
+    - Function `public.registration_is_open()`: returns `boolean` indicating whether `public.registration_settings` where `id = 'current'` has `status = 'open'`. Defined as `stable`, `security definer`, `set search_path = public`. EXECUTE granted to `anon` and `authenticated`, revoked from `public`.
+    - Role-based RLS on `public.registrations`:
+      - Permissive `anyone can register` policy dropped.
+      - `anon can register when open`: `for insert to anon with check (public.registration_is_open())`. Blocks public inserts at the database level when status is `"soon"` or `"closed"`.
+      - `authenticated can register in preview`: `for insert to authenticated with check (true)`. Allows signed-in admins to test submissions during preview regardless of public status.
+    - Column-level insert grants remain unchanged (both roles restricted to the 8 valid columns).
+  - **Who can change status:**
+    - Any authenticated user in Supabase `auth.users` has `grant update (status) on public.registration_settings to authenticated` with RLS check `auth.role() = 'authenticated'`. Changing status in `/admin` immediately flips the database gate for public inserts.
+  - **Migration order:**
+    1. `20261018000000_create_registrations.sql`
+    2. `20261018010000_allow_custom_nationality_university.sql`
+    3. `20261018020000_registrations_unique_phone.sql`
+    4. `20261018030000_registrations_other_specified.sql`
+    5. `20261019010000_registrations_admin_access.sql`
+    6. `20261019020000_registrations_deletion_log.sql`
+    7. `20261019030000_registrations_functions.sql`
+    8. `20261019040000_clear_all_registrations_where_true.sql`
+    9. `20261019050000_create_registration_settings.sql`
+    10. `20261020000000_enforce_registration_status_rls.sql` (NEW — applies database-level RLS gating on registration status)
+  - **Form RLS error handling (`lib/registration.ts`, `components/registration-form.tsx`):**
+    - When an insert fails with Postgres RLS error (`code === "42501"` or RLS policy violation), calls `isRegistrationRlsError(error)`, re-fetches the live status, synchronizes client state, and displays `"Registration hasn't opened yet."` (if status is `"soon"`) or `"Registration is currently closed."` (if status is `"closed"`).
+  - **Secure Admin Preview (`components/registration-page-content.tsx`):**
+    - `?preview=true` is strictly checked against active Supabase session (`supabase.auth.getSession()`).
+    - If a visitor is signed out, `?preview=true` is completely ignored and the standard public Coming soon / Closed empty state is shown.
+    - If an admin is signed in, the live form is mounted with a top notice stating the real public status and that submissions in preview mode are recorded as real registrations.
+
 - **Registration status control & admin preview (2026-10-19):**
   - **3-State System:**
     - `"soon"` (default): Public homepage hero and header show disabled, solid primary `.button` badge "Registration soon" (`opacity: 0.85; pointer-events: none;`); `/registration` renders Coming soon empty state.

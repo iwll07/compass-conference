@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Compass } from "@phosphor-icons/react";
 import { RegistrationForm } from "@/components/registration-form";
 import { useRegistrationStatus } from "@/lib/registration-status";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const emptySubscribe = () => () => {};
 
 export function RegistrationPageContent() {
   const searchParams = useSearchParams();
-  const isPreview = searchParams.get("preview") === "true";
+  const isPreviewParam = searchParams.get("preview") === "true";
+  const [hasSession, setHasSession] = useState<boolean>(false);
   const { status, loading } = useRegistrationStatus();
   const isMounted = useSyncExternalStore(
     emptySubscribe,
@@ -19,28 +21,49 @@ export function RegistrationPageContent() {
     () => false
   );
 
+  useEffect(() => {
+    if (!isSupabaseConfigured || !isPreviewParam) return;
+    try {
+      const supabase = getSupabase();
+      supabase.auth.getSession().then(({ data }) => {
+        setHasSession(!!data.session);
+      });
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setHasSession(!!session);
+      });
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch {}
+  }, [isPreviewParam]);
+
+  // Only honour preview mode when a signed-in Supabase session exists
+  const isPreviewActive = isPreviewParam && hasSession;
+
   // During SSR and initial hydration pass, return null to match server HTML exactly
-  if (!isMounted && !isPreview) {
+  if (!isMounted) {
     return null;
   }
 
-  // If preview mode is requested or registration is open, render the live form
-  const showForm = isPreview || status === "open";
+  // If preview mode is verified for admin or registration is open, render the live form
+  const showForm = isPreviewActive || status === "open";
 
   // Prevent flashing "Coming soon" while the initial status is loading
-  if (loading && !isPreview) {
+  if (loading && !isPreviewActive) {
     return null;
   }
 
   return (
     <div suppressHydrationWarning>
-      {isPreview && (
+      {isPreviewActive && (
         <aside className="admin-preview-banner" role="status" aria-label="Admin preview mode">
           <div className="admin-preview-banner-text">
             <strong>Admin Form Preview</strong>
             <span>
               Public status is currently:{" "}
-              <strong className="preview-status-tag">{status}</strong>
+              <strong className="preview-status-tag">{status}</strong>. Submissions made in preview are real registrations.
             </span>
           </div>
           <Link href="/admin#admin-registrations" className="admin-preview-back-link">
