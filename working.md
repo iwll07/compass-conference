@@ -1,6 +1,26 @@
 # COMPASS working log
 
 ## Current state
+- **Neutral registration form skeleton during initial status check (2026-10-20):**
+  - **First-load experience (`components/registration-skeleton.tsx`, `components/registration-page-content.tsx`, `app/registration/page.tsx`):**
+    - While registration status is unknown on cold visits (visitor has nothing cached in `localStorage['compass-reg-status']`), `/registration/` replaces the previous blank area with a neutral placeholder skeleton laid out identically to the live form.
+    - Container has `role="status"`, `aria-busy="true"`, `aria-label="Checking registration status…"`, and `<span className="sr-only">Checking registration status…</span>`.
+    - Strictly neutral: zero visible text suggesting `"soon"`, `"open"`, or `"closed"`.
+    - Laid out with muted blocks matching the real form's fields, labels, legends, submit button, and privacy note.
+    - Total measured skeleton height is ~696px (form is ~795px), sharing the identical `margin-top: 40px` and starting alignment. Zero layout shift when replacing with the form, soon notice, or closed notice.
+    - Pre-rendered as static fallback in `<Suspense fallback={<RegistrationFormSkeleton />}>` in `app/registration/page.tsx`, so even before client JS bundles load, the visitor sees the placeholder rather than a blank whitespace.
+    - Zero console hydration warnings: SSR fallback HTML matches initial client hydration snapshot byte-for-byte.
+  - **Motion & tokens (`app/globals.css`):**
+    - Skeleton pulses softly using `@keyframes reg-skeleton-pulse` (1.8s ease-in-out infinite, opacity 1 -> 0.42 -> 1).
+    - Reduced motion: `@media (prefers-reduced-motion: reduce)` disables animations (`animation: none !important`), respecting user system preferences.
+    - Palette: Built exclusively from existing design tokens using `color-mix(in srgb, var(--line) X%, var(--surface))`, seamlessly supporting both light (`#ffffff` / `#ccd7d4`) and dark (`#192e39` / `#38515a`) mode.
+  - **Resolution behavior:**
+    - When Supabase response resolves:
+      - If `status === 'open'`: skeleton unmounts and live form mounts in place.
+      - If `status === 'soon'`: skeleton unmounts and Coming soon empty state renders at the same vertical offset.
+      - If `status === 'closed'`: skeleton unmounts and Closed empty state renders at the same vertical offset.
+    - Returning visitors with cached status bypass the skeleton entirely and load their cached state instantly with zero flash.
+
 - **Registration status database RLS enforcement & secure preview (2026-10-20):**
   - **Database enforcement (`supabase/migrations/20261020000000_enforce_registration_status_rls.sql`):**
     - Function `public.registration_is_open()`: returns `boolean` indicating whether `public.registration_settings` where `id = 'current'` has `status = 'open'`. Defined as `stable`, `security definer`, `set search_path = public`. EXECUTE granted to `anon` and `authenticated`, revoked from `public`.

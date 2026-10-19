@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Compass } from "@phosphor-icons/react";
 import { RegistrationForm } from "@/components/registration-form";
+import { RegistrationFormSkeleton } from "@/components/registration-skeleton";
 import { useRegistrationStatus } from "@/lib/registration-status";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -42,17 +43,17 @@ export function RegistrationPageContent() {
   // Only honour preview mode when a signed-in Supabase session exists
   const isPreviewActive = isPreviewParam && hasSession;
 
-  // During SSR and initial hydration pass, return null to match server HTML exactly
+  // During SSR and initial hydration pass, render skeleton matching static fallback
   if (!isMounted) {
-    return null;
+    return <RegistrationFormSkeleton />;
   }
 
   // If preview mode is verified for admin or registration is open, render the live form
   const showForm = isPreviewActive || status === "open";
 
-  // Prevent flashing "Coming soon" while the initial status is loading
+  // While registration status is unknown on first load, render neutral skeleton
   if (loading && !isPreviewActive) {
-    return null;
+    return <RegistrationFormSkeleton />;
   }
 
   return (

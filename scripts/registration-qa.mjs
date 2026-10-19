@@ -1048,6 +1048,121 @@ async function setupAdminMock(page, userEmail) {
   await adminContext.close();
 }
 
+// ---- Test 12: Registration Skeleton First-Load & Resolution ----
+{
+  // 1. Skeleton appears and resolves into Form (status: 'open')
+  const openContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  let openConsoleWarnings = [];
+  await openContext.route("**/rest/v1/registration_settings*", async (route) => {
+    await new Promise((r) => setTimeout(r, 800));
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "current", status: "open" }),
+    });
+  });
+  const openPage = await openContext.newPage();
+  openPage.on("console", (msg) => {
+    if (msg.type() === "warning" || msg.type() === "error") {
+      openConsoleWarnings.push(msg.text());
+    }
+  });
+
+  await openPage.goto(BASE + "/registration/");
+
+  const skeletonEl = openPage.locator(".reg-form-skeleton");
+  await skeletonEl.waitFor({ state: "visible", timeout: 4000 });
+  check("skeleton: appears during initial status check", (await skeletonEl.count()) === 1);
+  check("skeleton: has aria-busy=true", (await skeletonEl.getAttribute("aria-busy")) === "true");
+  check("skeleton: has role=status", (await skeletonEl.getAttribute("role")) === "status");
+
+  const srText = await openPage.locator(".reg-form-skeleton .sr-only").textContent();
+  check("skeleton: visually hidden checking copy", srText?.includes("Checking registration status…") === true);
+
+  const visibleText = (await skeletonEl.innerText()) ?? "";
+  check("skeleton: no visible text mentions soon", !visibleText.toLowerCase().includes("soon"));
+  check("skeleton: no visible text mentions open", !visibleText.toLowerCase().includes("open"));
+  check("skeleton: no visible text mentions closed", !visibleText.toLowerCase().includes("closed"));
+
+  const pulseAnimation = await skeletonEl.evaluate((el) => {
+    return window.getComputedStyle(el).animationName;
+  });
+  check("skeleton: pulse animation defined by default", pulseAnimation.includes("reg-skeleton-pulse"));
+
+  await openPage.waitForSelector("#reg-name", { timeout: 5000 });
+  check("skeleton -> open: live form mounts", (await openPage.locator("#reg-name").count()) === 1);
+  check("skeleton -> open: skeleton is removed", (await openPage.locator(".reg-form-skeleton").count()) === 0);
+
+  const hydrationWarnings = openConsoleWarnings.filter((w) =>
+    w.toLowerCase().includes("hydration") || w.toLowerCase().includes("did not match")
+  );
+  check("skeleton: zero hydration mismatch warnings in console", hydrationWarnings.length === 0);
+  await openContext.close();
+
+  // 2. Reduced motion check
+  const reducedMotionContext = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    reducedMotion: "reduce",
+  });
+  await reducedMotionContext.route("**/rest/v1/registration_settings*", async (route) => {
+    await new Promise((r) => setTimeout(r, 600));
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "current", status: "open" }),
+    });
+  });
+  const rmPage = await reducedMotionContext.newPage();
+  await rmPage.goto(BASE + "/registration/");
+  const rmSkeleton = rmPage.locator(".reg-form-skeleton");
+  await rmSkeleton.waitFor({ state: "visible", timeout: 4000 });
+  const rmAnimation = await rmSkeleton.evaluate((el) => {
+    return window.getComputedStyle(el).animationName;
+  });
+  check("skeleton: reduced motion disables pulse animation", rmAnimation === "none");
+  await reducedMotionContext.close();
+
+  // 3. Skeleton resolves into Coming soon notice (status: 'soon')
+  const soonContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await soonContext.route("**/rest/v1/registration_settings*", async (route) => {
+    await new Promise((r) => setTimeout(r, 800));
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "current", status: "soon" }),
+    });
+  });
+  const soonPage = await soonContext.newPage();
+  await soonPage.goto(BASE + "/registration/");
+  const soonSkeleton = soonPage.locator(".reg-form-skeleton");
+  await soonSkeleton.waitFor({ state: "visible", timeout: 4000 });
+  check("skeleton -> soon: skeleton visible during check", (await soonSkeleton.count()) === 1);
+  await soonPage.waitForSelector("#registration-coming-soon", { timeout: 5000 });
+  check("skeleton -> soon: resolves to Coming soon notice", (await soonPage.locator("#registration-coming-soon").count()) === 1);
+  check("skeleton -> soon: skeleton is removed", (await soonPage.locator(".reg-form-skeleton").count()) === 0);
+  await soonContext.close();
+
+  // 4. Skeleton resolves into Closed notice (status: 'closed')
+  const closedContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await closedContext.route("**/rest/v1/registration_settings*", async (route) => {
+    await new Promise((r) => setTimeout(r, 800));
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "current", status: "closed" }),
+    });
+  });
+  const closedPage = await closedContext.newPage();
+  await closedPage.goto(BASE + "/registration/");
+  const closedSkeleton = closedPage.locator(".reg-form-skeleton");
+  await closedSkeleton.waitFor({ state: "visible", timeout: 4000 });
+  check("skeleton -> closed: skeleton visible during check", (await closedSkeleton.count()) === 1);
+  await closedPage.waitForSelector("#registration-closed", { timeout: 5000 });
+  check("skeleton -> closed: resolves to Closed notice", (await closedPage.locator("#registration-closed").count()) === 1);
+  check("skeleton -> closed: skeleton is removed", (await closedPage.locator(".reg-form-skeleton").count()) === 0);
+  await closedContext.close();
+}
+
 await browser.close();
 const failed = results.filter((r) => !r.pass);
 console.log(`\nREGISTRATION QA: PASS ${results.length - failed.length}/${results.length}`);

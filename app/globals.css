@@ -326,6 +326,96 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .reg-form .button:disabled { opacity: .55; cursor: default; }
 .reg-privacy { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 8px; max-width: 48ch; }
 
+/* Visually hidden text utility for screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Neutral skeleton placeholder for /registration first-load status check */
+.reg-form-skeleton {
+  max-width: 540px;
+  width: 100%;
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.reg-skeleton-fieldset {
+  width: 100%;
+  margin: 0 0 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.reg-skeleton-legend {
+  height: 26px;
+  background: color-mix(in srgb, var(--line) 60%, var(--surface));
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.reg-skeleton-label {
+  height: 11px;
+  margin-top: 10px;
+  background: color-mix(in srgb, var(--line) 45%, var(--surface));
+  border-radius: 3px;
+}
+
+.reg-skeleton-input {
+  width: 100%;
+  height: 46px;
+  background: color-mix(in srgb, var(--line) 20%, var(--surface));
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+
+.reg-skeleton-button {
+  width: 115px;
+  height: 46px;
+  margin-top: 16px;
+  background: color-mix(in srgb, var(--line) 65%, var(--surface));
+  border-radius: 2px;
+}
+
+.reg-skeleton-privacy {
+  width: min(100%, 360px);
+  height: 14px;
+  margin-top: 8px;
+  background: color-mix(in srgb, var(--line) 30%, var(--surface));
+  border-radius: 3px;
+}
+
+@keyframes reg-skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.42;
+  }
+}
+
+.reg-skeleton-pulse {
+  animation: reg-skeleton-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reg-skeleton-pulse {
+    animation: none !important;
+  }
+}
+
 .reg-confirmation {
   display: grid;
   grid-template-columns: 1fr;

@@ -601,6 +601,25 @@ test("migration (f) enforce_registration_status_rls: registration_is_open functi
   assert.ok(sql.includes("with check (true)"), "Authenticated policy must have with check (true)");
 });
 
+test("RegistrationFormSkeleton has aria-busy, status role, and visually hidden checking copy", () => {
+  const content = readFileSync("components/registration-skeleton.tsx", "utf8");
+  assert.ok(content.includes('aria-busy="true"'), "Must have aria-busy='true'");
+  assert.ok(content.includes('role="status"'), "Must have role='status'");
+  assert.ok(
+    content.includes("Checking registration status…"),
+    "Must include 'Checking registration status…' visually hidden text"
+  );
+  assert.ok(
+    !content.includes(">soon<") && !content.includes(">open<") && !content.includes(">closed<"),
+    "No visible text may suggest soon, open or closed"
+  );
+
+  const css = readFileSync("app/globals.css", "utf8");
+  assert.ok(css.includes(".reg-form-skeleton"), "globals.css must define .reg-form-skeleton");
+  assert.ok(css.includes(".reg-skeleton-pulse"), "globals.css must define .reg-skeleton-pulse");
+  assert.ok(css.includes("prefers-reduced-motion"), "Must support prefers-reduced-motion");
+});
+
 
 
 

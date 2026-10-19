@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RegistrationPageContent } from "@/components/registration-page-content";
+import { RegistrationFormSkeleton } from "@/components/registration-skeleton";
 
 export const metadata: Metadata = {
   title: "Registration | COMPASS",
@@ -20,7 +21,7 @@ export default function RegistrationPage() {
           Your place at COMPASS starts here.
         </p>
       </header>
-      <Suspense fallback={null}>
+      <Suspense fallback={<RegistrationFormSkeleton />}>
         <RegistrationPageContent />
       </Suspense>
     </main>
