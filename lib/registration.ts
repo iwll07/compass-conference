@@ -206,17 +206,15 @@ export function duplicateField(error: unknown): DuplicateField {
   return null;
 }
 
-// ---- Admin permissions & helpers ----
+/** Accounts allowed to delete ALL registrations at once.
+ *  Mirrors the clear_all_registrations() function in supabase/migrations/20261019010000_registrations_admin_access.sql — keep in sync.
+ *  This array only controls UI visibility; the database function is the real gate. */
+export const REGISTRATION_DELETE_ALL_EMAILS: readonly string[] = ["fares9005@gmail.com"];
 
-/** Accounts allowed to permanently delete conference registrations.
- *  Mirrors the DELETE policy in supabase/migrations/20261019010000_registrations_admin_access.sql — keep in sync.
- *  This array only controls UI visibility; the database RLS policy is the real gate. */
-export const REGISTRATION_DELETE_EMAILS: readonly string[] = ["fares9005@gmail.com"];
-
-export function canDeleteRegistrations(email?: string | null): boolean {
+export function canDeleteAllRegistrations(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.trim().toLowerCase();
-  return REGISTRATION_DELETE_EMAILS.some((admin) => admin.toLowerCase() === clean);
+  return REGISTRATION_DELETE_ALL_EMAILS.some((admin) => admin.toLowerCase() === clean);
 }
 
 /**

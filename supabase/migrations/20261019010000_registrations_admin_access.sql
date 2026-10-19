@@ -39,20 +39,51 @@ create policy "authenticated users can read registrations"
     to authenticated
     using (true);
 
--- 3. Add DELETE policy: strictly fares9005@gmail.com
+-- 3. DELETE policy on public.registrations:
+-- Any signed-in authenticated admin in Supabase auth.users can delete registrations.
+-- Every deletion is audited row-by-row into registration_log by the trigger in migration (b).
 drop policy if exists "fares can delete registrations" on public.registrations;
+drop policy if exists "authenticated users can delete registrations" on public.registrations;
 
-create policy "fares can delete registrations"
+create policy "authenticated users can delete registrations"
     on public.registrations for delete
     to authenticated
-    using (
-        lower(
-            json_extract_path_text(
-                current_setting('request.jwt.claims', true)::json,
-                'email'
-            )
-        ) = 'fares9005@gmail.com'
-    );
+    using (true);
 
--- 4. Remove obsolete is_registration_admin() function so nothing stale remains
+-- 4. Delete-All RPC function: strictly restricted to 'fares9005@gmail.com'
+-- Wipes all registrations and returns the count of deleted rows.
+-- Trigger in migration (b) automatically logs every deleted row into registration_log.
+create or replace function public.clear_all_registrations()
+returns int
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    current_email text := lower(
+        json_extract_path_text(
+            current_setting('request.jwt.claims', true)::json,
+            'email'
+        )
+    );
+    deleted_count int;
+begin
+    if current_email is null or current_email <> 'fares9005@gmail.com' then
+        raise exception 'Unauthorized: Only fares9005@gmail.com is permitted to delete all registrations.';
+    end if;
+
+    with deleted as (
+        delete from public.registrations
+        returning 1
+    )
+    select count(*)::int into deleted_count from deleted;
+
+    return deleted_count;
+end;
+$$;
+
+revoke execute on function public.clear_all_registrations() from public, anon;
+grant execute on function public.clear_all_registrations() to authenticated;
+
+-- 5. Remove obsolete is_registration_admin() function so nothing stale remains
 drop function if exists public.is_registration_admin();

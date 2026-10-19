@@ -46,7 +46,8 @@
       - **Permission & RLS model:**
         - **Read (SELECT):** Replaced email-restricted SELECT policy with `"authenticated users can read registrations"` on `public.registrations`. All signed-in admins can view all columns (including `id`, `created_at`, `nationality_other`, `university_other`).
         - **Obsolete function dropped:** Dropped `is_registration_admin()` to eliminate stale hardcoded email logic from the schema.
-        - **Delete (DELETE):** Table-level DELETE granted to `authenticated`. The DELETE policy `"fares can delete registrations"` strictly verifies `lower(json_extract_path_text(current_setting('request.jwt.claims', true)::json, 'email')) = 'fares9005@gmail.com'`. Uses `json_extract_path_text` (never `->>`). UI visibility is gated by `REGISTRATION_DELETE_EMAILS = ["fares9005@gmail.com"]` in `lib/registration.ts`, while the database RLS policy is the real gate.
+        - **Delete (DELETE):** Table-level DELETE granted to `authenticated`. The DELETE policy `"authenticated users can delete registrations"` allows any signed-in admin to delete individual attendee records. Deleting a row opens a confirmation modal verifying the person's name and university, and double-clicks are guarded by requiring `count === 1`.
+        - **Bulk Delete ("Delete all registrations"):** Strictly restricted to `fares9005@gmail.com` via the database function `public.clear_all_registrations()` (`security definer`), which checks JWT claims and raises an exception for any other user. UI visibility is guarded by `REGISTRATION_DELETE_ALL_EMAILS = ["fares9005@gmail.com"]` in `lib/registration.ts`.
         - **Anon restrictions maintained:** `anon` retains INSERT only on the 8 data columns and zero SELECT/DELETE access.
       - **Deletion audit trail (`registration_log`):**
         - Table `public.registration_log` (`id`, `deleted_at`, `deleted_by`, `registration_id`, `full_name`).

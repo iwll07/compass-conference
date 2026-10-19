@@ -247,6 +247,8 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .reg-row-actions { display: flex; align-items: center; flex-shrink: 0; }
 .reg-delete-btn { min-height: 36px; padding: 6px 12px; font-size: 12px; color: #b91c1c; border-color: color-mix(in srgb, #b91c1c 40%, var(--line)); }
 .reg-delete-btn:hover { background: color-mix(in srgb, #b91c1c 8%, transparent); }
+.reg-delete-all-btn { min-height: 40px; padding: 8px 16px; font-size: 13px; background: transparent; color: #b91c1c; border: 1px solid color-mix(in srgb, #b91c1c 50%, var(--line)); }
+.reg-delete-all-btn:hover { background: color-mix(in srgb, #b91c1c 10%, transparent); border-color: #b91c1c; }
 
 .reg-pagination { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 24px; padding-top: 12px; }
 .reg-page-indicator { font-size: 12px; color: var(--muted); }

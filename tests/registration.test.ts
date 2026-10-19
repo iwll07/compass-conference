@@ -384,22 +384,22 @@ test("validateOtherUniversity: accepts valid length and trims", () => {
 // ---- Admin upgrade helpers & migration tests ----
 
 import {
-  canDeleteRegistrations,
+  canDeleteAllRegistrations,
   cleanPhoneForSearch,
   hasActiveFilters,
   getExportFilename,
   sortAcademicYearCounts,
-  REGISTRATION_DELETE_EMAILS,
+  REGISTRATION_DELETE_ALL_EMAILS,
 } from "../lib/registration.ts";
 
-test("canDeleteRegistrations: permits only allowlisted delete admins (fares9005@gmail.com)", () => {
-  assert.ok(REGISTRATION_DELETE_EMAILS.includes("fares9005@gmail.com"));
-  assert.equal(canDeleteRegistrations("fares9005@gmail.com"), true);
-  assert.equal(canDeleteRegistrations("  FARES9005@GMAIL.COM  "), true);
-  assert.equal(canDeleteRegistrations("other@example.com"), false);
-  assert.equal(canDeleteRegistrations(""), false);
-  assert.equal(canDeleteRegistrations(null), false);
-  assert.equal(canDeleteRegistrations(undefined), false);
+test("canDeleteAllRegistrations: permits only fares9005@gmail.com", () => {
+  assert.ok(REGISTRATION_DELETE_ALL_EMAILS.includes("fares9005@gmail.com"));
+  assert.equal(canDeleteAllRegistrations("fares9005@gmail.com"), true);
+  assert.equal(canDeleteAllRegistrations("  FARES9005@GMAIL.COM  "), true);
+  assert.equal(canDeleteAllRegistrations("other@example.com"), false);
+  assert.equal(canDeleteAllRegistrations(""), false);
+  assert.equal(canDeleteAllRegistrations(null), false);
+  assert.equal(canDeleteAllRegistrations(undefined), false);
 });
 
 test("cleanPhoneForSearch: strips non-digits and leading zero", () => {
@@ -441,19 +441,23 @@ test("sortAcademicYearCounts: sorts academic years in canonical sequence", () =>
   );
 });
 
-test("migration (a) access: policy names, grant statements, and fares9005@gmail.com check", () => {
+test("migration (a) access: policy names, grant statements, and bulk delete check", () => {
   const sql = readFileSync("supabase/migrations/20261019010000_registrations_admin_access.sql", "utf8");
   assert.ok(
     sql.includes('"authenticated users can read registrations"'),
     "Must create policy 'authenticated users can read registrations'"
   );
   assert.ok(
-    sql.includes('"fares can delete registrations"'),
-    "Must create policy 'fares can delete registrations'"
+    sql.includes('"authenticated users can delete registrations"'),
+    "Must create policy 'authenticated users can delete registrations'"
+  );
+  assert.ok(
+    sql.includes("clear_all_registrations()"),
+    "Must define clear_all_registrations RPC"
   );
   assert.ok(
     sql.includes("fares9005@gmail.com"),
-    "Must explicitly scope delete policy to fares9005@gmail.com"
+    "Must explicitly scope clear_all_registrations to fares9005@gmail.com"
   );
   assert.ok(
     sql.includes("grant select, delete on public.registrations to authenticated"),

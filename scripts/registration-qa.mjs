@@ -744,6 +744,10 @@ async function setupAdminMock(page, userEmail) {
   await modal.getByRole("button", { name: "Cancel" }).click();
   check("admin: cancel button closes modal", await modal.count() === 0);
 
+  // Delete all registrations button visible for fares
+  const deleteAllBtn = page.locator(".reg-delete-all-btn");
+  check("admin: delete all button visible for fares9005@gmail.com", await deleteAllBtn.count() === 1);
+
   // Deletion log visible for fares
   const delLog = page.locator(".reg-log-collapse");
   check("admin: deletion log visible for fares9005@gmail.com", await delLog.count() === 1);
@@ -756,7 +760,7 @@ async function setupAdminMock(page, userEmail) {
   await context.close();
 }
 
-// Test 10: Non-delete admin (e.g. member@example.com) has search/export but NO delete buttons or log
+// Test 10: Non-owner admin (e.g. member@example.com) CAN delete single rows, but CANNOT see "Delete all" or Deletion log
 {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
@@ -770,15 +774,19 @@ async function setupAdminMock(page, userEmail) {
   // Rows are still visible
   await page.waitForSelector(".reg-row-item", { timeout: 5000 });
   const rows = page.locator(".reg-row-item");
-  check("non-delete admin: registration rows visible", await rows.count() === 2);
+  check("other admin: registration rows visible", await rows.count() === 2);
 
-  // Delete buttons strictly hidden
+  // Single delete buttons ARE rendered for any authenticated admin
   const deleteBtns = page.locator(".reg-delete-btn");
-  check("non-delete admin: delete buttons are NOT rendered", await deleteBtns.count() === 0);
+  check("other admin: single delete buttons ARE rendered", await deleteBtns.count() === 2);
 
-  // Deletion log strictly hidden
+  // Delete all button strictly hidden for non-fares
+  const deleteAllBtn = page.locator(".reg-delete-all-btn");
+  check("other admin: delete all button is NOT rendered", await deleteAllBtn.count() === 0);
+
+  // Deletion log strictly hidden for non-fares
   const delLog = page.locator(".reg-log-collapse");
-  check("non-delete admin: deletion log is NOT rendered", await delLog.count() === 0);
+  check("other admin: deletion log is NOT rendered", await delLog.count() === 0);
 
   await context.close();
 }

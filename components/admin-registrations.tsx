@@ -6,7 +6,7 @@ import {
   ACADEMIC_YEARS,
   NATIONALITIES,
   UNIVERSITIES,
-  canDeleteRegistrations,
+  canDeleteAllRegistrations,
   cleanPhoneForSearch,
   getExportFilename,
   hasActiveFilters,
@@ -67,7 +67,10 @@ function getCairoDateStamp(): string {
 const PAGE_SIZE = 25;
 
 export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | null }) {
-  const canDelete = useMemo(() => canDeleteRegistrations(sessionEmail), [sessionEmail]);
+  // Any signed-in admin can delete individual registrations
+  const canDeleteSingle = Boolean(sessionEmail);
+  // Only fares9005@gmail.com can delete all registrations at once
+  const canDeleteAll = useMemo(() => canDeleteAllRegistrations(sessionEmail), [sessionEmail]);
 
   // Overall summary state (independent of filters)
   const [summary, setSummary] = useState<RegistrationSummaryData | null>(null);
@@ -96,6 +99,10 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
   // Delete modal state
   const [deletingRecord, setDeletingRecord] = useState<RegistrationRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Delete all modal state (fares only)
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   // Deletion log state (fares only)
   const [deletionLog, setDeletionLog] = useState<RegistrationLogRecord[] | null>(null);
@@ -144,7 +151,7 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
 
   // Load deletion log (fares only)
   const loadDeletionLog = useCallback(async () => {
-    if (!canDelete) return;
+    if (!canDeleteAll) return;
     setDeletionLogLoading(true);
     try {
       const { data, error: logErr } = await getSupabase()
@@ -159,7 +166,7 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
     } finally {
       setDeletionLogLoading(false);
     }
-  }, [canDelete]);
+  }, [canDeleteAll]);
 
   // Load registrations with current filters and pagination
   const loadRows = useCallback(async () => {
@@ -240,14 +247,14 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
     let active = true;
     (async () => {
       await loadSummary();
-      if (active && canDelete) {
+      if (active && canDeleteAll) {
         await loadDeletionLog();
       }
     })();
     return () => {
       active = false;
     };
-  }, [loadSummary, loadDeletionLog, canDelete]);
+  }, [loadSummary, loadDeletionLog, canDeleteAll]);
 
   useEffect(() => {
     let active = true;
@@ -308,6 +315,37 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
       setError(err instanceof Error ? err.message : "Failed to delete registration.");
     } finally {
       setIsDeleting(false);
+    }
+  }
+
+  // Delete all registrations handler (strictly fares9005@gmail.com)
+  async function confirmDeleteAll() {
+    if (!canDeleteAll || isDeletingAll) return;
+    setIsDeletingAll(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const { data, error: delErr } = await getSupabase().rpc("clear_all_registrations");
+      if (delErr) {
+        // Fallback: direct table delete if RPC is not yet created
+        const { count, error: tableDelErr } = await getSupabase()
+          .from("registrations")
+          .delete({ count: "exact" })
+          .neq("id", "00000000-0000-0000-0000-000000000000");
+
+        if (tableDelErr) throw tableDelErr;
+        setNotice(`Deleted all ${count ?? 0} registrations.`);
+      } else {
+        setNotice(`Deleted all ${data ?? 0} registrations.`);
+      }
+
+      setShowDeleteAllModal(false);
+      await Promise.all([loadRows(), loadSummary(), loadDeletionLog()]);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to delete all registrations.");
+    } finally {
+      setIsDeletingAll(false);
     }
   }
 
@@ -609,6 +647,16 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
                   : `Download Excel (.xlsx) (${totalMatches})`}
               </span>
             </button>
+
+            {canDeleteAll && summary && summary.total > 0 ? (
+              <button
+                type="button"
+                className="button reg-delete-all-btn"
+                onClick={() => setShowDeleteAllModal(true)}
+              >
+                Delete all registrations
+              </button>
+            ) : null}
           </div>
         </section>
 
@@ -678,7 +726,7 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
                       </div>
                     </div>
 
-                    {canDelete ? (
+                    {canDeleteSingle ? (
                       <div className="reg-row-actions">
                         <button
                           type="button"
@@ -723,7 +771,7 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
         </section>
 
         {/* ---- 4. Deletion Log (fares9005@gmail.com only) ---- */}
-        {canDelete ? (
+        {canDeleteAll ? (
           <details className="admin-collapse reg-log-collapse" style={{ marginTop: "32px" }}>
             <summary className="admin-collapse-summary" style={{ fontSize: "18px" }}>
               <span>Deletion Log (Audit Trail)</span>
@@ -792,6 +840,40 @@ export function AdminRegistrations({ sessionEmail }: { sessionEmail: string | nu
                   disabled={isDeleting}
                 >
                   {isDeleting ? "Deleting…" : "Delete registration"}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* ---- 6. Delete All Registrations Confirmation Modal (fares9005@gmail.com only) ---- */}
+        {showDeleteAllModal ? (
+          <div className="reg-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="del-all-modal-title">
+            <div className="reg-modal-box">
+              <h3 id="del-all-modal-title" className="reg-modal-title">Delete ALL Registrations</h3>
+              <p className="reg-modal-copy">
+                Are you absolutely sure you want to permanently delete <strong>all {summary?.total ?? 0} registrations</strong>?
+              </p>
+              <p className="reg-modal-warn" style={{ color: "#b91c1c", fontWeight: 600 }}>
+                WARNING: This will permanently wipe the entire registrations table. This action cannot be undone.
+              </p>
+
+              <div className="reg-modal-actions">
+                <button
+                  type="button"
+                  className="button button-secondary"
+                  onClick={() => setShowDeleteAllModal(false)}
+                  disabled={isDeletingAll}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="button reg-modal-delete-btn"
+                  onClick={confirmDeleteAll}
+                  disabled={isDeletingAll}
+                >
+                  {isDeletingAll ? "Deleting all…" : "Yes, delete everything"}
                 </button>
               </div>
             </div>
