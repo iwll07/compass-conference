@@ -9,13 +9,18 @@ import { useRegistrationStatus } from "@/lib/registration-status";
 export function RegistrationPageContent() {
   const searchParams = useSearchParams();
   const isPreview = searchParams.get("preview") === "true";
-  const { status } = useRegistrationStatus();
+  const { status, loading } = useRegistrationStatus();
 
   // If preview mode is requested or registration is open, render the live form
   const showForm = isPreview || status === "open";
 
+  // Prevent flashing "Coming soon" while the initial status is loading
+  if (loading && !isPreview) {
+    return null;
+  }
+
   return (
-    <>
+    <div suppressHydrationWarning>
       {isPreview && (
         <aside className="admin-preview-banner" role="status" aria-label="Admin preview mode">
           <div className="admin-preview-banner-text">
@@ -52,6 +57,6 @@ export function RegistrationPageContent() {
           </p>
         </section>
       )}
-    </>
+    </div>
   );
 }

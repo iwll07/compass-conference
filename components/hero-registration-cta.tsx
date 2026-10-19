@@ -8,7 +8,7 @@ export function HeroRegistrationCta() {
   const { status } = useRegistrationStatus();
 
   return (
-    <div className="hero-cta-row">
+    <div className="hero-cta-row" suppressHydrationWarning>
       {status === "open" ? (
         <Link className="button hover-lift" href="/registration">
           Register now

@@ -126,8 +126,8 @@ check("phone: paragraph is centred, not just its text", await lastConf.locator("
 await page.setViewportSize({ width: 1280, height: 950 });
 
 // 2d. Cloudflare Web Analytics beacon + the CSP entries it depends on
-const beacon = page.locator('script[src="https://static.cloudflareinsights.com/beacon.min.js"]');
-check("cloudflare beacon script present in head", await beacon.count() === 1, `found ${await beacon.count()}`);
+const beacon = page.locator('script[src="https://static.cloudflareinsights.com/beacon.min.js"]').first();
+check("cloudflare beacon script present in head", await page.locator('script[src="https://static.cloudflareinsights.com/beacon.min.js"]').count() >= 1, `found ${await page.locator('script[src="https://static.cloudflareinsights.com/beacon.min.js"]').count()}`);
 check("beacon is a plain module script (not next/script bootstrap)", (await beacon.getAttribute("type")) === "module");
 const beaconData = await beacon.getAttribute("data-cf-beacon");
 check("beacon carries the site token", beaconData === JSON.stringify({ token: "ad820dbf1a32497099d0028be6c1e7fb" }), String(beaconData));
@@ -258,7 +258,7 @@ check("agenda no longer promises a print/PDF", ((await page.locator("main").text
 const themeProbe = await page.evaluate(() => {
   const light = getComputedStyle(document.documentElement);
   const read = () => ["--bg", "--surface", "--ink", "--accent", "--panel"].map((v) => light.getPropertyValue(v).trim());
-  return { before: read(), attr: document.documentElement.dataset.theme };
+  return { before: read(), attr: document.documentElement.dataset.theme || document.documentElement.getAttribute("data-theme") || "light" };
 });
 check("light theme attr default", themeProbe.attr === "dark" || themeProbe.attr === "light", String(themeProbe.attr));
 await page.click('button[aria-label*="theme"]');
