@@ -601,6 +601,14 @@ test("migration (f) enforce_registration_status_rls: registration_is_open functi
   assert.ok(sql.includes("with check (true)"), "Authenticated policy must have with check (true)");
 });
 
+test("migration (g) drop_legacy_registration_anytime_policy: drops legacy policy safely", () => {
+  const sql = readFileSync("supabase/migrations/20261020010000_drop_legacy_registration_anytime_policy.sql", "utf8");
+  assert.ok(
+    sql.includes('drop policy if exists "authenticated can register anytime" on public.registrations;'),
+    "Must drop policy 'authenticated can register anytime' if exists"
+  );
+});
+
 test("RegistrationFormSkeleton has aria-busy, status role, and visually hidden checking copy", () => {
   const content = readFileSync("components/registration-skeleton.tsx", "utf8");
   assert.ok(content.includes('aria-busy="true"'), "Must have aria-busy='true'");
