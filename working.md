@@ -1,6 +1,45 @@
 # COMPASS working log
 
 ## Current state
+- **Attendee card export polish, dual calendar options, and policy cleanup (2026-10-20):**
+  - **IMPACT alt text (`app/page.tsx`):**
+    - Updated IMPACT logo alt text in "last conference" section from `"IMPACT — last year's COMPASS conference"` to `"IMPACT, our last conference"`. Verified no other copies exist in the repository.
+  - **Policy cleanup migration (`supabase/migrations/20261020010000_drop_legacy_registration_anytime_policy.sql`):**
+    - Idempotently drops legacy policy `authenticated can register anytime` on `public.registrations`.
+    - Leaves exactly two INSERT policies: `anon can register when open` (anon) and `authenticated can register in preview` (authenticated).
+  - **Attendee card export rescaling & three-zone layout (`lib/registration-card-canvas.ts`):**
+    - High-resolution 1080x1350 PNG export scaled up ~2.9x from the on-page card.
+    - Outer grey border removed for crisp, clean edges.
+    - Three-zone layout:
+      - Header: SVG logo (~375px wide) and pulse line.
+      - Middle: "REGISTERED" label, attendee name (104px serif), and academic subline, vertically centered in available space. Handles long Latin names (wrapped up to 3 lines) and Arabic names (RTL alignment).
+      - Bottom: Divider rule and event date/time/location details (40px+ fonts).
+      - Residual vertical space evenly distributed so no inter-block gap exceeds ~160px.
+      - Strict privacy: email, phone, and reference codes are never exported on the card.
+  - **Card navy footer band and top gradient strip (`app/globals.css`, `lib/registration-card-canvas.ts`):**
+    - On-page card and exported PNG share identical brand elements:
+      - Top: Thin 10px gradient strip (navy `#192e39` to teal `#0d7a82`).
+      - Bottom: Full-width 170px navy band (`#192e39`) containing site tagline in white serif italic and `compassbsnu.page` host in white on the right.
+    - Export reads colors dynamically from `.reg-card` computed custom properties via `getCardColors()`, preventing style drift.
+  - **Dual inline calendar options (`lib/calendar.ts`, `app/compass.ics/route.ts`, `components/registration-form.tsx`, `public/_headers`):**
+    - Replaced single blob download button with two accessible inline links using design tokens without pill styling:
+      - **Google Calendar:** Opens `https://calendar.google.com/calendar/render?action=TEMPLATE` in a new tab (`rel="noopener noreferrer"`). Query params built dynamically from `conferenceWindow`: `dates=20261124T070000Z/20261124T150000Z` (UTC), `ctz=Africa/Cairo`, `text=COMPASS`, `location`, `details` (tagline + site URL).
+      - **Apple / Outlook (.ics):** Same-origin link to `/compass.ics`.
+    - Build-time `.ics` generation: Static route handler `app/compass.ics/route.ts` with `dynamic = 'force-static'` exports cleanly to flat file `out/compass.ics` (not a directory) during `next build`.
+    - Cloudflare Pages header configured in `public/_headers`: `/compass.ics` with `Content-Type: text/calendar; charset=utf-8` so iOS Safari opens the event directly.
+  - **Updated migration sequence:**
+    1. `20261018000000_create_registrations.sql`
+    2. `20261018010000_allow_custom_nationality_university.sql`
+    3. `20261018020000_registrations_unique_phone.sql`
+    4. `20261018030000_registrations_other_specified.sql`
+    5. `20261019010000_registrations_admin_access.sql`
+    6. `20261019020000_registrations_deletion_log.sql`
+    7. `20261019030000_registrations_functions.sql`
+    8. `20261019040000_clear_all_registrations_where_true.sql`
+    9. `20261019050000_create_registration_settings.sql`
+    10. `20261020000000_enforce_registration_status_rls.sql`
+    11. `20261020010000_drop_legacy_registration_anytime_policy.sql` (NEW — drops legacy `authenticated can register anytime` policy)
+
 - **Neutral registration form skeleton during initial status check (2026-10-20):**
   - **First-load experience (`components/registration-skeleton.tsx`, `components/registration-page-content.tsx`, `app/registration/page.tsx`):**
     - While registration status is unknown on cold visits (visitor has nothing cached in `localStorage['compass-reg-status']`), `/registration/` replaces the previous blank area with a neutral placeholder skeleton laid out identically to the live form.

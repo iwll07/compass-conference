@@ -21,6 +21,7 @@ import {
   validateOtherNationality,
   validateOtherUniversity,
 } from "../lib/registration.ts";
+import { buildGoogleCalendarUrl, generateIcsString } from "../lib/calendar.ts";
 
 // ---- Phone normalisation ----
 
@@ -627,6 +628,60 @@ test("RegistrationFormSkeleton has aria-busy, status role, and visually hidden c
   assert.ok(css.includes(".reg-skeleton-pulse"), "globals.css must define .reg-skeleton-pulse");
   assert.ok(css.includes("prefers-reduced-motion"), "Must support prefers-reduced-motion");
 });
+
+// ---- Calendar links and .ics export ----
+
+test("buildGoogleCalendarUrl: fixed sample window 09:00-17:00 Cairo on 24 Nov 2026", () => {
+  const sampleWindow = {
+    startsAt: "2026-11-24T09:00:00+02:00",
+    endsAt: "2026-11-24T17:00:00+02:00",
+    timeZone: "Africa/Cairo",
+  };
+  const url = buildGoogleCalendarUrl(sampleWindow);
+  assert.ok(url !== null, "URL must not be null");
+  assert.ok(url.startsWith("https://calendar.google.com/calendar/render?"), "URL must target Google Calendar");
+
+  const parsed = new URL(url);
+  assert.equal(parsed.searchParams.get("action"), "TEMPLATE");
+  assert.equal(parsed.searchParams.get("text"), "COMPASS");
+  assert.equal(parsed.searchParams.get("dates"), "20261124T070000Z/20261124T150000Z");
+  assert.equal(parsed.searchParams.get("ctz"), "Africa/Cairo");
+  assert.equal(parsed.searchParams.get("location"), "Faculty of Medicine, Beni Suef National University");
+  assert.ok(parsed.searchParams.get("details")?.includes("Directing the Future of Healthcare"));
+  assert.ok(parsed.searchParams.get("details")?.includes("https://compassbsnu.page"));
+});
+
+test("buildGoogleCalendarUrl: handles null or invalid event windows", () => {
+  assert.equal(buildGoogleCalendarUrl(null), null);
+  assert.equal(
+    buildGoogleCalendarUrl({ startsAt: "invalid", endsAt: "invalid", timeZone: "Africa/Cairo" }),
+    null
+  );
+  assert.equal(
+    buildGoogleCalendarUrl({
+      startsAt: "2026-11-24T17:00:00+02:00",
+      endsAt: "2026-11-24T09:00:00+02:00",
+      timeZone: "Africa/Cairo",
+    }),
+    null
+  );
+});
+
+test("generateIcsString: generates valid RFC 5545 iCalendar content with UTC dates", () => {
+  const sampleWindow = {
+    startsAt: "2026-11-24T09:00:00+02:00",
+    endsAt: "2026-11-24T17:00:00+02:00",
+    timeZone: "Africa/Cairo",
+  };
+  const ics = generateIcsString(sampleWindow);
+  assert.ok(ics !== null, "ICS must not be null");
+  assert.ok(ics.includes("BEGIN:VCALENDAR"), "Must contain VCALENDAR");
+  assert.ok(ics.includes("DTSTART:20261124T070000Z"), "Must contain DTSTART in UTC");
+  assert.ok(ics.includes("DTEND:20261124T150000Z"), "Must contain DTEND in UTC");
+  assert.ok(ics.includes("SUMMARY:COMPASS"), "Must contain SUMMARY");
+  assert.ok(ics.includes("LOCATION:Faculty of Medicine\\, Beni Suef National University"), "Must contain escaped LOCATION");
+});
+
 
 
 

@@ -437,6 +437,11 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .reg-note { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; max-width: 44ch; }
 .reg-note strong { color: var(--ink); font-weight: 600; }
 .reg-masked-contact { font-size: 12px; color: var(--muted); margin-bottom: 24px; font-variant-numeric: tabular-nums; line-height: 1.5; max-width: 44ch; }
+.reg-calendar-options { display: flex; align-items: baseline; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 20px; flex-wrap: wrap; }
+.reg-calendar-label { color: var(--ink); font-weight: 500; }
+.reg-calendar-link { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.reg-calendar-link:hover { text-decoration: underline; }
+.reg-calendar-sep { color: var(--muted); user-select: none; }
 .reg-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .reg-home-link { color: var(--accent); }
 .reg-contact { margin-top: 24px; font-size: 13px; color: var(--muted); max-width: 44ch; }

@@ -25,6 +25,7 @@ import {
   setCachedRegistrationStatus,
 } from "@/lib/registration-status";
 import { conferenceWindow } from "@/lib/event";
+import { buildGoogleCalendarUrl } from "@/lib/calendar";
 import { RegistrationCard } from "@/components/registration-card";
 
 // ---- Types ------------------------------------------------------------------
@@ -114,26 +115,6 @@ function validate(data: FormData): FieldErrors {
   return errors;
 }
 
-// ---- .ics generation --------------------------------------------------------
-
-function generateIcs(): string | null {
-  if (!conferenceWindow) return null;
-  const fmt = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-  const dtstart = fmt(conferenceWindow.startsAt);
-  const dtend = fmt(conferenceWindow.endsAt);
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//COMPASS//EN",
-    "BEGIN:VEVENT",
-    `DTSTART:${dtstart}`,
-    `DTEND:${dtend}`,
-    "SUMMARY:COMPASS",
-    "LOCATION:Faculty of Medicine\\, Beni Suef National University",
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
-}
 
 // ---- Component --------------------------------------------------------------
 
@@ -282,18 +263,7 @@ export function RegistrationForm() {
 
   if (success) {
     const firstName = success.fullName.split(/\s+/)[0];
-    const ics = generateIcs();
-
-    function downloadIcs() {
-      if (!ics) return;
-      const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "compass.ics";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    const googleCalendarUrl = buildGoogleCalendarUrl(conferenceWindow);
 
     async function onSaveImage() {
       if (savingImage || !success) return;
@@ -343,12 +313,24 @@ export function RegistrationForm() {
           <p className="reg-masked-contact">
             {formatMaskedContact(success.email, success.phone)}
           </p>
-          <div className="reg-actions">
-            {ics ? (
-              <button type="button" className="button button-secondary" onClick={downloadIcs}>
-                Add to calendar
-              </button>
+          <div className="reg-calendar-options">
+            <span className="reg-calendar-label">Add to calendar:</span>
+            {googleCalendarUrl ? (
+              <a
+                href={googleCalendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="reg-calendar-link"
+              >
+                Google Calendar
+              </a>
             ) : null}
+            <span className="reg-calendar-sep" aria-hidden="true">·</span>
+            <a href="/compass.ics" className="reg-calendar-link">
+              Apple / Outlook (.ics)
+            </a>
+          </div>
+          <div className="reg-actions">
             <button
               type="button"
               className="button button-secondary"

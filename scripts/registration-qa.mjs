@@ -251,9 +251,28 @@ async function setupMock(page, onPayload) {
   const lightBg = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
   check("card has white background in light mode", lightBg === "rgb(255, 255, 255)");
 
-  // Buttons in confirmation screen
-  const calBtn = page.locator("button", { hasText: "Add to calendar" });
-  check("Add to calendar button exists", await calBtn.count() === 1);
+  // Calendar options and action buttons in confirmation screen
+  const gcalLink = page.locator("a.reg-calendar-link", { hasText: "Google Calendar" });
+  check("Google Calendar link exists", await gcalLink.count() === 1);
+  const gcalHref = await gcalLink.getAttribute("href");
+  const gcalTarget = await gcalLink.getAttribute("target");
+  const gcalRel = await gcalLink.getAttribute("rel");
+  check("Google Calendar link opens in new tab with noopener noreferrer", gcalTarget === "_blank" && gcalRel === "noopener noreferrer");
+  check("Google Calendar link has TEMPLATE action and UTC dates", !!gcalHref && gcalHref.includes("action=TEMPLATE") && gcalHref.includes("20261124T070000Z/20261124T150000Z"));
+
+  const icsLink = page.locator("a.reg-calendar-link", { hasText: "Apple / Outlook (.ics)" });
+  check("Apple / Outlook (.ics) link exists", await icsLink.count() === 1);
+  const icsHref = await icsLink.getAttribute("href");
+  check("Apple / Outlook link targets /compass.ics", icsHref === "/compass.ics");
+
+  // Card top strip and footer polish checks
+  const topStripHeight = await card.evaluate((el) => {
+    const before = window.getComputedStyle(el, "::before");
+    return before.height;
+  });
+  check("card has top gradient strip", topStripHeight === "4px");
+  const footerCount = await card.locator(".reg-card-footer").count();
+  check("card has navy footer band", footerCount === 1);
 
   const saveBtn = page.locator("button", { hasText: "Save card as image" });
   check("Save card as image button exists", await saveBtn.count() === 1);
