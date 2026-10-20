@@ -489,6 +489,17 @@ svg { flex-shrink: 0; vertical-align: middle; }
   gap: 20px;
   margin: 0;
   text-align: left;
+  overflow: hidden;
+}
+
+.reg-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--card-ink), var(--card-accent));
 }
 
 @media (max-width: 899px) {
@@ -597,22 +608,24 @@ svg { flex-shrink: 0; vertical-align: middle; }
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding-top: 12px;
-  border-top: 0.5px solid var(--card-line);
+  margin: 10px -24px -20px;
+  padding: 16px 24px;
+  background: var(--card-ink);
+  color: #ffffff;
 }
 
 .reg-card-tagline {
   font-family: "Source Serif 4", Georgia, serif;
   font-style: italic;
   font-size: 12px;
-  color: var(--card-ink);
+  color: #ffffff;
   line-height: 1.2;
 }
 
 .reg-card-host {
   font-size: 9px;
   letter-spacing: .04em;
-  color: var(--card-muted);
+  color: rgba(255, 255, 255, 0.9);
   white-space: nowrap;
 }
 

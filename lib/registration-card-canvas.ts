@@ -14,16 +14,54 @@ export interface AttendeeCanvasData {
   universityOther?: string | null;
 }
 
+interface CardColors {
+  bg: string;
+  ink: string;
+  muted: string;
+  accent: string;
+  line: string;
+  accentSoft: string;
+}
+
+/**
+ * Reads colours directly from the on-page .reg-card computed custom properties
+ * to guarantee that the canvas export cannot drift from the rendered card.
+ * Falls back to CARD_COLORS constants if DOM is not ready.
+ */
+function getCardColors(): CardColors {
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
+    const cardEl = document.querySelector(".reg-card");
+    if (cardEl) {
+      const style = window.getComputedStyle(cardEl);
+      const bg = style.getPropertyValue("--card-bg").trim();
+      const ink = style.getPropertyValue("--card-ink").trim();
+      const muted = style.getPropertyValue("--card-muted").trim();
+      const accent = style.getPropertyValue("--card-accent").trim();
+      const line = style.getPropertyValue("--card-line").trim();
+      const accentSoft = style.getPropertyValue("--card-accent-soft").trim();
+      return {
+        bg: bg || CARD_COLORS.bg,
+        ink: ink || CARD_COLORS.ink,
+        muted: muted || CARD_COLORS.muted,
+        accent: accent || CARD_COLORS.accent,
+        line: line || CARD_COLORS.line,
+        accentSoft: accentSoft || CARD_COLORS.accentSoft,
+      };
+    }
+  }
+  return CARD_COLORS;
+}
+
 /**
  * Draws the attendee card to an off-screen HTML5 Canvas and exports or shares it.
  * Zero external dependencies — uses only the browser's native 2D Canvas context.
  *
- * Commit (a) - Proportions:
- * - Scaled up ~2.9x matching the on-page card
- * - Logo ~375px wide, name 104px serif, details 40px+
- * - 3 zones: header (logo + pulse), middle (badge + name + subline), bottom (divider + event details + footer)
- * - Clean edges (grey border removed)
- * - Leftover space distributed so no gap between blocks exceeds ~160px
+ * Commit (b) - Polish:
+ * - Scaled up ~2.9x matching on-page card proportions
+ * - Thin gradient strip (navy to teal) along the very top
+ * - Full-width navy footer band (~170px) holding tagline in white serif italic and host in white
+ * - Colours read dynamically from .reg-card computed custom properties (no new colours)
+ * - Three-zone layout with distributed leftover space (no gap much more than ~160px)
  */
 export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<void> {
   // 1. Wait for site webfonts to ensure crisp rendering
@@ -60,9 +98,25 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
+  const colors = getCardColors();
+
   // Background (white card, clean borderless edges)
-  ctx.fillStyle = CARD_COLORS.bg;
+  ctx.fillStyle = colors.bg;
   ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+
+  // Top thin gradient strip (navy to teal, matching logo and on-page card ::before)
+  const topStripH = 12;
+  const topGrad = ctx.createLinearGradient(0, 0, CARD_WIDTH, 0);
+  topGrad.addColorStop(0, colors.ink);
+  topGrad.addColorStop(1, colors.accent);
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(0, 0, CARD_WIDTH, topStripH);
+
+  // Full-width navy footer band (170px) at the very bottom
+  const footerBandH = 170;
+  const footerBandY = CARD_HEIGHT - footerBandH; // 1180px
+  ctx.fillStyle = colors.ink;
+  ctx.fillRect(0, footerBandY, CARD_WIDTH, footerBandH);
 
   const padX = 80;
   const contentWidth = CARD_WIDTH - padX * 2; // 920px
@@ -70,7 +124,7 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
   // ==========================================
   // Zone 1: Header (Logo + ECG Pulse Line)
   // ==========================================
-  const headerTopY = 80;
+  const headerTopY = 88;
   const logoW = 375;
   const logoH = (logoW * 192) / 1100; // ~65.45px
   if (logoImg) {
@@ -82,7 +136,7 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
   const pulseX = CARD_WIDTH - padX - pulseW;
   const pulseCenterY = headerTopY + logoH / 2;
   ctx.save();
-  ctx.strokeStyle = CARD_COLORS.accent;
+  ctx.strokeStyle = colors.accent;
   ctx.lineWidth = 4.5;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -163,36 +217,33 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
     badgeH + badgeToNameGap + nameTotalH + nameToMetaGap + metaTotalH;
 
   // ==========================================
-  // Pre-measure Bottom Zone Content
+  // Pre-measure Bottom Zone (Event details)
   // ==========================================
   const eventDate = formatEventDate(conferenceWindow);
   const eventTime = formatEventTimeRange(conferenceWindow);
 
-  // Layout heights in bottom zone
   const dateLineH = eventDate ? 52 : 0;
   const timeLineH = eventTime ? 44 : 0;
   const venueLineH = 42;
-  const eventDetailsH = dateLineH + timeLineH + venueLineH;
-  const footerH = 68; // divider + tagline/host
-  const bottomTotalH = 36 + eventDetailsH + 40 + footerH; // top gap + events + divider gap + footer
+  const eventDetailsContentH = 36 + dateLineH + timeLineH + venueLineH;
 
   // ==========================================
-  // Space Distribution (no gap much more than ~160px)
+  // Space Distribution (Header -> Middle -> Event Details -> Footer Band)
   // ==========================================
-  const footerBaselineY = 1270;
-  const availableBetweenZones =
-    footerBaselineY - headerBottomY - middleTotalH - bottomTotalH;
+  const totalVerticalSpan = footerBandY - headerBottomY;
+  const totalContentH = middleTotalH + eventDetailsContentH;
+  const availableForThreeGaps = totalVerticalSpan - totalContentH;
 
-  // Two primary gaps: header-to-middle and middle-to-bottom
-  const rawGap = availableBetweenZones / 2;
-  const gapBetweenZones = Math.max(80, Math.min(rawGap, 160));
+  // Distribute across the 3 gaps, keeping each around ~120-160px
+  const baseGap = availableForThreeGaps / 3;
+  const gapBetweenBlocks = Math.max(70, Math.min(baseGap, 160));
 
   // Position Middle Zone
-  let middleY = headerBottomY + gapBetweenZones;
+  let middleY = headerBottomY + gapBetweenBlocks;
 
   // Draw "REGISTERED" Badge
   ctx.save();
-  ctx.fillStyle = CARD_COLORS.accent;
+  ctx.fillStyle = colors.accent;
   ctx.font = '700 26px "Public Sans", sans-serif';
   ctx.textBaseline = "top";
   if ("letterSpacing" in ctx) {
@@ -207,7 +258,7 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
 
   // Draw Registrant Name (104px serif, up to 3 lines, RTL-aware)
   ctx.save();
-  ctx.fillStyle = CARD_COLORS.ink;
+  ctx.fillStyle = colors.ink;
   ctx.font = '400 104px "Source Serif 4", Georgia, serif';
   ctx.textBaseline = "top";
   ctx.direction = isArabic ? "rtl" : "ltr";
@@ -224,7 +275,7 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
 
   // Draw Subheading ({Academic year} · {University}, 40px, wrapped)
   ctx.save();
-  ctx.fillStyle = CARD_COLORS.muted;
+  ctx.fillStyle = colors.muted;
   ctx.font = '400 40px "Public Sans", sans-serif';
   ctx.textBaseline = "top";
   ctx.direction = isArabic ? "rtl" : "ltr";
@@ -237,12 +288,12 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
   ctx.restore();
 
   // ==========================================
-  // Zone 3: Bottom (Divider, Event Details, Footer)
+  // Zone 3: Bottom (Divider, Event Details)
   // ==========================================
-  const bottomDividerY = middleY + gapBetweenZones;
+  const bottomDividerY = middleY + gapBetweenBlocks;
 
   ctx.save();
-  ctx.strokeStyle = CARD_COLORS.line;
+  ctx.strokeStyle = colors.line;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(padX, bottomDividerY);
@@ -254,7 +305,7 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
 
   if (eventDate) {
     ctx.save();
-    ctx.fillStyle = CARD_COLORS.ink;
+    ctx.fillStyle = colors.ink;
     ctx.font = '600 44px "Public Sans", sans-serif';
     ctx.textBaseline = "top";
     ctx.fillText(eventDate, padX, eventY);
@@ -264,7 +315,7 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
 
   if (eventTime) {
     ctx.save();
-    ctx.fillStyle = CARD_COLORS.muted;
+    ctx.fillStyle = colors.muted;
     ctx.font = '400 36px "Public Sans", sans-serif';
     ctx.textBaseline = "top";
     ctx.fillText(eventTime, padX, eventY);
@@ -273,35 +324,29 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
   }
 
   ctx.save();
-  ctx.fillStyle = CARD_COLORS.muted;
+  ctx.fillStyle = colors.muted;
   ctx.font = '400 34px "Public Sans", sans-serif';
   ctx.textBaseline = "top";
   ctx.fillText(CARD_LABELS.venue, padX, eventY);
   ctx.restore();
-  eventY += venueLineH;
 
-  // Footer Divider & Tagline / Host
-  const footerLineY = footerBaselineY - 50;
-  ctx.save();
-  ctx.strokeStyle = CARD_COLORS.line;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(padX, footerLineY);
-  ctx.lineTo(CARD_WIDTH - padX, footerLineY);
-  ctx.stroke();
-  ctx.restore();
+  // ==========================================
+  // Zone 4: Full-width Navy Footer Band (170px)
+  // Tagline in white serif italic, Host in white on right
+  // ==========================================
+  const footerTextCenterY = footerBandY + footerBandH / 2;
 
-  const footerY = footerLineY + 28;
   ctx.save();
-  ctx.fillStyle = CARD_COLORS.ink;
+  ctx.fillStyle = "#ffffff";
+  ctx.textBaseline = "middle";
+
   ctx.font = 'italic 400 32px "Source Serif 4", Georgia, serif';
-  ctx.textBaseline = "top";
-  ctx.fillText(SITE_TAGLINE, padX, footerY);
+  ctx.textAlign = "left";
+  ctx.fillText(SITE_TAGLINE, padX, footerTextCenterY);
 
-  ctx.fillStyle = CARD_COLORS.muted;
   ctx.font = '600 24px "Public Sans", sans-serif';
   ctx.textAlign = "right";
-  ctx.fillText(SITE_HOST, CARD_WIDTH - padX, footerY + 4);
+  ctx.fillText(SITE_HOST, CARD_WIDTH - padX, footerTextCenterY);
   ctx.restore();
 
   // 4. Export as Blob and Share/Download
