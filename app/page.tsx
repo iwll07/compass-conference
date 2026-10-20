@@ -38,7 +38,7 @@ export default function HomePage() {
       <div className="last-conference-copy"><h2 id="last-conference-heading">Check out our last conference</h2><p>A look back at IMPACT — the speakers, the sessions, and the room it filled.</p></div>
       <div className="last-conference-media">
         <a className="impact-logo hover-lift" href={lastConference.site} target="_blank" rel="noopener noreferrer" aria-label="Visit the IMPACT 2025 conference site">
-          <Image src="/Impact-logo.png" alt="IMPACT — last year's COMPASS conference" width={845} height={206} />
+          <Image src="/Impact-logo.png" alt="IMPACT, our last conference" width={845} height={206} />
           <ArrowUpRightIcon size={16} aria-hidden="true" />
         </a>
         <a className="button hover-lift" href={lastConference.highlights} target="_blank" rel="noopener noreferrer">
