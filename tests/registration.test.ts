@@ -21,7 +21,8 @@ import {
   validateOtherNationality,
   validateOtherUniversity,
 } from "../lib/registration.ts";
-import { buildGoogleCalendarUrl, generateIcsString } from "../lib/calendar.ts";
+import { buildGoogleCalendarUrl, generateIcsString, escapeIcsText } from "../lib/calendar.ts";
+import { SITE_HOST } from "../lib/site.ts";
 
 // ---- Phone normalisation ----
 
@@ -667,19 +668,65 @@ test("buildGoogleCalendarUrl: handles null or invalid event windows", () => {
   );
 });
 
-test("generateIcsString: generates valid RFC 5545 iCalendar content with UTC dates", () => {
+test("escapeIcsText: escapes commas, semicolons, backslashes and newlines", () => {
+  assert.equal(escapeIcsText("Faculty of Medicine, BNSU"), "Faculty of Medicine\\, BNSU");
+  assert.equal(escapeIcsText("A; B"), "A\\; B");
+  assert.equal(escapeIcsText("path\\to\\file"), "path\\\\to\\\\file");
+  assert.equal(escapeIcsText("Line 1\nLine 2"), "Line 1\\nLine 2");
+  assert.equal(escapeIcsText("Line 1\r\nLine 2"), "Line 1\\nLine 2");
+  assert.equal(
+    escapeIcsText("Comma, semicolon; backslash\\ and\nnewline"),
+    "Comma\\, semicolon\\; backslash\\\\ and\\nnewline"
+  );
+});
+
+test("generateIcsString: generates valid RFC 5545 iCalendar content with UID, DTSTAMP and CRLF", () => {
   const sampleWindow = {
     startsAt: "2026-11-24T09:00:00+02:00",
     endsAt: "2026-11-24T17:00:00+02:00",
     timeZone: "Africa/Cairo",
   };
-  const ics = generateIcsString(sampleWindow);
-  assert.ok(ics !== null, "ICS must not be null");
-  assert.ok(ics.includes("BEGIN:VCALENDAR"), "Must contain VCALENDAR");
-  assert.ok(ics.includes("DTSTART:20261124T070000Z"), "Must contain DTSTART in UTC");
-  assert.ok(ics.includes("DTEND:20261124T150000Z"), "Must contain DTEND in UTC");
-  assert.ok(ics.includes("SUMMARY:COMPASS"), "Must contain SUMMARY");
-  assert.ok(ics.includes("LOCATION:Faculty of Medicine\\, Beni Suef National University"), "Must contain escaped LOCATION");
+  const fixedNow = new Date("2026-10-20T12:00:00Z");
+  const ics1 = generateIcsString(sampleWindow, fixedNow);
+  const ics2 = generateIcsString(sampleWindow, fixedNow);
+
+  assert.ok(ics1 !== null, "ICS must not be null");
+  assert.ok(ics1.includes("BEGIN:VCALENDAR"), "Must contain VCALENDAR");
+  assert.ok(ics1.includes("BEGIN:VEVENT"), "Must contain VEVENT");
+
+  // UID present, stable, and derived from site host
+  const expectedUid = `UID:compass-2026@${SITE_HOST}`;
+  assert.ok(ics1.includes(expectedUid), `Must contain stable UID: ${expectedUid}`);
+  assert.equal(ics1, ics2, "Calling with same inputs must yield identical stable output");
+
+  // DTSTAMP present with fixed now in UTC
+  assert.ok(
+    ics1.includes("DTSTAMP:20261020T120000Z"),
+    "Must contain DTSTAMP formatted in UTC from now parameter"
+  );
+
+  // DTSTART & DTEND
+  assert.ok(ics1.includes("DTSTART:20261124T070000Z"), "Must contain DTSTART in UTC");
+  assert.ok(ics1.includes("DTEND:20261124T150000Z"), "Must contain DTEND in UTC");
+
+  // Escaped text values
+  assert.ok(ics1.includes("SUMMARY:COMPASS"), "Must contain SUMMARY");
+  assert.ok(
+    ics1.includes("LOCATION:Faculty of Medicine\\, Beni Suef National University"),
+    "Must escape comma in LOCATION"
+  );
+  assert.ok(
+    ics1.includes("DESCRIPTION:Directing the Future of Healthcare\\nhttps://compassbsnu.page"),
+    "Must escape newline in DESCRIPTION"
+  );
+
+  // CRLF line endings including the final line
+  assert.ok(ics1.endsWith("\r\n"), "File must end with a final CRLF");
+  assert.ok(ics1.includes("END:VCALENDAR\r\n"), "END:VCALENDAR must be terminated by CRLF");
+  assert.ok(
+    !ics1.replace(/\r\n/g, "").includes("\n"),
+    "File must contain no bare LF line endings"
+  );
 });
 
 

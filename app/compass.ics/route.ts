@@ -8,7 +8,6 @@ export function GET() {
   return new Response(ics ?? "", {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="compass.ics"',
     },
   });
 }

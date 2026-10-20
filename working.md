@@ -27,6 +27,12 @@
       - **Apple / Outlook (.ics):** Same-origin link to `/compass.ics`.
     - Build-time `.ics` generation: Static route handler `app/compass.ics/route.ts` with `dynamic = 'force-static'` exports cleanly to flat file `out/compass.ics` (not a directory) during `next build`.
     - Cloudflare Pages header configured in `public/_headers`: `/compass.ics` with `Content-Type: text/calendar; charset=utf-8` so iOS Safari opens the event directly.
+    - **RFC 5545 iCalendar Hardening (`lib/calendar.ts`, `app/compass.ics/route.ts`):**
+      - Added stable `UID: compass-2026@${SITE_HOST}` derived from `SITE_HOST` (`compassbsnu.page`).
+      - Added `DTSTAMP` in UTC accepting an optional `now` parameter (defaulting to current time) for deterministic testing.
+      - All lines terminated by `\r\n` with a guaranteed final trailing `\r\n` (zero bare LFs).
+      - Text value escaping helper `escapeIcsText` strictly escapes commas (`\,`), semicolons (`\;`), backslashes (`\\`), and newlines (`\n`).
+      - Removed `Content-Disposition: attachment` from `app/compass.ics/route.ts` to prevent forced download behavior.
   - **Updated migration sequence:**
     1. `20261018000000_create_registrations.sql`
     2. `20261018010000_allow_custom_nationality_university.sql`

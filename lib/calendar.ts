@@ -1,11 +1,24 @@
 import { EventWindow } from "@/lib/event";
-import { SITE_ORIGIN, SITE_TAGLINE } from "@/lib/site";
+import { SITE_HOST, SITE_ORIGIN, SITE_TAGLINE } from "@/lib/site";
 
-export function formatUtcDateTime(iso: string): string {
-  return new Date(iso)
+export function formatUtcDateTime(input: string | Date | number): string {
+  const d = input instanceof Date ? input : new Date(input);
+  return d
     .toISOString()
     .replace(/[-:]/g, "")
     .replace(/\.\d{3}/, "");
+}
+
+/**
+ * Escapes characters with special meaning in RFC 5545 TEXT values:
+ * backslashes, semicolons, commas, and newlines.
+ */
+export function escapeIcsText(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r\n|\r|\n/g, "\\n");
 }
 
 /**
@@ -34,30 +47,42 @@ export function buildGoogleCalendarUrl(event: EventWindow | null): string | null
 
 /**
  * Generates RFC 5545 iCalendar content string for COMPASS.
+ *
+ * @param event - The event window defining start, end, and timezone.
+ * @param now - Optional reference date/timestamp for DTSTAMP (defaults to current time).
  */
-export function generateIcsString(event: EventWindow | null): string | null {
+export function generateIcsString(
+  event: EventWindow | null,
+  now: Date | number | string = new Date()
+): string | null {
   if (!event) return null;
   const start = Date.parse(event.startsAt);
   const end = Date.parse(event.endsAt);
   if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
 
+  const dtstamp = formatUtcDateTime(now);
   const dtstart = formatUtcDateTime(event.startsAt);
   const dtend = formatUtcDateTime(event.endsAt);
+  const uid = `compass-2026@${SITE_HOST}`;
 
-  return [
+  const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//COMPASS//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${dtstamp}`,
     `DTSTART:${dtstart}`,
     `DTEND:${dtend}`,
-    "SUMMARY:COMPASS",
-    `DESCRIPTION:${SITE_TAGLINE}\\n${SITE_ORIGIN}`,
-    "LOCATION:Faculty of Medicine\\, Beni Suef National University",
+    `SUMMARY:${escapeIcsText("COMPASS")}`,
+    `DESCRIPTION:${escapeIcsText(`${SITE_TAGLINE}\n${SITE_ORIGIN}`)}`,
+    `LOCATION:${escapeIcsText("Faculty of Medicine, Beni Suef National University")}`,
     "STATUS:CONFIRMED",
     "END:VEVENT",
     "END:VCALENDAR",
-  ].join("\r\n");
+  ];
+
+  return lines.join("\r\n") + "\r\n";
 }
