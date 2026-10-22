@@ -19,7 +19,9 @@ async function creditShot(tag, width) {
     const logo = el.querySelector(".credit-logo");
     const lr = logo.getBoundingClientRect();
     const email = el.querySelector(".credit-email");
-    const fb = el.querySelector('a[aria-label="Mood Digital on Facebook"]');
+    const btn = el.querySelector(".credit-logo-btn");
+    const oldFbPattern = ["1F8", "HS7", "QUMD"].join("");
+    const hasOldFb = !!document.querySelector(`a[href*="${oldFbPattern}"]`);
     const strongs = [...el.querySelectorAll("strong")].map((s) => s.textContent);
     return {
       bg: cs.backgroundColor,
@@ -27,9 +29,11 @@ async function creditShot(tag, width) {
       strongs,
       emailHref: email.getAttribute("href"),
       emailText: email.textContent,
-      fbHref: fb.getAttribute("href"),
-      fbTarget: fb.getAttribute("target"),
-      fbRel: fb.getAttribute("rel"),
+      isButton: btn?.tagName.toLowerCase() === "button",
+      buttonType: btn?.getAttribute("type"),
+      hasPopup: btn?.getAttribute("aria-haspopup"),
+      buttonLabel: btn?.getAttribute("aria-label"),
+      hasOldFb,
       logoW: Math.round(lr.width),
       logoH: Math.round(lr.height),
       logoNatural: logo.naturalWidth,
@@ -41,7 +45,8 @@ async function creditShot(tag, width) {
   check(`${tag} ${width}: credit text present`, bar.text.includes("Website developed by"));
   check(`${tag} ${width}: strongs`, JSON.stringify(bar.strongs) === JSON.stringify(["Mood Digital", "Mahmoud Ahmed Abdallah"]), JSON.stringify(bar.strongs));
   check(`${tag} ${width}: mailto`, bar.emailHref === "mailto:MoodITBusiness@gmail.com" && bar.emailText === "MoodITBusiness@gmail.com", bar.emailHref);
-  check(`${tag} ${width}: fb link`, bar.fbHref === "https://www.facebook.com/share/1F8HS7QUMD/" && bar.fbTarget === "_blank" && bar.fbRel === "noopener noreferrer", `${bar.fbHref} ${bar.fbTarget}`);
+  check(`${tag} ${width}: no old fb link`, !bar.hasOldFb);
+  check(`${tag} ${width}: logo is dialog button`, bar.isButton && bar.buttonType === "button" && bar.hasPopup === "dialog" && bar.buttonLabel === "About Mood Digital, Diamond partner", `${bar.isButton} ${bar.hasPopup} ${bar.buttonLabel}`);
   check(`${tag} ${width}: logo 54px`, bar.logoW === 54 && bar.logoH === 54 && bar.logoNatural === 487, `${bar.logoW}x${bar.logoH} natural ${bar.logoNatural}`);
   check(`${tag} ${width}: footer-bottom removed, rest intact`, bar.footerBottomGone && bar.footerMainIntact && bar.sealsIntact === 2, `gone ${bar.footerBottomGone}, seals ${bar.sealsIntact}`);
   // Overlap check: credit text and logo boxes must not intersect

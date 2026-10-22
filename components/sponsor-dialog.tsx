@@ -46,6 +46,18 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
     }
     return "en";
   });
+  const currentSponsorId = sponsor ? sponsor.id : null;
+  const [prevSponsorId, setPrevSponsorId] = useState<string | null>(null);
+
+  if (currentSponsorId !== prevSponsorId) {
+    setPrevSponsorId(currentSponsorId);
+    if (sponsor) {
+      const isArabic =
+        typeof navigator !== "undefined" &&
+        navigator.language?.toLowerCase().startsWith("ar");
+      setActiveTab(isArabic ? "ar" : "en");
+    }
+  }
 
   // Track opener focus and open/close native modal
   useEffect(() => {
@@ -54,12 +66,6 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
 
     if (sponsor) {
       openerRef.current = document.activeElement as HTMLElement | null;
-
-      // Detect language on fresh open
-      const isArabic =
-        typeof navigator !== "undefined" &&
-        navigator.language?.toLowerCase().startsWith("ar");
-      setActiveTab(isArabic ? "ar" : "en");
 
       if (!dialog.open) {
         dialog.showModal();
