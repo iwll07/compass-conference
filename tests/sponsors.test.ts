@@ -12,6 +12,10 @@ test("sponsors data: Mood Digital is present as Diamond partner", () => {
   assert.equal(mood.logo.width, 487);
   assert.equal(mood.logo.height, 513);
   assert.ok(mood.details, "Mood Digital must have details");
+  assert.equal(
+    mood.summary,
+    "Mood Digital is a custom software and digital systems agency specializing in high-performance web applications, automated event & QR check-in ecosystems, clinic management dashboards, and e-learning platforms. Proudly powering the digital experience of COMPASS 2026."
+  );
 });
 
 test("sponsors sorting: diamond -> gold -> silver, then by name", () => {

@@ -37,6 +37,7 @@ export interface Sponsor {
   logo: SponsorLogo;
   href: string | null;
   tagline: string;
+  summary?: string;
   details?: SponsorDetails;
   links?: SponsorLink[];
 }
@@ -76,6 +77,8 @@ export const sponsors: Sponsor[] = [
     },
     href: null,
     tagline: "Official Technology Partner of COMPASS 2026",
+    summary:
+      "Mood Digital is a custom software and digital systems agency specializing in high-performance web applications, automated event & QR check-in ecosystems, clinic management dashboards, and e-learning platforms. Proudly powering the digital experience of COMPASS 2026.",
     links: [
       {
         kind: "facebook",

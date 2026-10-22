@@ -2,6 +2,17 @@
 
 ## Current state
 - **COMPASS Sponsor System & Mood Digital Partner Integration (2026-10-22):**
+  - **Sponsor Summary Field & Diamond Panel Description (`lib/sponsors.ts`, `components/sponsors-view.tsx`, `app/globals.css`):**
+    - Added optional `summary?: string` to `Sponsor` interface.
+    - Added exact description to Mood Digital partner data:
+      `"Mood Digital is a custom software and digital systems agency specializing in high-performance web applications, automated event & QR check-in ecosystems, clinic management dashboards, and e-learning platforms. Proudly powering the digital experience of COMPASS 2026."`
+    - Verified zero zero-width characters and correct literal rendering of `&`.
+    - **Diamond Panel Layout:**
+      - Tagline rendered in serif (`var(--font-source-serif), Georgia, serif; font-size: 14px;`).
+      - Summary paragraph styled with `font-size: 13.5px`, `line-height: 1.65`, color `var(--panel-muted)`.
+      - Text column constrained to max-width `min(540px, 60ch)`.
+      - Actions ("Learn more" button and social links) aligned cleanly to the top right and stack underneath on mobile (820px breakpoint) with zero horizontal overflow at 390px.
+    - Scope strictly limited to Diamond panel; Gold/Silver tiles, home strip, and dialog remain unchanged.
   - **Data Model & Sorting (`lib/sponsors.ts`):**
     - Single source of truth for conference supporters with tier precedence: `"diamond"` -> `"gold"` -> `"silver"`, sorted by tier then alphabetically by sponsor name.
     - `Sponsor` interface defines `id`, `name`, `tier`, `logo` (`src`, `width`, `height`, `alt`), `href` (optional/nullable), `tagline`, bilingual `details` (`en` and `ar`), and social/contact `links` (`facebook`, `instagram`, `whatsapp`, `email`).

@@ -1080,13 +1080,13 @@ button.sponsor-strip-tile { cursor: pointer; }
   border-radius: 14px;
   padding: 30px 36px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 28px;
 }
 .sponsor-diamond-left {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 28px;
   min-width: 0;
 }
@@ -1101,7 +1101,8 @@ button.sponsor-strip-tile { cursor: pointer; }
 .sponsor-diamond-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  max-width: min(540px, 60ch);
   min-width: 0;
 }
 .sponsor-diamond-name {
@@ -1113,16 +1114,24 @@ button.sponsor-strip-tile { cursor: pointer; }
   margin: 0;
 }
 .sponsor-diamond-tagline {
-  font-size: 13.5px;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 14px;
   color: var(--panel-muted);
   line-height: 1.45;
   margin: 0;
+}
+.sponsor-diamond-summary {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--panel-muted);
+  margin: 6px 0 0 0;
 }
 .sponsor-diamond-right {
   display: flex;
   align-items: center;
   gap: 20px;
   flex-shrink: 0;
+  margin-top: 6px;
 }
 .sponsor-diamond-links {
   display: flex;
@@ -1255,12 +1264,17 @@ button.sponsor-tile {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
+    width: 100%;
+  }
+  .sponsor-diamond-info {
+    max-width: 100%;
   }
   .sponsor-diamond-right {
     width: 100%;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 14px;
+    margin-top: 0;
   }
 }
 .page-heading { display: grid; grid-template-columns: 1.1fr 1fr; gap: 65px; align-items: end; padding-bottom: 55px; border-bottom: 1px solid var(--line); }

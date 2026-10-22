@@ -13,6 +13,7 @@ function saveShot(filename, buf) {
   try {
     writeFileSync(localPath, buf);
     writeFileSync(artifactPath, buf);
+    console.log(`Saved screenshot: ${filename}`);
   } catch (err) {
     console.error("Error saving shot:", err);
   }
@@ -205,13 +206,46 @@ try {
     (await diamondPanel.locator(".sponsor-diamond-tagline").textContent())?.trim() ===
       "Official Technology Partner of COMPASS 2026"
   );
+  check(
+    "Diamond panel tagline renders in serif",
+    await diamondPanel.locator(".sponsor-diamond-tagline").evaluate((el) => {
+      const ff = getComputedStyle(el).fontFamily.toLowerCase();
+      return ff.includes("serif");
+    })
+  );
+
+  const expectedSummary =
+    "Mood Digital is a custom software and digital systems agency specializing in high-performance web applications, automated event & QR check-in ecosystems, clinic management dashboards, and e-learning platforms. Proudly powering the digital experience of COMPASS 2026.";
+  const actualSummary = (await diamondPanel.locator(".sponsor-diamond-summary").textContent())?.trim();
+  check("Diamond panel summary renders", !!actualSummary);
+  check("Diamond panel summary exact copy match", actualSummary === expectedSummary, actualSummary?.slice(0, 50));
+  check("Diamond panel summary renders '&' correctly", actualSummary?.includes("automated event & QR check-in ecosystems") === true);
+
+  check(
+    "Diamond panel text column has max-width ~540px",
+    await diamondPanel.locator(".sponsor-diamond-info").evaluate((el) => {
+      const mw = parseFloat(getComputedStyle(el).maxWidth);
+      return Math.round(mw) <= 540;
+    })
+  );
 
   const learnMoreBtn = diamondPanel.locator("button:has-text('Learn more')");
   check("Diamond panel has 'Learn more' button", (await learnMoreBtn.count()) === 1);
 
-  // Screenshot: /sponsors/ desktop light
-  const shotSponsorsDesktop = await page.screenshot({ fullPage: true });
-  saveShot("sponsors-page-desktop.png", shotSponsorsDesktop);
+  // Screenshots: /sponsors/ desktop light & dark (1440)
+  const shotSponsors1440Light = await page.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-1440-light.png", shotSponsors1440Light);
+  saveShot("sponsors-page-desktop.png", shotSponsors1440Light);
+
+  // Switch to dark mode for 1440 dark screenshot
+  await page.click('button[aria-label*="theme"]');
+  await page.waitForTimeout(200);
+  const shotSponsors1440Dark = await page.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-1440-dark.png", shotSponsors1440Dark);
+
+  // Switch back to light
+  await page.click('button[aria-label*="theme"]');
+  await page.waitForTimeout(150);
 
   // Dialog opens from Diamond panel Learn More button
   await learnMoreBtn.click();
@@ -234,19 +268,21 @@ try {
   await mobilePage.goto(BASE + "/sponsors/", { waitUntil: "networkidle" });
   await mobilePage.waitForTimeout(250);
 
-  const shotSponsorsMobile = await mobilePage.screenshot({ fullPage: true });
-  saveShot("sponsors-page-mobile.png", shotSponsorsMobile);
+  // Check no horizontal overflow at 390px
+  const noOverflow = await mobilePage.evaluate(() => {
+    return document.documentElement.scrollWidth <= document.documentElement.clientWidth;
+  });
+  check("No horizontal overflow on /sponsors/ at 390px", noOverflow);
 
-  // Open dialog on mobile
-  await mobilePage.locator(".sponsor-diamond-panel button:has-text('Learn more')").click();
+  // Screenshots: /sponsors/ mobile light & dark (390)
+  const shotSponsors390Light = await mobilePage.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-390-light.png", shotSponsors390Light);
+  saveShot("sponsors-page-mobile.png", shotSponsors390Light);
+
+  await mobilePage.click('button[aria-label*="theme"]');
   await mobilePage.waitForTimeout(200);
-  const shotDialogEnMobile = await mobilePage.screenshot({ fullPage: false });
-  saveShot("sponsor-dialog-en-light-mobile.png", shotDialogEnMobile);
-
-  await mobilePage.locator('dialog.sponsor-dialog[open] button[role="tab"]:has-text("العربية")').click();
-  await mobilePage.waitForTimeout(150);
-  const shotDialogArMobile = await mobilePage.screenshot({ fullPage: false });
-  saveShot("sponsor-dialog-ar-light-mobile.png", shotDialogArMobile);
+  const shotSponsors390Dark = await mobilePage.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-390-dark.png", shotSponsors390Dark);
 
   await mobileContext.close();
 

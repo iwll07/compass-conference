@@ -72,6 +72,9 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
                         <div className="sponsor-diamond-info">
                           <h3 className="sponsor-diamond-name">{sponsor.name}</h3>
                           <p className="sponsor-diamond-tagline">{sponsor.tagline}</p>
+                          {sponsor.summary && (
+                            <p className="sponsor-diamond-summary">{sponsor.summary}</p>
+                          )}
                         </div>
                       </div>
 
