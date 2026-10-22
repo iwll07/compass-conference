@@ -1,6 +1,53 @@
 # COMPASS working log
 
 ## Current state
+- **COMPASS Sponsor System & Mood Digital Partner Integration (2026-10-22):**
+  - **Data Model & Sorting (`lib/sponsors.ts`):**
+    - Single source of truth for conference supporters with tier precedence: `"diamond"` -> `"gold"` -> `"silver"`, sorted by tier then alphabetically by sponsor name.
+    - `Sponsor` interface defines `id`, `name`, `tier`, `logo` (`src`, `width`, `height`, `alt`), `href` (optional/nullable), `tagline`, bilingual `details` (`en` and `ar`), and social/contact `links` (`facebook`, `instagram`, `whatsapp`, `email`).
+    - Shipped partner: **Mood Digital** as Diamond Partner ("Official Technology Partner of COMPASS 2026") with exact bilingual copy, zero zero-width characters, and verified direct links (Facebook, Instagram, WhatsApp with pre-filled message, and business email).
+  - **Bilingual Pop-up Dialog (`components/sponsor-dialog.tsx`):**
+    - Built on native HTML5 `<dialog>` using `showModal()` with full accessibility:
+      - Escape key and backdrop click dismissal with automatic focus restoration to the opener button.
+      - Body scroll lock (`overflow: hidden`) while open.
+      - Max height `min(90dvh, 720px)`, responsive padding, and subtle CSS transform/opacity transition (disabled under `prefers-reduced-motion`).
+      - Navy header band with logo, tier pill (`DIAMOND PARTNER`), and close button.
+      - W3C ARIA tablist with underline indicators (no pills) for "English" and "العربية". Auto-detects client language via `navigator.language.startsWith("ar")`.
+      - Arabic panel strictly enforces `dir="rtl"` and `lang="ar"`.
+      - Feature list with bold leads and teal dot markers.
+      - Contact/social footer row with 44px minimum touch targets, visible labels, and Phosphor icons (`FacebookLogo`, `InstagramLogo`, `WhatsappLogo`, `EnvelopeSimple`).
+  - **Footer Credit Bar (`components/footer.tsx`):**
+    - Replaced the external Facebook link with `<button type="button" aria-haspopup="dialog" aria-label="About Mood Digital, Diamond partner" className="credit-logo-btn hover-lift">`.
+    - Clicking the logo opens the Mood Digital partner dialog.
+    - Completely purged legacy Facebook URL (`1F8HS7QUMD`) from codebase.
+  - **Tiered Sponsors Page (`app/sponsors/page.tsx`, `components/sponsors-view.tsx`):**
+    - Tier labels use the announcement-meta typography (`font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent)`), rendered only for tiers that have confirmed sponsors.
+    - **Diamond Tier:** Full-width panel using design tokens (`--panel`, `--panel-ink`, `--panel-accent`), 3px accent top border, max 56px logo, name, tagline, "Learn more" modal trigger button, and inline social icon row. Stacks cleanly on mobile.
+    - **Gold Tier:** Responsive 3-column grid (`repeat(auto-fit, minmax(190px, 1fr))`), light card-scoped custom properties (`--card-bg: #ffffff`, `--card-ink: #192e39`) that stay light even in dark mode, 0.5px border, 2px muted-gold top rule (`#b08d57`), 76px logo box, and 13px name.
+    - **Silver Tier:** Responsive 4-column grid (`repeat(auto-fit, minmax(150px, 1fr))`), 50px logo box, 1px muted-silver top rule (`#aab3b6`), and 12px name.
+    - **Tile Interactivity:** Tiles with `details` open the dialog; tiles with `href` open in a new tab (`target="_blank" rel="noopener noreferrer"`); static tiles are non-clickable. Interactive tiles receive `.hover-lift`.
+    - **Empty State:** "Confirmed sponsors and partners will be listed here..." copy only displays when zero sponsors exist across all tiers.
+  - **Homepage Sponsor Strip (`app/page.tsx`, `components/home-sponsor-row.tsx`):**
+    - Section `.sponsor-strip` preserves original heading "Supported by shared ambition." and link to `/sponsors`.
+    - Adds a horizontal row of sponsor logos ordered by tier.
+    - Mood Digital white logo is framed on a compact navy tile (`#192e39`) for high contrast in light mode. Gold and Silver sponsors use light tiles.
+    - Diamond logo is sized largest; clicking logos mirrors their behavior on the Sponsors page.
+  - **How to Add a Sponsor:**
+    1. Place the sponsor's logo image in `public/` (e.g. `public/sponsors/partner-name.png`).
+    2. Add an entry to the `sponsors` array in `lib/sponsors.ts`:
+       - Specify `id`, `name`, `tier` (`"diamond" | "gold" | "silver"`), `logo` (`src`, `width`, `height`, `alt`), `tagline`.
+       - Optional: `href` for website link, `details` (`en` and `ar`) for popup modal, and `links` for social/contact buttons.
+    3. The sorting helper `sortSponsors()` automatically positions the sponsor in correct tier order on `/sponsors` and `/`.
+  - **Logo Requirements:**
+    - Format: PNG, SVG, or WebP with a transparent background.
+    - Ink / Coloring:
+      - Diamond logos may use white or light monochrome ink (they sit on navy backgrounds: the dialog header, Diamond panel, and homepage navy tile).
+      - Gold and Silver logos **must use dark or coloured ink** because Gold and Silver tiles are always light (`#ffffff`), even when dark mode is enabled.
+  - **Tier Rules:**
+    - **Diamond:** Headline conference partner. Full-width panel, modal trigger, social icon row, largest logo on homepage strip.
+    - **Gold:** Prominent partners. 3-across grid on desktop, 76px logo container, 2px `#b08d57` top rule.
+    - **Silver:** Supporting partners. 4-across grid on desktop, 50px logo container, 1px `#aab3b6` top rule.
+
 - **Attendee card export polish, dual calendar options, and policy cleanup (2026-10-20):**
   - **IMPACT alt text (`app/page.tsx`):**
     - Updated IMPACT logo alt text in "last conference" section from `"IMPACT — last year's COMPASS conference"` to `"IMPACT, our last conference"`. Verified no other copies exist in the repository.
