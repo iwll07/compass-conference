@@ -177,11 +177,16 @@ check("registration heading exists", regText.includes("Your place at COMPASS sta
 check("registration has no external Tally links", await page.locator('main a[href*="tally.so"]').count() === 0);
 
 // 5. Empty states are intentional on agenda/speakers/posters/sponsors
-for (const route of ["/agenda/", "/speakers/", "/posters/", "/sponsors/"]) {
+for (const route of ["/agenda/", "/speakers/", "/posters/"]) {
   await page.goto(BASE + route, { waitUntil: "networkidle" });
   const main = (await page.locator("main").textContent())?.toLowerCase() ?? "";
   check(`${route} has intentional empty state`, main.includes("coming soon") || main.includes("to be announced"), main.slice(0, 80));
 }
+
+await page.goto(BASE + "/sponsors/", { waitUntil: "networkidle" });
+const sponsorsMain = (await page.locator("main").textContent()) ?? "";
+check("/sponsors/ shows Diamond partner Mood Digital", sponsorsMain.includes("Mood Digital") && sponsorsMain.includes("Diamond Partner"));
+check("/sponsors/ removes empty state copy when sponsors exist", !sponsorsMain.includes("Confirmed sponsors and partners will be listed here"));
 
 // 6. Countdown: upcoming state renders (date set: Nov 25 2026 Cairo), no negative numbers
 await page.goto(BASE + "/", { waitUntil: "networkidle" });

@@ -43,6 +43,12 @@ export interface Sponsor {
 
 export const SPONSOR_TIERS: readonly SponsorTier[] = ["diamond", "gold", "silver"] as const;
 
+export const SPONSOR_TIER_LABELS: Record<SponsorTier, string> = {
+  diamond: "Diamond Partner",
+  gold: "Gold Sponsors",
+  silver: "Silver Sponsors",
+};
+
 const TIER_ORDER: Record<SponsorTier, number> = {
   diamond: 0,
   gold: 1,
