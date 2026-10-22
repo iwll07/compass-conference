@@ -720,7 +720,65 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .explore-list p { margin-top: 8px; color: var(--panel-muted); font-size: 12px; }
 .explore-detail { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; white-space: nowrap; font-size: 10px; color: var(--panel-accent); }
 .explore-list a:hover h3 { color: var(--panel-accent); }
-.sponsor-strip { max-width: 1260px; margin: auto; padding: 57px 0; display: flex; justify-content: space-between; gap: 32px; align-items: center; }
+.sponsor-strip { max-width: 1260px; margin: auto; padding: 57px 0; display: flex; flex-direction: column; gap: 24px; }
+.sponsor-strip-header { display: flex; justify-content: space-between; gap: 32px; align-items: center; width: 100%; }
+.sponsor-strip-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; width: 100%; }
+.sponsor-strip-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  text-decoration: none;
+  font-family: inherit;
+  margin: 0;
+  transition: transform 160ms cubic-bezier(.23,1,.32,1), box-shadow 160ms cubic-bezier(.23,1,.32,1);
+}
+button.sponsor-strip-tile { cursor: pointer; }
+
+/* Diamond: small navy tile for white Mood Digital logo */
+.sponsor-strip-tile-diamond {
+  background: #192e39;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  height: 60px;
+  padding: 10px 20px;
+}
+.sponsor-strip-logo-diamond {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Gold: light tile with 2px muted-gold top rule */
+.sponsor-strip-tile-gold {
+  background: #ffffff;
+  border: 0.5px solid #ccd7d4;
+  border-top: 2px solid #b08d57;
+  height: 52px;
+  padding: 8px 16px;
+}
+.sponsor-strip-logo-gold {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Silver: light tile with 1px muted-silver top rule */
+.sponsor-strip-tile-silver {
+  background: #ffffff;
+  border: 0.5px solid #ccd7d4;
+  border-top: 1px solid #aab3b6;
+  height: 44px;
+  padding: 6px 14px;
+}
+.sponsor-strip-logo-silver {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+}
+
+.sponsor-strip-tile.hover-lift:hover {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
 .sponsor-strip h2 { font-size: 26px; }
 .sponsor-strip p { margin-top: 12px; font-size: 13px; color: var(--muted); }
 
@@ -1300,7 +1358,8 @@ button.sponsor-tile {
   .announcements-heading { margin-bottom: 30px; }
   .admin-list li { flex-direction: column; gap: 16px; }
   .admin-row-actions { justify-content: flex-start; width: 100%; }
-  .sponsor-strip { align-items: start; flex-direction: column; padding: 38px 0; gap: 12px; }
+  .sponsor-strip { align-items: start; flex-direction: column; padding: 38px 0; gap: 18px; }
+  .sponsor-strip-header { flex-direction: column; align-items: flex-start; gap: 14px; }
   .sponsor-strip h2 { font-size: 26px; }
   /* Last-conference callout stacks the same way: copy on top, media below. */
   .last-conference { align-items: center; flex-direction: column; text-align: center; padding: 32px 0 38px; gap: 24px; }
