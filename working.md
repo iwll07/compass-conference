@@ -2,6 +2,26 @@
 
 ## Current state
 - **COMPASS Sponsor System & Mood Digital Partner Integration (2026-10-22):**
+  - **Diamond Panel Layout & Vertical Rhythm Polish (`components/sponsors-view.tsx`, `app/sponsors/page.tsx`, `app/globals.css`):**
+    - **Panel Architecture (900px+):**
+      - Full-width panel with `padding: 36px 40px`, retaining the 3px accent top border and 14px border radius.
+      - **Row 1 (Header):**
+        - Left: 72px round monogram logo (`alt="Mood Digital"`, verified source is 487×513px > 144px minimum for crisp Retina rendering), 25px name in site's serif heading font (`"Source Serif 4", Georgia, serif`), and 14px tagline below in `--panel-ink` at 85% opacity (`color-mix(in srgb, var(--panel-ink) 85%, transparent)`), vertically centered with the logo.
+        - Right: 4 icon links at 24px (`FacebookLogo`, `InstagramLogo`, `WhatsappLogo`, `EnvelopeSimple`), each with 44px hit area, vertically centered with logo, styled with `--panel-muted` default and `--panel-accent` on hover, preserving exact target/rel and aria-labels.
+      - **Divider:** 1px divider at 25% of `--panel-muted` (`color-mix(in srgb, var(--panel-muted) 25%, transparent)`) with 24px margin above and below.
+      - **Row 2 (Summary):** Paragraph in `--panel-muted` at 14.5px font-size and 1.7 line-height, with max-width constrained to 66ch.
+      - **Row 3 ("Learn more"):** Inverse button variant (`background: var(--panel-ink); color: var(--panel); border: 1px solid var(--panel-ink)`), min-height 44px, padding 0 22px, 8px radius, trailing Phosphor `ArrowRightIcon`, 24px margin above, with `.hover-lift` transition.
+      - **Mobile (< 700px):** Header stacks cleanly (logo and name first, icon row beneath left-aligned with -10px negative margin for visual alignment with content edge), divider, paragraph, and full-width button (`width: 100%; align-self: stretch`).
+    - **Tier Labels:**
+      - Styled matching the small announcements meta style: sans-serif (`"Public Sans"`), 11px, `letter-spacing: 0.14em`, `text-transform: uppercase`, `color: var(--accent)`, with exactly 14px margin to the panel or grid.
+    - **Vertical Rhythm & Multi-Tier Spacing:**
+      - Exactly 60px gap (`56-64px`) between tier sections and below the last tier.
+      - Verified across tiers (Diamond -> Gold: 60px, Gold -> Silver: 60px, Silver -> Support: 60px) using temporary sample data in automated QA.
+    - **Supporting COMPASS Note:**
+      - When at least one sponsor exists, moved after all tiers with a 1px divider above it and 28px padding.
+      - Heading reduced to 20px (`"Supporting COMPASS"`).
+      - Copy updated to: *"Other partners and sponsors have not been announced yet. Once confirmed they will be announced here along the way."* with `"About the conference"` link to `/about`.
+      - When zero sponsors exist, the original empty state and original prose text remain strictly unchanged.
   - **Sponsor Summary Field & Diamond Panel Description (`lib/sponsors.ts`, `components/sponsors-view.tsx`, `app/globals.css`):**
     - Added optional `summary?: string` to `Sponsor` interface.
     - Added exact description to Mood Digital partner data:

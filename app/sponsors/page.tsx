@@ -10,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default function SponsorsPage() {
+  const hasSponsors = sponsors.length > 0;
+
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
@@ -25,19 +27,21 @@ export default function SponsorsPage() {
 
       <SponsorsView sponsors={sponsors} />
 
-      <section className="prose reveal" aria-labelledby="partnership-heading">
-        <h2 id="partnership-heading" className="section-heading">
-          Supporting COMPASS
-        </h2>
-        <p>
-          COMPASS is student-led at the Faculty of Medicine, Beni Suef National
-          University. Partnership information and a contact for sponsorship enquiries
-          are coming soon.
-        </p>
-        <Link href="/about" className="text-link">
-          About the conference
-        </Link>
-      </section>
+      {!hasSponsors && (
+        <section className="prose reveal" aria-labelledby="partnership-heading">
+          <h2 id="partnership-heading" className="section-heading">
+            Supporting COMPASS
+          </h2>
+          <p>
+            COMPASS is student-led at the Faculty of Medicine, Beni Suef National
+            University. Partnership information and a contact for sponsorship enquiries
+            are coming soon.
+          </p>
+          <Link href="/about" className="text-link">
+            About the conference
+          </Link>
+        </section>
+      )}
     </main>
   );
 }

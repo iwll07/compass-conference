@@ -190,62 +190,170 @@ try {
   await page.keyboard.press("Escape");
   await page.waitForTimeout(150);
 
-  // 1h. Sponsors page verification and screenshots
+  // 1h. Sponsors page verification
   await page.goto(BASE + "/sponsors/", { waitUntil: "networkidle" });
   await page.waitForTimeout(300);
 
   const diamondPanel = page.locator(".sponsor-diamond-panel");
   check("Diamond panel on /sponsors exists", (await diamondPanel.count()) === 1);
-  check("Diamond logo renders in panel", (await diamondPanel.locator("img").count()) === 1);
+
+  // Logo checks
+  const logoImg = diamondPanel.locator(".sponsor-diamond-logo");
+  check("Diamond logo renders in panel", (await logoImg.count()) === 1);
+  check("Diamond logo has alt 'Mood Digital'", (await logoImg.getAttribute("alt")) === "Mood Digital");
+  const logoDims = await logoImg.evaluate((el) => ({ w: el.clientWidth, h: el.clientHeight }));
+  check("Diamond logo renders at 72px", logoDims.w === 72 && logoDims.h === 72, `${logoDims.w}x${logoDims.h}`);
+
+  // Name & tagline
+  const nameEl = diamondPanel.locator(".sponsor-diamond-name");
   check(
     "Diamond panel has Mood Digital title",
-    (await diamondPanel.locator(".sponsor-diamond-name").textContent())?.trim() === "Mood Digital"
+    (await nameEl.textContent())?.trim() === "Mood Digital"
   );
+  const nameStyles = await nameEl.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return {
+      fontSize: parseFloat(cs.fontSize),
+      fontFamily: cs.fontFamily.toLowerCase(),
+      fontWeight: cs.fontWeight,
+    };
+  });
+  check(
+    "Diamond panel name in site's heading font (24-26px)",
+    nameStyles.fontSize >= 24 && nameStyles.fontSize <= 26 && nameStyles.fontFamily.includes("serif"),
+    `${nameStyles.fontSize}px ${nameStyles.fontFamily}`
+  );
+
+  const taglineEl = diamondPanel.locator(".sponsor-diamond-tagline");
   check(
     "Diamond panel has correct tagline",
-    (await diamondPanel.locator(".sponsor-diamond-tagline").textContent())?.trim() ===
-      "Official Technology Partner of COMPASS 2026"
+    (await taglineEl.textContent())?.trim() === "Official Technology Partner of COMPASS 2026"
   );
+  const taglineStyles = await taglineEl.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { fontSize: parseFloat(cs.fontSize) };
+  });
+  check("Diamond panel tagline is 14px", Math.round(taglineStyles.fontSize) === 14);
+
+  // Logo and text aligned vertically
+  const brandAligned = await diamondPanel.locator(".sponsor-diamond-brand").evaluate((el) => {
+    return getComputedStyle(el).alignItems === "center";
+  });
+  check("Logo and text aligned vertically in brand container", brandAligned);
+
+  // Right: 4 icon links at 24px with 44px hit areas
+  const diamondLinks = diamondPanel.locator(".sponsor-diamond-link");
+  check("Diamond panel has 4 icon links", (await diamondLinks.count()) === 4);
+  const linksValid = await diamondLinks.evaluateAll((els) => {
+    return els.every((el) => {
+      const rect = el.getBoundingClientRect();
+      const svg = el.querySelector("svg");
+      const svgRect = svg ? svg.getBoundingClientRect() : null;
+      return rect.width >= 44 && rect.height >= 44 && svgRect && Math.round(svgRect.width) === 24;
+    });
+  });
+  check("Each icon link has >=44px hit area and 24px icon", linksValid);
+
+  // Check exact hrefs and rels on panel
+  const panelFb = diamondPanel.locator('.sponsor-diamond-link[aria-label="Mood Digital on Facebook"]');
+  check("Panel FB href matches", (await panelFb.getAttribute("href")) === expectedFb);
+  check("Panel FB rel contains noopener", (await panelFb.getAttribute("rel"))?.includes("noopener") === true);
+
+  const panelIg = diamondPanel.locator('.sponsor-diamond-link[aria-label="Mood Digital on Instagram"]');
+  check("Panel IG href matches", (await panelIg.getAttribute("href")) === expectedIg);
+
+  const panelWa = diamondPanel.locator('.sponsor-diamond-link[aria-label="Mood Digital on WhatsApp"]');
+  check("Panel WA href matches", (await panelWa.getAttribute("href")) === expectedWhatsapp);
+
+  const panelEmail = diamondPanel.locator('.sponsor-diamond-link[aria-label="Mood Digital on Email"]');
+  check("Panel Email href matches", (await panelEmail.getAttribute("href")) === expectedEmail);
+  check("Panel Email has no target", (await panelEmail.getAttribute("target")) === null);
+
+  // Divider
+  const divider = diamondPanel.locator(".sponsor-diamond-divider");
+  check("Diamond panel 1px divider exists", (await divider.count()) === 1);
+  const dividerStyles = await divider.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return {
+      height: parseFloat(cs.height),
+      marginTop: parseFloat(cs.marginTop),
+      marginBottom: parseFloat(cs.marginBottom),
+    };
+  });
   check(
-    "Diamond panel tagline renders in serif",
-    await diamondPanel.locator(".sponsor-diamond-tagline").evaluate((el) => {
-      const ff = getComputedStyle(el).fontFamily.toLowerCase();
-      return ff.includes("serif");
-    })
+    "Divider is 1px with 24px margin above and below",
+    dividerStyles.height === 1 && Math.round(dividerStyles.marginTop) === 24 && Math.round(dividerStyles.marginBottom) === 24
   );
 
+  // Row 2: summary paragraph at 14.5px, line-height 1.7, max-width ~66ch
   const expectedSummary =
     "Mood Digital is a custom software and digital systems agency specializing in high-performance web applications, automated event & QR check-in ecosystems, clinic management dashboards, and e-learning platforms. Proudly powering the digital experience of COMPASS 2026.";
-  const actualSummary = (await diamondPanel.locator(".sponsor-diamond-summary").textContent())?.trim();
-  check("Diamond panel summary renders", !!actualSummary);
-  check("Diamond panel summary exact copy match", actualSummary === expectedSummary, actualSummary?.slice(0, 50));
-  check("Diamond panel summary renders '&' correctly", actualSummary?.includes("automated event & QR check-in ecosystems") === true);
-
+  const summaryEl = diamondPanel.locator(".sponsor-diamond-summary");
+  const actualSummary = (await summaryEl.textContent())?.trim();
+  check("Diamond panel summary renders exact copy", actualSummary === expectedSummary);
+  check("Diamond panel summary renders '&' correctly", actualSummary?.includes("event & QR check-in") === true);
+  const summaryStyles = await summaryEl.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return {
+      fontSize: parseFloat(cs.fontSize),
+      lineHeight: parseFloat(cs.lineHeight) / parseFloat(cs.fontSize),
+    };
+  });
   check(
-    "Diamond panel text column has max-width ~540px",
-    await diamondPanel.locator(".sponsor-diamond-info").evaluate((el) => {
-      const mw = parseFloat(getComputedStyle(el).maxWidth);
-      return Math.round(mw) <= 540;
-    })
+    "Summary has 14.5px font-size and ~1.7 line-height",
+    Math.abs(summaryStyles.fontSize - 14.5) <= 0.5 && Math.abs(summaryStyles.lineHeight - 1.7) <= 0.1
   );
 
-  const learnMoreBtn = diamondPanel.locator("button:has-text('Learn more')");
+  // Row 3: "Learn more" button (inverse button style, min-height 44px, 8px radius, trailing ArrowRight)
+  const learnMoreBtn = diamondPanel.locator("button.sponsor-diamond-btn");
   check("Diamond panel has 'Learn more' button", (await learnMoreBtn.count()) === 1);
+  check("Learn more button has trailing arrow icon", (await learnMoreBtn.locator("svg").count()) === 1);
+  const btnStyles = await learnMoreBtn.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return {
+      borderRadius: parseFloat(cs.borderRadius),
+      minHeight: parseFloat(cs.minHeight),
+    };
+  });
+  check(
+    "Learn more button has min-height >=44px and 8px radius",
+    btnStyles.minHeight >= 44 && btnStyles.borderRadius === 8
+  );
 
-  // Screenshots: /sponsors/ desktop light & dark (1440)
-  const shotSponsors1440Light = await page.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-1440-light.png", shotSponsors1440Light);
-  saveShot("sponsors-page-desktop.png", shotSponsors1440Light);
+  // Tier label styling
+  const tierLabel = page.locator(".sponsor-tier-label").first();
+  const labelStyles = await tierLabel.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return {
+      fontSize: parseFloat(cs.fontSize),
+      fontFamily: cs.fontFamily.toLowerCase(),
+      textTransform: cs.textTransform,
+      letterSpacing: cs.letterSpacing,
+      marginBottom: parseFloat(cs.marginBottom),
+    };
+  });
+  check("Tier label is sans-serif", labelStyles.fontFamily.includes("public sans"));
+  check("Tier label is 11px uppercase", labelStyles.fontSize === 11 && labelStyles.textTransform === "uppercase");
+  check("Tier label has ~14px margin to panel", Math.round(labelStyles.marginBottom) === 14);
 
-  // Switch to dark mode for 1440 dark screenshot
-  await page.click('button[aria-label*="theme"]');
-  await page.waitForTimeout(200);
-  const shotSponsors1440Dark = await page.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-1440-dark.png", shotSponsors1440Dark);
-
-  // Switch back to light
-  await page.click('button[aria-label*="theme"]');
-  await page.waitForTimeout(150);
+  // Note below tiers
+  const supportSection = page.locator(".sponsor-support-section");
+  check("Support note section exists below tiers", (await supportSection.count()) === 1);
+  check(
+    "Support note copy is updated",
+    (await supportSection.locator(".sponsor-support-copy").textContent())?.trim() ===
+      "Other partners and sponsors have not been announced yet. Once confirmed they will be announced here along the way."
+  );
+  check(
+    "Support note heading is 20px",
+    await supportSection.locator(".sponsor-support-heading").evaluate((el) => {
+      return Math.round(parseFloat(getComputedStyle(el).fontSize)) === 20;
+    })
+  );
+  check(
+    "Support note has link to /about",
+    (await supportSection.locator('a[href^="/about"]').count()) === 1
+  );
 
   // Dialog opens from Diamond panel Learn More button
   await learnMoreBtn.click();
@@ -255,6 +363,50 @@ try {
     (await page.locator("dialog.sponsor-dialog[open]").count()) === 1
   );
   await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+
+  // Screenshots at 1440, 1280, 1024, 390 in light and dark
+  // 1440 light & dark
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.waitForTimeout(150);
+  const shot1440Light = await page.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-1440-light.png", shot1440Light);
+  saveShot("sponsors-page-desktop.png", shot1440Light);
+
+  await page.click('button[aria-label*="theme"]');
+  await page.waitForTimeout(200);
+  const shot1440Dark = await page.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-1440-dark.png", shot1440Dark);
+
+  await page.click('button[aria-label*="theme"]');
+  await page.waitForTimeout(150);
+
+  // 1280 light & dark
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.waitForTimeout(150);
+  const shot1280Light = await page.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-1280-light.png", shot1280Light);
+
+  await page.click('button[aria-label*="theme"]');
+  await page.waitForTimeout(200);
+  const shot1280Dark = await page.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-1280-dark.png", shot1280Dark);
+
+  await page.click('button[aria-label*="theme"]');
+  await page.waitForTimeout(150);
+
+  // 1024 light & dark
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.waitForTimeout(150);
+  const shot1024Light = await page.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-1024-light.png", shot1024Light);
+
+  await page.click('button[aria-label*="theme"]');
+  await page.waitForTimeout(200);
+  const shot1024Dark = await page.screenshot({ fullPage: true });
+  saveShot("sponsors-diamond-1024-dark.png", shot1024Dark);
+
+  await page.click('button[aria-label*="theme"]');
   await page.waitForTimeout(150);
 
   await context.close();
@@ -273,6 +425,19 @@ try {
     return document.documentElement.scrollWidth <= document.documentElement.clientWidth;
   });
   check("No horizontal overflow on /sponsors/ at 390px", noOverflow);
+
+  // Check mobile stacked layout below 700px
+  const mobileHeaderStacked = await mobilePage.locator(".sponsor-diamond-header").evaluate((el) => {
+    return getComputedStyle(el).flexDirection === "column";
+  });
+  check("Below 700px: Diamond header stacks vertically", mobileHeaderStacked);
+
+  const mobileBtnFullWidth = await mobilePage.locator("button.sponsor-diamond-btn").evaluate((el) => {
+    const parentPadding = parseFloat(getComputedStyle(el.parentElement).paddingLeft) + parseFloat(getComputedStyle(el.parentElement).paddingRight);
+    const parentContentWidth = el.parentElement.clientWidth - parentPadding;
+    return Math.abs(el.offsetWidth - parentContentWidth) <= 4;
+  });
+  check("Below 700px: Learn more button is full width", mobileBtnFullWidth);
 
   // Screenshots: /sponsors/ mobile light & dark (390)
   const shotSponsors390Light = await mobilePage.screenshot({ fullPage: true });

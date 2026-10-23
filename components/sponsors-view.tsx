@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   FacebookLogo,
   InstagramLogo,
   WhatsappLogo,
   EnvelopeSimple,
+  ArrowRightIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import {
   type Sponsor,
@@ -53,7 +55,7 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
               className="sponsor-tier-section reveal"
               aria-labelledby={`tier-heading-${tier}`}
             >
-              <h2 id={`tier-heading-${tier}`} className="announcement-meta sponsor-tier-label">
+              <h2 id={`tier-heading-${tier}`} className="sponsor-tier-label">
                 {SPONSOR_TIER_LABELS[tier]}
               </h2>
 
@@ -61,34 +63,21 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
                 <div className="sponsor-diamond-stack">
                   {tierSponsors.map((sponsor) => (
                     <article key={sponsor.id} className="sponsor-diamond-panel">
-                      <div className="sponsor-diamond-left">
-                        <Image
-                          src={sponsor.logo.src}
-                          alt={sponsor.logo.alt}
-                          width={sponsor.logo.width}
-                          height={sponsor.logo.height}
-                          className="sponsor-diamond-logo"
-                        />
-                        <div className="sponsor-diamond-info">
-                          <h3 className="sponsor-diamond-name">{sponsor.name}</h3>
-                          <p className="sponsor-diamond-tagline">{sponsor.tagline}</p>
-                          {sponsor.summary && (
-                            <p className="sponsor-diamond-summary">{sponsor.summary}</p>
-                          )}
+                      {/* Row 1, header: Logo + Name/Tagline on left, icon links on right */}
+                      <div className="sponsor-diamond-header">
+                        <div className="sponsor-diamond-brand">
+                          <Image
+                            src={sponsor.logo.src}
+                            alt="Mood Digital"
+                            width={72}
+                            height={72}
+                            className="sponsor-diamond-logo"
+                          />
+                          <div className="sponsor-diamond-titles">
+                            <h3 className="sponsor-diamond-name">{sponsor.name}</h3>
+                            <p className="sponsor-diamond-tagline">{sponsor.tagline}</p>
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="sponsor-diamond-right">
-                        {sponsor.details && (
-                          <button
-                            type="button"
-                            className="button button-sm hover-lift"
-                            onClick={() => setSelectedSponsor(sponsor)}
-                            aria-haspopup="dialog"
-                          >
-                            Learn more
-                          </button>
-                        )}
 
                         {sponsor.links && sponsor.links.length > 0 && (
                           <div
@@ -106,9 +95,13 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
                                   ? WhatsappLogo
                                   : EnvelopeSimple;
                               const labelName =
-                                link.kind === "email"
-                                  ? "Email"
-                                  : link.kind.charAt(0).toUpperCase() + link.kind.slice(1);
+                                link.kind === "whatsapp"
+                                  ? "WhatsApp"
+                                  : link.kind === "facebook"
+                                  ? "Facebook"
+                                  : link.kind === "instagram"
+                                  ? "Instagram"
+                                  : "Email";
                               return (
                                 <a
                                   key={link.kind}
@@ -119,13 +112,34 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
                                     ? { target: "_blank", rel: "noopener noreferrer" }
                                     : {})}
                                 >
-                                  <Icon size={20} aria-hidden="true" />
+                                  <Icon size={24} aria-hidden="true" />
                                 </a>
                               );
                             })}
                           </div>
                         )}
                       </div>
+
+                      {/* 1px divider */}
+                      <div className="sponsor-diamond-divider" role="separator" />
+
+                      {/* Row 2: Summary paragraph */}
+                      {sponsor.summary && (
+                        <p className="sponsor-diamond-summary">{sponsor.summary}</p>
+                      )}
+
+                      {/* Row 3: Learn more button */}
+                      {sponsor.details && (
+                        <button
+                          type="button"
+                          className="button sponsor-diamond-btn hover-lift"
+                          onClick={() => setSelectedSponsor(sponsor)}
+                          aria-haspopup="dialog"
+                        >
+                          <span>Learn more</span>
+                          <ArrowRightIcon size={16} aria-hidden="true" />
+                        </button>
+                      )}
                     </article>
                   ))}
                 </div>
@@ -144,6 +158,22 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
             </section>
           );
         })}
+
+        {/* Note below all tiers when sponsors exist */}
+        <section
+          className="sponsor-support-section reveal"
+          aria-labelledby="partnership-heading"
+        >
+          <h2 id="partnership-heading" className="sponsor-support-heading">
+            Supporting COMPASS
+          </h2>
+          <p className="sponsor-support-copy">
+            Other partners and sponsors have not been announced yet. Once confirmed they will be announced here along the way.
+          </p>
+          <Link href="/about" className="text-link">
+            About the conference
+          </Link>
+        </section>
       </div>
 
       <SponsorDialog
