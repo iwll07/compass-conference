@@ -1,8 +1,3 @@
-export type CommitteeRole = {
-  role: string;
-  name: string | null;
-};
-
 export type Session = {
   id: string;
   day: string | null;
@@ -44,8 +39,6 @@ export type Sponsor = {
   logoUrl: string | null;
   website: string | null;
 };
-
-export const committee: CommitteeRole[] = [];
 
 export const schedule: Session[] = [];
 

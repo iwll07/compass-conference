@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { committee } from "@/lib/content";
+import Image from "next/image";
+import { honoreeGroups, getInitials } from "@/lib/honorees";
 
 export const metadata: Metadata = {
   title: "About | COMPASS",
@@ -9,11 +10,15 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
+  const visibleGroups = honoreeGroups.filter((group) => group.people.length > 0);
+
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
         <h1 className="reveal">About COMPASS</h1>
-        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>A medical conference shaped by students, for the questions that keep us curious.</p>
+        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>
+          A medical conference shaped by students, for the questions that keep us curious.
+        </p>
       </header>
 
       <div className="page-body">
@@ -33,7 +38,11 @@ export default function AboutPage() {
             is a good place to begin.
           </p>
         </div>
-        <aside className="margin-note reveal" aria-labelledby="about-details" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>
+        <aside
+          className="margin-note reveal"
+          aria-labelledby="about-details"
+          style={{ "--reveal-delay": "80ms" } as React.CSSProperties}
+        >
           <h2 id="about-details" className="section-heading">As details take shape</h2>
           <p>
             The program and speaker announcements will be published when confirmed.
@@ -42,23 +51,48 @@ export default function AboutPage() {
         </aside>
       </div>
 
-      <section aria-labelledby="committee-heading" className="reveal">
-        <h2 id="committee-heading" className="section-heading">The people behind COMPASS</h2>
-        {committee.length > 0 ? (
-          <dl className="content-grid">
-            {committee.map((member) => (
-              <div key={`${member.role}-${member.name}`} className="speaker-entry">
-                <dt>{member.role}</dt>
-                <dd>{member.name ?? "Name coming soon"}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : (
-          <div className="inline-notice">
-            <p className="status-line">Committee names coming soon</p>
-            <p>Meet the organizing committee here once names and roles are confirmed.</p>
+      <section id="patrons" aria-labelledby="patrons-heading" className="patrons-section reveal">
+        <div className="patrons-header">
+          <h2 id="patrons-heading" className="section-heading">Patrons and special guests</h2>
+          <p className="patrons-intro">
+            COMPASS is honoured by the support of the university&apos;s leadership and by the presence of distinguished guests.
+          </p>
+        </div>
+
+        {visibleGroups.map((group) => (
+          <div key={group.id} className="patrons-group">
+            <h3 className="patrons-group-label">{group.label}</h3>
+            <div className="patrons-grid">
+              {group.people.map((person) => {
+                const initials = getInitials(person.name);
+                return (
+                  <article key={person.id} className="patron-card">
+                    <div className="patron-card-photo-wrap">
+                      {person.photo ? (
+                        <Image
+                          src={person.photo.src}
+                          alt={person.name}
+                          width={person.photo.width}
+                          height={person.photo.height}
+                          loading="lazy"
+                          className="patron-card-photo"
+                        />
+                      ) : (
+                        <div className="patron-card-fallback" aria-hidden="true">
+                          {initials}
+                        </div>
+                      )}
+                    </div>
+                    <div className="patron-card-content">
+                      <h4 className="patron-card-name">{person.name}</h4>
+                      <p className="patron-card-title">{person.title}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </div>
-        )}
+        ))}
       </section>
     </main>
   );

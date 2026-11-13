@@ -1400,6 +1400,114 @@ button.sponsor-tile {
 .speaker-entry, .sponsor-entry, .poster-entry { padding: 35px 0; border-bottom: 1px solid var(--line); }
 .speaker-entry img, .sponsor-entry img, .poster-entry img { max-width: 240px; height: auto; }
 .print-only { display: none; }
+
+/* ---- Patrons and Special Guests (About page) ----------------------------- */
+.patrons-section {
+  margin-top: 64px;
+  padding-top: 48px;
+  border-top: 1px solid var(--line);
+}
+.patrons-header {
+  margin-bottom: 40px;
+}
+.patrons-intro {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.65;
+  max-width: 68ch;
+}
+.patrons-group {
+  margin-top: 48px;
+}
+.patrons-group:first-of-type {
+  margin-top: 0;
+}
+.patrons-group-label {
+  font-family: "Public Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+.patrons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+.patron-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: var(--surface);
+  border: 0.5px solid var(--line);
+  border-radius: 14px;
+  min-height: 100%;
+}
+.patron-card-photo-wrap {
+  width: 112px;
+  height: 132px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--line);
+}
+.patron-card-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.patron-card-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 600;
+  font-family: "Source Serif 4", Georgia, serif;
+  color: var(--accent);
+  background: var(--accent-soft);
+  user-select: none;
+}
+.patron-card-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.patron-card-name {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: -.015em;
+}
+.patron-card-title {
+  font-family: "Public Sans", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .patrons-grid {
+    grid-template-columns: 1fr;
+  }
+  .patron-card {
+    padding: 16px;
+    gap: 16px;
+  }
+  .patron-card-photo-wrap {
+    width: 90px;
+    height: 106px;
+  }
+}
 @media (min-width: 1400px) { .nav-shell, .hero { padding-left: 70px; padding-right: 70px; } }
 @media (max-width: 1399px) { .event-strip, .home-intro, .sponsor-strip, .last-conference, .announcements, .page-shell { margin-left: 5vw; margin-right: 5vw; } }
 @media (max-width: 1100px) { .desktop-nav { gap: 15px; } .nav-shell { gap: 20px; } .nav-actions { gap: 9px; } .nav-register { display: none; } .hero { min-height: 520px; } .hero h1 { font-size: 4rem; } .hero-copy { padding-top: 45px; } .compass-plate { margin-left: 5px; } .home-intro { gap: 50px; } .explore-section { gap: 40px; } .event-strip { flex-wrap: wrap; } .plate-caption { flex-direction: column; gap: 0; } }
