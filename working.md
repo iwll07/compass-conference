@@ -18,12 +18,12 @@
     - Section `id="patrons"` with heading *"Patrons and special guests"* and generic intro *"COMPASS is honoured by the support of the university's leadership and by the presence of distinguished guests."*
     - Replaced former organizing committee placeholder while preserving student-led identity across the site.
     - Identical big cards grid (`repeat(auto-fill, minmax(300px, 1fr))`): 112×132 rounded 12px photo (`object-fit: cover`, top-biased), 20px serif name, 13px muted title, equal-height (236px min-height), surface background token with 0.5px line border and 14px radius. Lazy loading with `next/image`. Single column on mobile (<600px).
-  - **Homepage Row (`components/home-patrons-row.tsx`):**
+  - **Homepage Section (`components/home-patrons-row.tsx`, `app/globals.css`):**
     - Sits after *"More than a seat in the room"* explore section and before the sponsor strip, with text link to `/about#patrons`.
-    - Group labels with accent color, uppercase, and 1px line underneath with 10px inter-group gap.
-    - Each person is a column (min-width 150px) with 72px round portrait (6px section background outline ring), 14px serif name, and 11.5px muted title.
-    - SVG pulse ECG heartbeat line runs through portraits with inline beat peaks in the gap between portraits; portrait background ring gives the visual effect of the line passing behind it.
-    - Keyboard-scrollable region (`tabindex="0"`, `aria-label`) with horizontal scroll-snap and subtle gradient edge fades.
+    - Stacked vertical groups (`.home-patrons-groups` with 40px gap): "Under the patronage of" and "Special guests" each rendered in their own full-width section with small uppercase accent label and 1px hairline divider.
+    - Each person is a column (`.home-patrons-item`, 175px wide) with 72px round portrait (6px section background outline ring), 14px serif name, and 11.5px muted title.
+    - Continuous SVG pulse ECG heartbeat line runs behind the portraits across each group on desktop with inline heartbeat peaks between portraits.
+    - Responsive mobile layout (<820px): pulse line cleanly hides, and items wrap naturally into a 2-column flex layout with zero horizontal overflow (no horizontal scrollbar).
 - **COMPASS Sponsor System & Mood Digital Partner Integration (2026-10-22):**
   - **Diamond Panel Layout & Vertical Rhythm Polish (`components/sponsors-view.tsx`, `app/sponsors/page.tsx`, `app/globals.css`):**
     - **Panel Architecture (900px+):**

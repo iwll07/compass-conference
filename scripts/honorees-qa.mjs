@@ -80,16 +80,12 @@ async function run() {
   // Check count of people items
   const homeItems = await home.$$(".home-patrons-item");
   assert.equal(homeItems.length, totalPeople, `Expected ${totalPeople} items in home row, got ${homeItems.length}`);
-  console.log(`[PASS] Home row renders ${homeItems.length} people`);
+  console.log(`[PASS] Home row renders ${homeItems.length} people across stacked groups`);
 
-  // Check keyboard accessibility on scroll container
-  const scrollContainer = await home.$(".home-patrons-scroll-container");
-  assert.ok(scrollContainer, "Scroll container exists");
-  const tabIndex = await scrollContainer.getAttribute("tabindex");
-  assert.equal(tabIndex, "0", "Scroll container must have tabindex=0");
-  const ariaLabel = await scrollContainer.getAttribute("aria-label");
-  assert.ok(ariaLabel && ariaLabel.length > 0, "Scroll container must have an aria-label");
-  console.log("[PASS] Scroll container is keyboard accessible with aria-label");
+  // Check stacked groups layout
+  const groupHeaders = await home.$$(".home-patrons-group-header");
+  assert.equal(groupHeaders.length, honoreeGroups.length, `Expected ${honoreeGroups.length} groups stacked`);
+  console.log(`[PASS] ${groupHeaders.length} groups are stacked vertically`);
 
   // Screenshot home light desktop
   await home.screenshot({ path: path.join(ARTIFACT_DIR, "home-patrons-1440-light.png") });
@@ -107,13 +103,12 @@ async function run() {
   const mobileRow = mobileHome.locator(".home-patrons-section");
   await mobileRow.scrollIntoViewIfNeeded();
 
-  // Check scrollability
-  const isScrollable = await mobileHome.evaluate(() => {
-    const sc = document.querySelector(".home-patrons-scroll-container");
-    return sc.scrollWidth > sc.clientWidth;
+  // Check no horizontal scroll on mobile (Option A natural wrap)
+  const mobileHasOverflow = await mobileHome.evaluate(() => {
+    return document.documentElement.scrollWidth > document.documentElement.clientWidth;
   });
-  assert.ok(isScrollable, "Home patrons container must scroll horizontally on mobile");
-  console.log("[PASS] Home row container is horizontally scrollable on mobile");
+  assert.equal(mobileHasOverflow, false, "Mobile page must not have horizontal scroll");
+  console.log("[PASS] Home patrons wrap naturally on mobile with zero overflow");
 
   await mobileHome.screenshot({ path: path.join(ARTIFACT_DIR, "home-patrons-390-light.png") });
   console.log("[PASS] Saved home-patrons-390-light.png");
