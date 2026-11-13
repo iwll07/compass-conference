@@ -1,6 +1,29 @@
 # COMPASS working log
 
 ## Current state
+- **Patrons & Special Guests System (`lib/honorees.ts`, `app/about/page.tsx`, `components/home-patrons-row.tsx`):**
+  - **Data Model (`lib/honorees.ts`):**
+    - Groups have `id`, `label`, and `people` array. Group order and person order in the file determine display order.
+    - `Person` interface: `id: string`, `name: string`, `title: string`, `photo: { src: string, width: number, height: number } | null`.
+    - Initial groups seeded:
+      - *"Under the patronage of"*: Prof. Dr. Tarek Ali (President of Beni Suef National University), Prof. Dr. Rasha Tawfik (Vice President for Academic Affairs), Prof. Dr. Ahmed Osama (Dean of the Health Sciences Sector), Prof. Dr. Doaa Hamdy (Managing Director, Medicine and Surgery Program).
+      - *"Special guests"*: Prof. Dr. Sherine Ghaleb (Head of the Cairo Medical Syndicate), Prof. Dr. Osama Abdelhay (Head of the Egyptian Medical Syndicate), Prof. Dr. Emad El-Banna (Head of the Beni Suef Medical Syndicate).
+    - **Initials Fallback (`getInitials`):** Strips honorifics ("Prof.", "Dr.") case-insensitively and returns 2-letter uppercase initials for names without a photo or if an image fails to load.
+    - Fully dynamic: empty groups do not render; adding someone only requires a new entry in `lib/honorees.ts` and an optimized square portrait under `public/people/`.
+  - **Photo Requirements:**
+    - Format: Square (480×480) JPEG or WebP, under 120KB (current set is 17KB - 34KB).
+    - Location: `public/people/<kebab-case-name>.<ext>` with strictly no spaces in filenames.
+    - Crop: Bias towards the top so heads and faces are fully preserved and naturally framed.
+  - **About Page (`app/about/page.tsx`):**
+    - Section `id="patrons"` with heading *"Patrons and special guests"* and generic intro *"COMPASS is honoured by the support of the university's leadership and by the presence of distinguished guests."*
+    - Replaced former organizing committee placeholder while preserving student-led identity across the site.
+    - Identical big cards grid (`repeat(auto-fill, minmax(300px, 1fr))`): 112×132 rounded 12px photo (`object-fit: cover`, top-biased), 20px serif name, 13px muted title, equal-height (236px min-height), surface background token with 0.5px line border and 14px radius. Lazy loading with `next/image`. Single column on mobile (<600px).
+  - **Homepage Row (`components/home-patrons-row.tsx`):**
+    - Sits after *"More than a seat in the room"* explore section and before the sponsor strip, with text link to `/about#patrons`.
+    - Group labels with accent color, uppercase, and 1px line underneath with 10px inter-group gap.
+    - Each person is a column (min-width 150px) with 72px round portrait (6px section background outline ring), 14px serif name, and 11.5px muted title.
+    - SVG pulse ECG heartbeat line runs through portraits with inline beat peaks in the gap between portraits; portrait background ring gives the visual effect of the line passing behind it.
+    - Keyboard-scrollable region (`tabindex="0"`, `aria-label`) with horizontal scroll-snap and subtle gradient edge fades.
 - **COMPASS Sponsor System & Mood Digital Partner Integration (2026-10-22):**
   - **Diamond Panel Layout & Vertical Rhythm Polish (`components/sponsors-view.tsx`, `app/sponsors/page.tsx`, `app/globals.css`):**
     - **Panel Architecture (900px+):**
