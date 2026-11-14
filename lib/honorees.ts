@@ -190,18 +190,6 @@ export const honoreeGroups: HonoreeGroup[] = [
         photo: makePhoto("samraa-hussein"),
       },
       {
-        id: "ali-haseeb",
-        name: "Prof. Dr. Ali Haseeb",
-        title: "Professor of Surgery, Kasr Al-Ainy Faculty of Medicine",
-        photo: makePhoto("ali-haseeb"),
-      },
-      {
-        id: "hossam-mowafy",
-        name: "Prof. Dr. Hossam Mowafy",
-        title: "Professor of Critical Care Medicine, Kasr Al-Ainy Faculty of Medicine",
-        photo: makePhoto("hossam-mowafy"),
-      },
-      {
         id: "hany-gemeia",
         name: "Dr. Hany Gemeia",
         title: "Undersecretary of the Ministry of Health",
