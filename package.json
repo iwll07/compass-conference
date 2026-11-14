@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:e2e": "playwright test",
+    "process:people": "node scripts/process-people.mjs",
     "preview": "serve out -l 3000",
     "preview:headers": "wrangler pages dev out",
     "deploy": "wrangler deploy"
@@ -35,6 +36,7 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "16.3.5",
     "serve": "^14.2.6",
+    "sharp": "^0.33.5",
     "tsx": "^4.23.13",
     "typescript": "^5.9.0",
     "wrangler": "^4.133.0"

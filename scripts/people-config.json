@@ -1,0 +1,58 @@
+{
+  "tarek-ali": {
+    "cardScale": 2.689655172413793,
+    "cardCropLeft": 366,
+    "cardCropTop": 184,
+    "thumbScale": 0.8103448275862069,
+    "thumbCropLeft": 122,
+    "thumbCropTop": 71
+  },
+  "rasha-tawfik": {
+    "cardScale": 2.4375,
+    "cardCropLeft": 276,
+    "cardCropTop": 103,
+    "thumbScale": 0.734375,
+    "thumbCropLeft": 95,
+    "thumbCropTop": 47
+  },
+  "ahmed-osama": {
+    "cardScale": 1.583756345177665,
+    "cardCropLeft": 92,
+    "cardCropTop": -23,
+    "thumbScale": 0.47715736040609136,
+    "thumbCropLeft": 40,
+    "thumbCropTop": 9
+  },
+  "doaa-hamdy": {
+    "cardScale": 1.6335078534031413,
+    "cardCropLeft": 122,
+    "cardCropTop": -46,
+    "thumbScale": 0.49214659685863876,
+    "thumbCropLeft": 49,
+    "thumbCropTop": 2
+  },
+  "sherine-ghaleb": {
+    "cardScale": 1.3805309734513274,
+    "cardCropLeft": 71,
+    "cardCropTop": -63,
+    "thumbScale": 0.415929203539823,
+    "thumbCropLeft": 34,
+    "thumbCropTop": -3
+  },
+  "osama-abdelhay": {
+    "cardScale": 1.7049180327868851,
+    "cardCropLeft": 167,
+    "cardCropTop": 4,
+    "thumbScale": 0.5136612021857924,
+    "thumbCropLeft": 63,
+    "thumbCropTop": 17
+  },
+  "emad-el-banna": {
+    "cardScale": 2.4375,
+    "cardCropLeft": 317,
+    "cardCropTop": 310,
+    "thumbScale": 0.734375,
+    "thumbCropLeft": 108,
+    "thumbCropTop": 109
+  }
+}

@@ -31,16 +31,46 @@ test("honorees data: every person has a name and a title", () => {
   }
 });
 
-test("honorees photos: referenced photos exist in public/ and have no spaces", () => {
+test("honorees photos: card and thumb variants exist, no spaces, correct dimensions, within size budgets", () => {
+  const CARD_BUDGET_BYTES = 70 * 1024; // 70 KB
+  const THUMB_BUDGET_BYTES = 12 * 1024; // 12 KB
+
   for (const group of honoreeGroups) {
     for (const person of group.people) {
-      if (person.photo) {
-        assert.ok(!person.photo.src.includes(" "), `photo src has spaces: ${person.photo.src}`);
-        const localPath = path.join(process.cwd(), "public", person.photo.src.replace(/^\//, ""));
-        assert.ok(fs.existsSync(localPath), `photo file does not exist on disk: ${localPath}`);
-        assert.ok(person.photo.width > 0, "photo width must be > 0");
-        assert.ok(person.photo.height > 0, "photo height must be > 0");
-      }
+      if (!person.photo) continue;
+
+      // Card variant
+      assert.ok(person.photo.card, `person ${person.id} missing card photo variant`);
+      assert.ok(!person.photo.card.src.includes(" "), `card src has spaces: ${person.photo.card.src}`);
+      assert.equal(person.photo.card.width, 560, `card width should be 560 for ${person.id}`);
+      assert.equal(person.photo.card.height, 720, `card height should be 720 for ${person.id}`);
+
+      const cardDiskPath = path.join(process.cwd(), "public", person.photo.card.src.replace(/^\//, ""));
+      assert.ok(fs.existsSync(cardDiskPath), `card file does not exist: ${cardDiskPath}`);
+      const cardStat = fs.statSync(cardDiskPath);
+      assert.ok(
+        cardStat.size <= CARD_BUDGET_BYTES,
+        `card file ${person.photo.card.src} exceeds 70KB: ${cardStat.size} bytes`
+      );
+
+      // Thumb variant
+      assert.ok(person.photo.thumb, `person ${person.id} missing thumb photo variant`);
+      assert.ok(!person.photo.thumb.src.includes(" "), `thumb src has spaces: ${person.photo.thumb.src}`);
+      assert.equal(person.photo.thumb.width, 144, `thumb width should be 144 for ${person.id}`);
+      assert.equal(person.photo.thumb.height, 144, `thumb height should be 144 for ${person.id}`);
+
+      const thumbDiskPath = path.join(process.cwd(), "public", person.photo.thumb.src.replace(/^\//, ""));
+      assert.ok(fs.existsSync(thumbDiskPath), `thumb file does not exist: ${thumbDiskPath}`);
+      const thumbStat = fs.statSync(thumbDiskPath);
+      assert.ok(
+        thumbStat.size <= THUMB_BUDGET_BYTES,
+        `thumb file ${person.photo.thumb.src} exceeds 12KB: ${thumbStat.size} bytes`
+      );
+
+      // Backwards compatibility alias
+      assert.equal(person.photo.src, person.photo.card.src);
+      assert.equal(person.photo.width, person.photo.card.width);
+      assert.equal(person.photo.height, person.photo.card.height);
     }
   }
 });
