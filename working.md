@@ -1,6 +1,7 @@
 # COMPASS working log
 
 ## Current state
+- **Patrons card polish (2026-11-14, user request):** the About honoree grid now reads cleanly without losing its signature gradient base. Patronage switched from 3+1 (orphan card) to a 2×2 group; guest cards keep 3-across on desktop (2 at tablet, 1 on mobile). Card text is top-aligned so names and roles share a baseline across each row, names reserve their max line count, and long titles wrap fully instead of being ellipsis-clamped. The gradient strip moved from a per-portrait bar that stopped mid-card to a full-card-width plinth, so the cut-outs visibly rise out of it (user explicitly asked to keep this). The whole-section `.reveal` was replaced by per-card reveals staggered 70ms by column, which is what made the animation work on the grid. Verified 390/768/1024/1280/1440 with zero clipped names/titles, light + dark + tablet screenshots, and lint/typecheck/87 unit/150 QA/38 motion/21 overflow green. Pre-existing stale motion check for the footer credit logo (now a dialog button) was updated to assert its lift-without-shadow behaviour.
 - **Patrons & Special Guests System (`lib/honorees.ts`, `app/about/page.tsx`, `components/home-patrons-row.tsx`, `scripts/process-people.mjs`):**
   - **Image Pipeline & Size Budgets:**
     - High-resolution originals live in `assets-src/people/` (untracked in git, ignored via `.gitignore`).
@@ -20,15 +21,16 @@
     - Fully dynamic: empty groups do not render; adding someone only requires placing the original in `assets-src/people/`, running `npm run process:people`, and adding the entry in `lib/honorees.ts`.
   - **About Page (`app/about/page.tsx`, `app/globals.css`):**
     - Section `id="patrons"` with heading *"Patrons and special guests"* and generic intro *"COMPASS is honoured by the support of the university's leadership and by the presence of distinguished guests."*
-    - Symmetric 2-column grid (`grid-template-columns: repeat(2, 1fr)`) at desktop (>=680px), single column on mobile (<680px):
-      - Avoids lone orphan cards in 4-person groups (renders as a balanced 2×2).
-      - Generous card width (~440px–618px) accommodates names within 1-2 lines (`text-wrap: balance`) and titles within 2-3 lines.
+    - Symmetric grid that follows each group's size, so no card is ever orphaned:
+      - Patronage (4 people): 2×2 at ≥700px, single column below.
+      - Special guests: 3-across at ≥1100px, 2-across at 700–1099px, single column below 700px.
     - Card architecture:
-      - Fixed 44% portrait zone touching card's left, top, and bottom edges, cleanly clipped by the card's 14px rounded corners (`overflow: hidden`).
-      - 10px gradient strip (`linear-gradient(90deg, #082a4b 0%, #06797f 100%)`, `#101f29` to `#8ae2d6` in dark mode) flush across the full bottom edge of the portrait zone.
-      - Portrait stands on the gradient baseline with 11.1% headroom above the head.
-      - Vertically centered text column ensures all cards in a row read as aligned.
-      - Non-photo fallback: 72px initials circle (`.patron-card-fallback-circle`) centered in the portrait zone.
+      - 1px `--line` border on `--surface`, 12px radius, no shadow.
+      - Portrait column 38% of the card (30% for patronage at ≥1100px), touching the card's left, top and bottom edges and clipped by its radius. At the shipped card heights, 38% holds the 560:720 source crop almost exactly, so faces are never clipped.
+      - 6px gradient strip (`#082a4b → #06797f`; dark `#23484a → #06797f → #8ae2d6`) flush across the **full card width** at the bottom. The portraits stand on this continuous baseline, which is why the cut-outs read as rising out of it rather than sitting on a stub that ends where the text column begins. User-requested signature; the design detector flags it as a "side-tab" stripe and that warning is accepted deliberately.
+      - Text column is top-aligned, not centred: the name reserves 2 lines (3 at 2-column widths, where the longest name needs it) so every role starts on the same line across a row. Titles wrap in full — no line clamp or ellipsis.
+      - Each card is its own `.reveal` target with `--reveal-delay` staggered 70ms by column, so the grid cascades in instead of the whole section fading as one block.
+      - Non-photo fallback: 56px initials circle (`.patron-card-fallback-circle`) centred in the portrait zone.
   - **Homepage Section (`components/home-patrons-row.tsx`, `app/globals.css`):**
     - Sits after *"More than a seat in the room"* explore section and before the sponsor strip, with text link to `/about#patrons`.
     - **Responsive Layout Hierarchy:**

@@ -51,48 +51,58 @@ export default function AboutPage() {
         </aside>
       </div>
 
-      <section id="patrons" aria-labelledby="patrons-heading" className="patrons-section reveal">
-        <div className="patrons-header">
+      <section id="patrons" aria-labelledby="patrons-heading" className="patrons-section">
+        <div className="patrons-header reveal">
           <h2 id="patrons-heading" className="section-heading">Patrons and special guests</h2>
           <p className="patrons-intro">
             COMPASS is honoured by the support of the university&apos;s leadership and by the presence of distinguished guests.
           </p>
         </div>
 
-        {visibleGroups.map((group) => (
-          <div key={group.id} className="patrons-group">
-            <h3 className="patrons-group-label">{group.label}</h3>
-            <div className="patrons-grid">
-              {group.people.map((person) => {
-                const initials = getInitials(person.name);
-                return (
-                  <article key={person.id} className="patron-card">
-                    <div className="patron-card-photo-wrap">
-                      {person.photo ? (
-                        <Image
-                          src={person.photo.card.src}
-                          alt={person.name}
-                          width={person.photo.card.width}
-                          height={person.photo.card.height}
-                          loading="lazy"
-                          className="patron-card-photo"
-                        />
-                      ) : (
-                        <div className="patron-card-fallback-circle" aria-hidden="true">
-                          {initials}
-                        </div>
-                      )}
-                    </div>
-                    <div className="patron-card-content">
-                      <h4 className="patron-card-name">{person.name}</h4>
-                      <p className="patron-card-title">{person.title}</p>
-                    </div>
-                  </article>
-                );
-              })}
+        {visibleGroups.map((group) => {
+          // Patronage is a four-person group: pair it 2×2 so no card is orphaned.
+          const columns = group.id === "patronage" ? 2 : 3;
+          return (
+            <div key={group.id} className="patrons-group">
+              <h3 className="patrons-group-label reveal">{group.label}</h3>
+              <div
+                className={`patrons-grid${group.id === "patronage" ? " patrons-grid--patronage" : ""}`}
+              >
+                {group.people.map((person, index) => {
+                  const initials = getInitials(person.name);
+                  return (
+                    <article
+                      key={person.id}
+                      className="patron-card reveal"
+                      style={{ "--reveal-delay": `${(index % columns) * 70}ms` } as React.CSSProperties}
+                    >
+                      <div className="patron-card-photo-wrap">
+                        {person.photo ? (
+                          <Image
+                            src={person.photo.card.src}
+                            alt={person.name}
+                            width={person.photo.card.width}
+                            height={person.photo.card.height}
+                            loading="lazy"
+                            className="patron-card-photo"
+                          />
+                        ) : (
+                          <div className="patron-card-fallback-circle" aria-hidden="true">
+                            {initials}
+                          </div>
+                        )}
+                      </div>
+                      <div className="patron-card-content">
+                        <h4 className="patron-card-name">{person.name}</h4>
+                        <p className="patron-card-title">{person.title}</p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </section>
     </main>
   );

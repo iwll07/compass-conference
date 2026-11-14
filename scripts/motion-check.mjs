@@ -50,11 +50,18 @@ function check(name, pass, detail = "") { results.push({ name, pass: !!pass, det
   await seal.hover();
   await page.waitForTimeout(250);
   check("footer seal lifts on hover", /matrix\(1, 0, 0, 1, 0, -3\)/.test(await seal.evaluate((el) => getComputedStyle(el).transform)));
-  // Mood Digital logo is intentionally static (user request): no hover-lift class, no movement.
-  const creditLogo = page.locator(".credit-inner > a");
+  // Mood Digital logo is now a dialog trigger: it keeps the hover lift but
+  // must not draw a box-shadow (see .credit-logo-btn.hover-lift:hover).
+  const creditLogo = page.locator(".credit-logo-btn");
   await creditLogo.hover();
   await page.waitForTimeout(250);
-  check("credit logo stays static on hover", (await creditLogo.getAttribute("class")) === null && (await creditLogo.evaluate((el) => getComputedStyle(el).transform)) === "none");
+  const creditTransform = await creditLogo.evaluate((el) => getComputedStyle(el).transform);
+  const creditShadow = await creditLogo.evaluate((el) => getComputedStyle(el).boxShadow);
+  check(
+    "credit logo button lifts without a shadow",
+    /matrix\(1, 0, 0, 1, 0, -3\)/.test(creditTransform) && creditShadow === "none",
+    `${creditTransform} / ${creditShadow}`
+  );
   await context.close();
 }
 
@@ -132,6 +139,32 @@ function check(name, pass, detail = "") { results.push({ name, pass: !!pass, det
   await page.goto(BASE + "/", { waitUntil: "networkidle" });
   check("reduced motion: below-fold reveal content not hidden", await page.locator(".explore-heading").evaluate((el) => getComputedStyle(el).opacity === "1"));
   check("reduced motion: hero h1 visible immediately", await page.locator(".hero h1").evaluate((el) => getComputedStyle(el).opacity === "1"));
+  await context.close();
+}
+
+// 7. Patrons and guests: every card reveals on its own, staggered by column,
+// instead of the whole section fading in as a single block.
+{
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const page = await context.newPage();
+  await page.goto(BASE + "/about/", { waitUntil: "networkidle" });
+  const total = await page.locator(".patron-card").count();
+  check(
+    "patron cards each carry their own reveal",
+    total > 0 && (await page.locator(".patron-card.reveal").count()) === total
+  );
+  check("patron section is not one block reveal", (await page.locator("#patrons.reveal").count()) === 0);
+  const delays = await page.locator(".patron-card").evaluateAll((els) =>
+    els.slice(0, 3).map((el) => el.style.getPropertyValue("--reveal-delay"))
+  );
+  check("patron cards stagger by column", delays[0] === "0ms" && delays[1] === "70ms", JSON.stringify(delays));
+  check("patron cards start hidden", (await page.locator(".patron-card.reveal-visible").count()) === 0);
+  await page.evaluate(() => {
+    const section = document.querySelector("#patrons");
+    window.scrollTo(0, section.getBoundingClientRect().top + window.scrollY - 80);
+  });
+  await page.waitForTimeout(1000);
+  check("patron cards reveal on scroll", (await page.locator(".patron-card.reveal-visible").count()) > 0);
   await context.close();
 }
 

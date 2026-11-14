@@ -1418,7 +1418,7 @@ button.sponsor-tile {
   max-width: 68ch;
 }
 .patrons-group {
-  margin-top: 48px;
+  margin-top: 52px;
 }
 .patrons-group:first-of-type {
   margin-top: 0;
@@ -1430,46 +1430,57 @@ button.sponsor-tile {
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
+/* Guests read as a list: three across on desktop. */
 .patrons-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
+/* Four patrons: pair them 2×2 so the row never ends in an orphan card. */
+.patrons-grid--patronage {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .patron-card {
+  position: relative;
   display: flex;
   align-items: stretch;
   background: var(--surface);
-  border: 0.5px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  min-height: 170px;
+  min-height: 200px;
   height: 100%;
   overflow: hidden;
 }
+/* The portraits stand on this base: one continuous brand gradient across the
+   whole card, so the cut-outs read as rising out of it rather than sitting on
+   a stub that stops where the text column starts. */
+.patron-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #082a4b 0%, #06797f 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+:root[data-theme="dark"] .patron-card::after {
+  background: linear-gradient(90deg, #23484a 0%, #06797f 55%, #8ae2d6 100%);
+}
+/* Portrait column: 38% of the card, which at the card's height holds the
+   source 560:720 crop almost exactly — the face is never clipped. */
 .patron-card-photo-wrap {
   position: relative;
   flex: 0 0 38%;
   width: 38%;
-  min-width: 95px;
-  background: transparent;
+  min-width: 96px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   overflow: hidden;
-}
-.patron-card-photo-wrap::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 8px;
-  background: linear-gradient(90deg, #082a4b 0%, #06797f 100%);
-  z-index: 3;
-}
-:root[data-theme="dark"] .patron-card-photo-wrap::after {
-  background: linear-gradient(90deg, #101f29 0%, #06797f 50%, #8ae2d6 100%);
 }
 .patron-card-photo {
   position: relative;
@@ -1494,25 +1505,27 @@ button.sponsor-tile {
   justify-content: center;
   margin: auto;
   user-select: none;
-  z-index: 2;
 }
+/* Text is top-aligned (not centred) so names and roles start on the same
+   line across a row, however long the individual strings are. */
 .patron-card-content {
   flex: 1;
   min-width: 0;
-  padding: 16px 18px 16px 14px;
+  padding: 18px 20px 18px 18px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 6px;
+  gap: 7px;
 }
 .patron-card-name {
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 16.5px;
   font-weight: 400;
-  line-height: 1.25;
+  line-height: 1.3;
   color: var(--ink);
   letter-spacing: -.015em;
   text-wrap: balance;
+  /* Reserve two lines so roles align across a row. */
+  min-height: 2.6em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1521,39 +1534,90 @@ button.sponsor-tile {
 .patron-card-title {
   font-family: "Public Sans", sans-serif;
   font-size: 11.5px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  max-width: 46ch;
 }
-@media (max-width: 960px) {
+/* Patronage carries larger portraits and more air than the guest list. */
+.patrons-grid--patronage .patron-card {
+  min-height: 250px;
+}
+.patrons-grid--patronage .patron-card-photo-wrap {
+  flex-basis: 30%;
+  width: 30%;
+}
+.patrons-grid--patronage .patron-card-content {
+  padding: 24px 28px 24px 24px;
+  justify-content: center;
+  gap: 8px;
+}
+.patrons-grid--patronage .patron-card-name {
+  font-size: 19px;
+  /* All four names fit one line; no need to reserve a second one. */
+  min-height: 0;
+}
+.patrons-grid--patronage .patron-card-title {
+  font-size: 12.5px;
+}
+@media (max-width: 1099px) {
   .patrons-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .patron-card,
+  .patrons-grid--patronage .patron-card {
+    min-height: 195px;
+  }
+  /* The two-column width is where the longest names need a third line. */
+  .patron-card-name {
+    min-height: 3.9em;
+    -webkit-line-clamp: 3;
+  }
+  .patrons-grid--patronage .patron-card-photo-wrap {
+    flex-basis: 36%;
+    width: 36%;
+  }
+  .patrons-grid--patronage .patron-card-content {
+    padding: 20px 20px 18px 18px;
+  }
+  .patrons-grid--patronage .patron-card-name {
+    font-size: 17.5px;
+  }
+  .patrons-grid--patronage .patron-card-title {
+    font-size: 12px;
   }
 }
-@media (max-width: 640px) {
-  .patrons-grid {
+@media (max-width: 699px) {
+  .patrons-grid,
+  .patrons-grid--patronage {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-  .patron-card {
-    min-height: 155px;
+  .patron-card,
+  .patrons-grid--patronage .patron-card {
+    min-height: 180px;
   }
-  .patron-card-photo-wrap {
-    flex: 0 0 35%;
-    width: 35%;
-    min-width: 85px;
+  .patron-card-photo-wrap,
+  .patrons-grid--patronage .patron-card-photo-wrap {
+    flex-basis: 36%;
+    width: 36%;
+    min-width: 92px;
   }
-  .patron-card-content {
-    padding: 14px 16px 14px 12px;
+  .patron-card-content,
+  .patrons-grid--patronage .patron-card-content {
+    padding: 16px 16px 14px 14px;
+    gap: 6px;
   }
-  .patron-card-name {
+  .patron-card-name,
+  .patrons-grid--patronage .patron-card-name {
     font-size: 16px;
   }
-  .patron-card-title {
+  /* One column is wide enough for the longest name in two lines. */
+  .patron-card-name {
+    min-height: 2.6em;
+    -webkit-line-clamp: 2;
+  }
+  .patron-card-title,
+  .patrons-grid--patronage .patron-card-title {
     font-size: 11px;
   }
   .patron-card-fallback-circle {
