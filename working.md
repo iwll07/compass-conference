@@ -508,6 +508,10 @@
 - [x] Lint/typecheck/tests pass; 46 browser assertions pass (scripts/qa-assert.mjs); static export builds all 8 routes.
 - [x] Live Workers deployment and runtime verification (against https://compass.bsnu.workers.dev/, historical — the live domain is now https://compassbsnu.page; see Current state above).
 
+- [x] Honorees & patrons: transparent PNG cutout images, calibrated card (560x720) and thumb (144x144) WebP pipeline with sharp, bottom COMPASS navy-to-teal gradient strip.
+- [x] About page patrons & guests: 3-column desktop layout (`repeat(3, 1fr)`) with compact, equal-height cards, balanced serif names (16.5px), muted titles (11.5px), and 24 honorees (4 patrons, 20 special guests).
+- [x] Homepage: removed patrons row per user request.
+
 ## Remaining (awaiting user input)
 - [ ] Registration form + Supabase schema/RLS: WAITING on exact fields/payment/capacity decisions (user explicitly chose to wait).
 - [ ] Real content: speakers, agenda sessions, sponsors, posters (fill typed arrays in lib/content.ts).

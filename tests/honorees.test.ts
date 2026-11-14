@@ -154,11 +154,12 @@ test("honorees dynamic groups: handles empty groups, single group, and custom co
   assert.equal(totalTwelve, 12);
 });
 
-test("honorees initials helper: ignores Prof. and Dr.", () => {
+test("honorees initials helper: ignores Prof., Dr., and Eng.", () => {
   assert.equal(getInitials("Prof. Dr. Tarek Ali"), "TA");
   assert.equal(getInitials("Prof. Dr. Rasha Tawfik"), "RT");
   assert.equal(getInitials("Prof. Dr. Ahmed Osama"), "AO");
   assert.equal(getInitials("Prof. Dr. Doaa Hamdy"), "DH");
+  assert.equal(getInitials("Eng. Tamer Shawky"), "TS");
   assert.equal(getInitials("Dr. Sherine Ghaleb"), "SG");
   assert.equal(getInitials("Osama Abdelhay"), "OA");
   assert.equal(getInitials("Emad"), "EM");

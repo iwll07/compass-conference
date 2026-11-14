@@ -54,5 +54,141 @@
     "thumbScale": 0.734375,
     "thumbCropLeft": 108,
     "thumbCropTop": 109
+  },
+  "mamdouh-moawad-ali": {
+    "cardScale": 2.08,
+    "cardCropLeft": 194,
+    "cardCropTop": -64,
+    "thumbScale": 0.6266666666666667,
+    "thumbCropLeft": 71,
+    "thumbCropTop": -4
+  },
+  "mona-abdel-wahab": {
+    "cardScale": 2.456692913385827,
+    "cardCropLeft": 280,
+    "cardCropTop": 50,
+    "thumbScale": 0.7401574803149606,
+    "thumbCropLeft": 97,
+    "thumbCropTop": 31
+  },
+  "tamer-shawky": {
+    "cardScale": 2.2941176470588234,
+    "cardCropLeft": 188,
+    "cardCropTop": -7,
+    "thumbScale": 0.6911764705882353,
+    "thumbCropLeft": 69,
+    "thumbCropTop": 14
+  },
+  "mohamed-emara": {
+    "cardScale": 2.496,
+    "cardCropLeft": 262,
+    "cardCropTop": 40,
+    "thumbScale": 0.752,
+    "thumbCropLeft": 91,
+    "thumbCropTop": 28
+  },
+  "mohamed-abdel-moaty": {
+    "cardScale": 2.1971830985915495,
+    "cardCropLeft": 87,
+    "cardCropTop": 42,
+    "thumbScale": 0.6619718309859155,
+    "thumbCropLeft": 39,
+    "thumbCropTop": 28
+  },
+  "abeer-ashmawy": {
+    "cardScale": 1.793103448275862,
+    "cardCropLeft": 118,
+    "cardCropTop": -83,
+    "thumbScale": 0.5402298850574713,
+    "thumbCropLeft": 48,
+    "thumbCropTop": -9
+  },
+  "hany-hamed": {
+    "cardScale": 2.260869565217391,
+    "cardCropLeft": 183,
+    "cardCropTop": 123,
+    "thumbScale": 0.6811594202898551,
+    "thumbCropLeft": 68,
+    "thumbCropTop": 53
+  },
+  "abeer-ahmed-abdel-moneim": {
+    "cardScale": 2.0392156862745097,
+    "cardCropLeft": 79,
+    "cardCropTop": -18,
+    "thumbScale": 0.6143790849673203,
+    "thumbCropLeft": 36,
+    "thumbCropTop": 10
+  },
+  "mohamed-nagy": {
+    "cardScale": 2,
+    "cardCropLeft": 62,
+    "cardCropTop": -7,
+    "thumbScale": 0.6025641025641025,
+    "thumbCropLeft": 31,
+    "thumbCropTop": 14
+  },
+  "manal-anwar": {
+    "cardScale": 1.813953488372093,
+    "cardCropLeft": 134,
+    "cardCropTop": -43,
+    "thumbScale": 0.5465116279069767,
+    "thumbCropLeft": 53,
+    "thumbCropTop": 3
+  },
+  "eman-nabil": {
+    "cardScale": 1.723756906077348,
+    "cardCropLeft": 156,
+    "cardCropTop": -83,
+    "thumbScale": 0.5193370165745856,
+    "thumbCropLeft": 59,
+    "thumbCropTop": -9
+  },
+  "samraa-hussein": {
+    "cardScale": 1.9259259259259258,
+    "cardCropLeft": 175,
+    "cardCropTop": -21,
+    "thumbScale": 0.5802469135802469,
+    "thumbCropLeft": 65,
+    "thumbCropTop": 9
+  },
+  "ali-haseeb": {
+    "cardScale": 1.8682634730538923,
+    "cardCropLeft": 206,
+    "cardCropTop": 5,
+    "thumbScale": 0.562874251497006,
+    "thumbCropLeft": 74,
+    "thumbCropTop": 17
+  },
+  "hossam-mowafy": {
+    "cardScale": 1.8682634730538923,
+    "cardCropLeft": 204,
+    "cardCropTop": -51,
+    "thumbScale": 0.562874251497006,
+    "thumbCropLeft": 74,
+    "thumbCropTop": 0
+  },
+  "hany-gemeia": {
+    "cardScale": 1.8909090909090909,
+    "cardCropLeft": 75,
+    "cardCropTop": -23,
+    "thumbScale": 0.5696969696969697,
+    "thumbCropLeft": 35,
+    "thumbCropTop": 9
+  },
+  "mohamed-yehia": {
+    "cardScale": 2.108108108108108,
+    "cardCropLeft": 102,
+    "cardCropTop": 8,
+    "thumbScale": 0.6351351351351351,
+    "thumbCropLeft": 43,
+    "thumbCropTop": 18
+  },
+  "ali-mohamed-hassan": {
+    "cardScale": 1.9259259259259258,
+    "cardCropLeft": 90,
+    "cardCropTop": -12,
+    "thumbScale": 0.5802469135802469,
+    "thumbCropLeft": 39,
+    "thumbCropTop": 12
   }
 }

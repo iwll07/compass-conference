@@ -58,15 +58,32 @@ async function cropWindow(imageInstance, targetW, targetH, cropLeft, cropTop) {
   });
 }
 
-// Measured landmarks from raw 480x480 source
+// Measured landmarks from raw source files
 const rawPeople = [
   { id: 'tarek-ali', file: 'tarek-ali.png', headTop: 100, eyes: 165, chin: 216, centerX: 240 },
   { id: 'rasha-tawfik', file: 'rasha-tawfik.png', headTop: 77, eyes: 153, chin: 205, centerX: 228 },
   { id: 'ahmed-osama', file: 'ahmed-osama.png', headTop: 39, eyes: 156, chin: 236, centerX: 235 },
   { id: 'doaa-hamdy', file: 'doaa-hamdy.png', headTop: 24, eyes: 140, chin: 215, centerX: 246 },
-  { id: 'sherine-ghaleb', file: 'sherine-ghaleb.png', headTop: 16, eyes: 155, chin: 242, centerX: 254 },
-  { id: 'osama-abdelhay', file: 'osama-abdelhay.png', headTop: 52, eyes: 158, chin: 235, centerX: 262 },
+  { id: 'mamdouh-moawad-ali', file: 'mamdouh-moawad-ali.png', headTop: 10, eyes: 85, chin: 160, centerX: 228 },
+  { id: 'mona-abdel-wahab', file: 'mona-abdel-wahab.png', headTop: 55, eyes: 116, chin: 182, centerX: 228 },
+  { id: 'tamer-shawky', file: 'tamer-shawky.png', headTop: 34, eyes: 95, chin: 170, centerX: 204 },
+  { id: 'mohamed-emara', file: 'mohamed-emara.png', headTop: 50, eyes: 105, chin: 175, centerX: 217 },
+  { id: 'mohamed-abdel-moaty', file: 'mohamed-abdel-moaty.png', headTop: 58, eyes: 130, chin: 200, centerX: 167 },
+  { id: 'abeer-ashmawy', file: 'abeer-ashmawy.png', headTop: 1, eyes: 95, chin: 175, centerX: 222 },
+  { id: 'hany-hamed', file: 'hany-hamed.png', headTop: 92, eyes: 165, chin: 230, centerX: 205 },
+  { id: 'abeer-ahmed-abdel-moneim', file: 'abeer-ahmed-abdel-moneim.png', headTop: 33, eyes: 116, chin: 186, centerX: 176 },
+  { id: 'mohamed-nagy', file: 'mohamed-nagy.png', headTop: 39, eyes: 122, chin: 195, centerX: 171 },
+  { id: 'manal-anwar', file: 'manal-anwar.png', headTop: 23, eyes: 125, chin: 195, centerX: 228 },
   { id: 'emad-el-banna', file: 'emad-el-banna.png', headTop: 162, eyes: 235, chin: 290, centerX: 245 },
+  { id: 'osama-abdelhay', file: 'osama-abdelhay.png', headTop: 52, eyes: 158, chin: 235, centerX: 262 },
+  { id: 'sherine-ghaleb', file: 'sherine-ghaleb.png', headTop: 16, eyes: 155, chin: 242, centerX: 254 },
+  { id: 'eman-nabil', file: 'eman-nabil.png', headTop: 1, eyes: 115, chin: 182, centerX: 253 },
+  { id: 'samraa-hussein', file: 'samraa-hussein.png', headTop: 33, eyes: 128, chin: 195, centerX: 236 },
+  { id: 'ali-haseeb', file: 'ali-haseeb.png', headTop: 48, eyes: 128, chin: 215, centerX: 260 },
+  { id: 'hossam-mowafy', file: 'hossam-mowafy.png', headTop: 18, eyes: 115, chin: 185, centerX: 259 },
+  { id: 'hany-gemeia', file: 'hany-gemeia.png', headTop: 33, eyes: 128, chin: 198, centerX: 188 },
+  { id: 'mohamed-yehia', file: 'mohamed-yehia.png', headTop: 44, eyes: 126, chin: 192, centerX: 181 },
+  { id: 'ali-mohamed-hassan', file: 'ali-mohamed-hassan.png', headTop: 38, eyes: 128, chin: 200, centerX: 192 },
 ];
 
 export async function processPeople() {

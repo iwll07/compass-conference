@@ -7,7 +7,6 @@ import { HeroRegistrationCta } from "@/components/hero-registration-cta";
 import { lastConference } from "@/lib/calls";
 import { sponsors } from "@/lib/sponsors";
 import { HomeSponsorRow } from "@/components/home-sponsor-row";
-import { HomePatronsRow } from "@/components/home-patrons-row";
 import type { CSSProperties } from "react";
 
 const stagger = (ms: number) => ({ "--reveal-delay": `${ms}ms` }) as CSSProperties;
@@ -36,7 +35,6 @@ export default function HomePage() {
     <Announcements />
     <section className="home-intro"><div className="reveal"><h2>Good medicine starts<br />with good questions.</h2><span className="intro-rule" /></div><div className="intro-prose reveal" style={stagger(80)}><p className="lead">Between what we learn and how we care, there is a conversation worth having.</p><p>COMPASS brings medical practice and scientific studies into the same room. Built by students at BSNU, it is a place to ask better questions, share work, and find a direction of your own.</p><Link href="/about" className="text-link">Why we’re coming together <ArrowUpRightIcon size={18} aria-hidden="true" /></Link></div></section>
     <section className="explore-section"><div className="explore-heading reveal"><h2>More than<br />a seat in the room.</h2><p>A program taking shape around learning, exchange, and student research.</p></div><div className="explore-list"><Link href="/agenda" className="reveal" style={stagger(0)}><div><h3 className="link-underline">Follow the conversation</h3><p>Talks, sessions, and space for questions.</p></div><span className="explore-detail">The agenda<ArrowUpRightIcon size={24} aria-hidden="true" /></span></Link><Link href="/speakers" className="reveal" style={stagger(80)}><div><h3 className="link-underline">Meet the minds behind it</h3><p>Speakers, their work, and the ideas they’ll share.</p></div><span className="explore-detail">Speakers & guests<ArrowUpRightIcon size={24} aria-hidden="true" /></span></Link><Link href="/posters" className="reveal" style={stagger(160)}><div><h3 className="link-underline">Make room for new research</h3><p>Student questions deserve a wider audience.</p></div><span className="explore-detail">Student posters<ArrowUpRightIcon size={24} aria-hidden="true" /></span></Link></div></section>
-    <HomePatronsRow />
     <section className="sponsor-strip reveal">
       <div className="sponsor-strip-header">
         <div>
