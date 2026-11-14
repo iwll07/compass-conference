@@ -1434,31 +1434,29 @@ button.sponsor-tile {
 }
 .patrons-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
 }
 .patron-card {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
+  align-items: stretch;
   background: var(--surface);
   border: 0.5px solid var(--line);
   border-radius: 14px;
-  min-height: 236px;
+  min-height: 220px;
   height: 100%;
+  overflow: hidden;
 }
 .patron-card-photo-wrap {
   position: relative;
-  width: 112px;
-  height: 132px;
-  flex-shrink: 0;
-  border-radius: 12px;
-  overflow: visible;
+  flex: 0 0 44%;
+  width: 44%;
+  min-width: 120px;
   background: transparent;
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  overflow: hidden;
 }
 .patron-card-photo-wrap::after {
   content: "";
@@ -1466,8 +1464,8 @@ button.sponsor-tile {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 5px;
-  background: linear-gradient(90deg, #082a4b 0%, #06797f 55%, #72d6ca 100%);
+  height: 10px;
+  background: linear-gradient(90deg, #082a4b 0%, #06797f 100%);
   z-index: 3;
 }
 :root[data-theme="dark"] .patron-card-photo-wrap::after {
@@ -1480,54 +1478,79 @@ button.sponsor-tile {
   height: 100%;
   object-fit: cover;
   object-position: bottom center;
-  transform: scale(1.25);
-  transform-origin: bottom center;
   display: block;
 }
-.patron-card-fallback {
-  width: 100%;
-  height: 100%;
+.patron-card-fallback-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  font-weight: 600;
-  font-family: "Source Serif 4", Georgia, serif;
-  color: var(--accent);
-  background: var(--accent-soft);
+  margin: auto;
   user-select: none;
+  z-index: 2;
 }
 .patron-card-content {
+  flex: 1;
   min-width: 0;
+  padding: 24px 28px 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
 }
 .patron-card-name {
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 20px;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.25;
   color: var(--ink);
   letter-spacing: -.015em;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .patron-card-title {
   font-family: "Public Sans", sans-serif;
   font-size: 13px;
   line-height: 1.5;
   color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-@media (max-width: 600px) {
+@media (max-width: 680px) {
   .patrons-grid {
     grid-template-columns: 1fr;
-  }
-  .patron-card {
-    padding: 16px;
     gap: 16px;
   }
+  .patron-card {
+    min-height: 180px;
+  }
   .patron-card-photo-wrap {
-    width: 90px;
-    height: 106px;
+    flex: 0 0 38%;
+    width: 38%;
+    min-width: 100px;
+  }
+  .patron-card-content {
+    padding: 16px 20px 16px 14px;
+  }
+  .patron-card-name {
+    font-size: 18px;
+  }
+  .patron-card-fallback-circle {
+    width: 56px;
+    height: 56px;
+    font-size: 20px;
   }
 }
 

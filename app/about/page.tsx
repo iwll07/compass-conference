@@ -70,15 +70,15 @@ export default function AboutPage() {
                     <div className="patron-card-photo-wrap">
                       {person.photo ? (
                         <Image
-                          src={person.photo.src}
+                          src={person.photo.card.src}
                           alt={person.name}
-                          width={person.photo.width}
-                          height={person.photo.height}
+                          width={person.photo.card.width}
+                          height={person.photo.card.height}
                           loading="lazy"
                           className="patron-card-photo"
                         />
                       ) : (
-                        <div className="patron-card-fallback" aria-hidden="true">
+                        <div className="patron-card-fallback-circle" aria-hidden="true">
                           {initials}
                         </div>
                       )}
