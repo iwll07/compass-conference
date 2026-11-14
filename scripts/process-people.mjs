@@ -65,6 +65,7 @@ const rawPeople = [
   { id: 'ahmed-osama', file: 'ahmed-osama.png', headTop: 39, eyes: 156, chin: 236, centerX: 235 },
   { id: 'doaa-hamdy', file: 'doaa-hamdy.png', headTop: 24, eyes: 140, chin: 215, centerX: 246 },
   { id: 'mamdouh-moawad-ali', file: 'mamdouh-moawad-ali.png', headTop: 10, eyes: 85, chin: 160, centerX: 228 },
+  { id: 'abeer-nour-el-din', file: 'abeer-nour-el-din.png', headTop: 27, eyes: 108, chin: 178, centerX: 228 },
   { id: 'mona-abdel-wahab', file: 'mona-abdel-wahab.png', headTop: 55, eyes: 116, chin: 182, centerX: 228 },
   { id: 'tamer-shawky', file: 'tamer-shawky.png', headTop: 34, eyes: 95, chin: 170, centerX: 204 },
   { id: 'mohamed-emara', file: 'mohamed-emara.png', headTop: 50, eyes: 105, chin: 175, centerX: 217 },

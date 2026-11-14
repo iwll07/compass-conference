@@ -190,5 +190,13 @@
     "thumbScale": 0.5802469135802469,
     "thumbCropLeft": 39,
     "thumbCropTop": 12
+  },
+  "abeer-nour-el-din": {
+    "cardScale": 2.066225165562914,
+    "cardCropLeft": 191,
+    "cardCropTop": -29,
+    "thumbScale": 0.6225165562913907,
+    "thumbCropLeft": 70,
+    "thumbCropTop": 7
   }
 }

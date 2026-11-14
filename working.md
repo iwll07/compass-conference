@@ -509,7 +509,7 @@
 - [x] Live Workers deployment and runtime verification (against https://compass.bsnu.workers.dev/, historical — the live domain is now https://compassbsnu.page; see Current state above).
 
 - [x] Honorees & patrons: transparent PNG cutout images, calibrated card (560x720) and thumb (144x144) WebP pipeline with sharp, bottom COMPASS navy-to-teal gradient strip.
-- [x] About page patrons & guests: 3-column desktop layout (`repeat(3, 1fr)`) with compact, equal-height cards, balanced serif names (16.5px), muted titles (11.5px), and 24 honorees (4 patrons, 20 special guests).
+- [x] About page patrons & guests: 3-column desktop layout (`repeat(3, 1fr)`) with compact, equal-height cards, balanced serif names (16.5px), muted titles (11.5px), and 25 honorees (4 patrons, 21 special guests, including Prof. Dr. Abeer Nour El-Din).
 - [x] Homepage: removed patrons row per user request.
 
 ## Remaining (awaiting user input)

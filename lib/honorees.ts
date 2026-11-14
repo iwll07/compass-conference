@@ -100,6 +100,12 @@ export const honoreeGroups: HonoreeGroup[] = [
         photo: makePhoto("mamdouh-moawad-ali"),
       },
       {
+        id: "abeer-nour-el-din",
+        name: "Prof. Dr. Abeer Nour El-Din",
+        title: "Chairperson of the Board of Directors, Medical Research Centre of Excellence – National Research Centre",
+        photo: makePhoto("abeer-nour-el-din"),
+      },
+      {
         id: "mona-abdel-wahab",
         name: "Prof. Dr. Mona Abdel-Wahab",
         title: "Director of the Medical Research Centre of Excellence – National Research Centre",
