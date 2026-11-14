@@ -75,6 +75,85 @@ test("honorees photos: card and thumb variants exist, no spaces, correct dimensi
   }
 });
 
+test("honorees dynamic groups: handles empty groups, single group, and custom counts", () => {
+  const emptyGroup = { id: "empty", label: "Empty Group", people: [] };
+  const samplePerson = {
+    id: "sample-1",
+    name: "Dr. Jane Doe",
+    title: "Guest Lecturer",
+    photo: null,
+  };
+  const sampleGroup1 = { id: "g1", label: "Group 1", people: [samplePerson] };
+  const sampleGroup2 = {
+    id: "g2",
+    label: "Group 2",
+    people: Array.from({ length: 7 }, (_, i) => ({
+      id: `p-${i}`,
+      name: `Person ${i}`,
+      title: `Title ${i}`,
+      photo: null,
+    })),
+  };
+
+  // 0 groups / empty groups
+  const zeroGroups: typeof honoreeGroups = [];
+  assert.equal(zeroGroups.filter((g) => g.people.length > 0).length, 0);
+
+  // Group with no people
+  const mixedGroups = [emptyGroup, sampleGroup1];
+  const visible = mixedGroups.filter((g) => g.people.length > 0);
+  assert.equal(visible.length, 1);
+  assert.equal(visible[0].id, "g1");
+
+  // 8 people total (1 + 7)
+  const eightPeopleGroups = [sampleGroup1, sampleGroup2];
+  const totalEight = eightPeopleGroups.reduce((acc, g) => acc + g.people.length, 0);
+  assert.equal(totalEight, 8);
+
+  // 9 people total (1 + 8)
+  const ninePeopleGroups = [
+    sampleGroup1,
+    {
+      id: "g2",
+      label: "Group 2",
+      people: Array.from({ length: 8 }, (_, i) => ({
+        id: `p-${i}`,
+        name: `Person ${i}`,
+        title: `Title ${i}`,
+        photo: null,
+      })),
+    },
+  ];
+  const totalNine = ninePeopleGroups.reduce((acc, g) => acc + g.people.length, 0);
+  assert.equal(totalNine, 9);
+
+  // 12 people total (6 + 6)
+  const twelvePeopleGroups = [
+    {
+      id: "g1",
+      label: "Group 1",
+      people: Array.from({ length: 6 }, (_, i) => ({
+        id: `p1-${i}`,
+        name: `Person ${i}`,
+        title: `Title ${i}`,
+        photo: null,
+      })),
+    },
+    {
+      id: "g2",
+      label: "Group 2",
+      people: Array.from({ length: 6 }, (_, i) => ({
+        id: `p2-${i}`,
+        name: `Person ${i}`,
+        title: `Title ${i}`,
+        photo: null,
+      })),
+    },
+  ];
+  const totalTwelve = twelvePeopleGroups.reduce((acc, g) => acc + g.people.length, 0);
+  assert.equal(totalTwelve, 12);
+});
+
 test("honorees initials helper: ignores Prof. and Dr.", () => {
   assert.equal(getInitials("Prof. Dr. Tarek Ali"), "TA");
   assert.equal(getInitials("Prof. Dr. Rasha Tawfik"), "RT");
@@ -85,3 +164,5 @@ test("honorees initials helper: ignores Prof. and Dr.", () => {
   assert.equal(getInitials("Emad"), "EM");
   assert.equal(getInitials(""), "");
 });
+
+

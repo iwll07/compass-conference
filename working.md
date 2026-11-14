@@ -1,30 +1,51 @@
 # COMPASS working log
 
 ## Current state
-- **Patrons & Special Guests System (`lib/honorees.ts`, `app/about/page.tsx`, `components/home-patrons-row.tsx`):**
+- **Patrons & Special Guests System (`lib/honorees.ts`, `app/about/page.tsx`, `components/home-patrons-row.tsx`, `scripts/process-people.mjs`):**
+  - **Image Pipeline & Size Budgets:**
+    - High-resolution originals live in `assets-src/people/` (untracked in git, ignored via `.gitignore`).
+    - Processing script `scripts/process-people.mjs` runs via `npm run process:people`.
+    - Automated defringing: un-multiplies semi-transparent matte halos, ensuring crystal-clear cutout edges on both light and dark themes with zero edge halos.
+    - Calibrated framing: per-person scaling and window extraction in `scripts/people-config.json` normalizes head height (0% variation) and eye line (< 2.5% variation) across all portraits.
+    - Outputs two WebP variants with alpha in `public/people/` (strictly no spaces in filenames):
+      - `<id>-card.webp`: 560×720 (max 2x card display size), strictly under 70KB budget (measured 21.0KB–31.0KB; total 175KB across 7 portraits, an 86% reduction from original 1.26MB payload). Torso anchored flat at bottom ($y=720$), head top at $y=80$ providing 11.1% headroom (within 10-14% requirement).
+      - `<id>-thumb.webp`: 144×144 (2x 72px circle), strictly under 12KB budget (measured 4.3KB–5.6KB; total 33KB across 7 portraits, a 97% reduction). Head occupies 65.3% of circle height (within 62-68% requirement).
   - **Data Model (`lib/honorees.ts`):**
     - Groups have `id`, `label`, and `people` array. Group order and person order in the file determine display order.
-    - `Person` interface: `id: string`, `name: string`, `title: string`, `photo: { src: string, width: number, height: number } | null`.
+    - `Person` interface: `id: string`, `name: string`, `title: string`, `photo: { card: PhotoVariant, thumb: PhotoVariant, src: string, width: number, height: number } | null`. Backwards-compatible aliases `src`, `width`, `height` point to the card variant.
     - Initial groups seeded:
       - *"Under the patronage of"*: Prof. Dr. Tarek Ali (President of Beni Suef National University), Prof. Dr. Rasha Tawfik (Vice President for Academic Affairs), Prof. Dr. Ahmed Osama (Dean of the Health Sciences Sector), Prof. Dr. Doaa Hamdy (Managing Director, Medicine and Surgery Program).
       - *"Special guests"*: Prof. Dr. Sherine Ghaleb (Head of the Cairo Medical Syndicate), Prof. Dr. Osama Abdelhay (Head of the Egyptian Medical Syndicate), Prof. Dr. Emad El-Banna (Head of the Beni Suef Medical Syndicate).
     - **Initials Fallback (`getInitials`):** Strips honorifics ("Prof.", "Dr.") case-insensitively and returns 2-letter uppercase initials for names without a photo or if an image fails to load.
-    - Fully dynamic: empty groups do not render; adding someone only requires a new entry in `lib/honorees.ts` and an optimized square portrait under `public/people/`.
-  - **Photo Requirements & Gradient Baseline:**
-    - Format: Transparent PNGs (isolated portraits with background removed), 480×480 square, with bottom torso anchored at bottom edge.
-    - Location: `public/people/<kebab-case-name>.png` with strictly no spaces in filenames.
-    - Styling: Cutout sits with a transparent frame (no clunky gray rectangular box), capped at the bottom with a 5px gradient baseline strip in COMPASS colors (`linear-gradient(90deg, #082a4b 0%, #06797f 55%, #72d6ca 100%)` in light mode, `#101f29` to `#8ae2d6` in dark mode).
-    - Torso and desk/suit meet the gradient strip naturally, with head and shoulders rising out of the baseline.
+    - Fully dynamic: empty groups do not render; adding someone only requires placing the original in `assets-src/people/`, running `npm run process:people`, and adding the entry in `lib/honorees.ts`.
   - **About Page (`app/about/page.tsx`, `app/globals.css`):**
     - Section `id="patrons"` with heading *"Patrons and special guests"* and generic intro *"COMPASS is honoured by the support of the university's leadership and by the presence of distinguished guests."*
-    - Replaced former organizing committee placeholder while preserving student-led identity across the site.
-    - Identical big cards grid (`repeat(auto-fill, minmax(300px, 1fr))`): 112×132 photo frame with transparent background, bottom 5px gradient strip in COMPASS brand colors, 20px serif name, 13px muted title, equal-height (236px min-height), surface background token with 0.5px line border and 14px radius. Lazy loading with `next/image`. Single column on mobile (<600px).
+    - Symmetric 2-column grid (`grid-template-columns: repeat(2, 1fr)`) at desktop (>=680px), single column on mobile (<680px):
+      - Avoids lone orphan cards in 4-person groups (renders as a balanced 2×2).
+      - Generous card width (~440px–618px) accommodates names within 1-2 lines (`text-wrap: balance`) and titles within 2-3 lines.
+    - Card architecture:
+      - Fixed 44% portrait zone touching card's left, top, and bottom edges, cleanly clipped by the card's 14px rounded corners (`overflow: hidden`).
+      - 10px gradient strip (`linear-gradient(90deg, #082a4b 0%, #06797f 100%)`, `#101f29` to `#8ae2d6` in dark mode) flush across the full bottom edge of the portrait zone.
+      - Portrait stands on the gradient baseline with 11.1% headroom above the head.
+      - Vertically centered text column ensures all cards in a row read as aligned.
+      - Non-photo fallback: 72px initials circle (`.patron-card-fallback-circle`) centered in the portrait zone.
   - **Homepage Section (`components/home-patrons-row.tsx`, `app/globals.css`):**
     - Sits after *"More than a seat in the room"* explore section and before the sponsor strip, with text link to `/about#patrons`.
-    - Stacked vertical groups (`.home-patrons-groups` with 40px gap): "Under the patronage of" and "Special guests" each rendered in their own full-width section with small uppercase accent label and 1px hairline divider.
-    - Each person is a column (`.home-patrons-item`, 175px wide) with 72px round portrait ring, 5px bottom gradient arc strip in COMPASS colors, 14px serif name, and 11.5px muted title.
-    - Continuous SVG pulse ECG heartbeat line runs behind the portraits across each group on desktop with inline heartbeat peaks between portraits.
-    - Responsive mobile layout (<820px): pulse line cleanly hides, and items wrap naturally into a 2-column flex layout with zero horizontal overflow (no horizontal scrollbar).
+    - **Responsive Layout Hierarchy:**
+      - **Wide Screens (>= 1100px):** All seven honorees in a single horizontal row with group labels and thin lines above each group. Band height strictly constrained to 275px (under 280px requirement). 72px circular portraits.
+      - **Medium Screens (640px to 1099px):** Compact stacked rows per group with 64px circular portraits. Band height strictly constrained to 391px at 900px wide (under 400px requirement).
+      - **Mobile Screens (< 640px):** One continuous horizontally scrolling strip with scroll-snap (`scroll-snap-type: x mandatory`), keyboard-scrollable (`tabIndex={0}`, `aria-label="Patrons and special guests"`), and subtle edge fade mask. Strict zero horizontal page overflow.
+    - **Portrait Styling:**
+      - Uses `-thumb.webp` variant (144×144) with head occupying ~65.3% of circle height.
+      - 5px gradient baseline strip across the bottom of each circular portrait.
+      - Section background outline ring (5px on desktop, 4px on mobile) ensures the pulse line passes cleanly behind the portrait.
+    - **Continuous Pulse Line:**
+      - Vector SVG line running through portrait centers ($y=36$) with inline heartbeat peaks between portraits.
+      - Masked fade to transparent at outer ends (`mask-image: linear-gradient(...)`) eliminates harsh stubs or abrupt cutoffs.
+      - Per-column SVG implementation adapts seamlessly to any honoree count (tested with 0, 1, 8, 9, 12 people).
+    - **Typography:**
+      - Names: 14.5px serif (`Source Serif 4`), 2 lines reserved (`min-height`) for perfect cross-row baseline alignment.
+      - Titles: 12.5px muted, up to 3 lines.
 - **COMPASS Sponsor System & Mood Digital Partner Integration (2026-10-22):**
   - **Diamond Panel Layout & Vertical Rhythm Polish (`components/sponsors-view.tsx`, `app/sponsors/page.tsx`, `app/globals.css`):**
     - **Panel Architecture (900px+):**
@@ -458,7 +479,7 @@
 - Deploy model: Cloudflare Workers build pipeline (not classic Pages) — build command `npm run build`, deploy command `npx wrangler deploy`, config in `wrangler.jsonc` (assets.directory=./out, not_found_handling=404-page). Verified locally via clean-clone build + `wrangler deploy --dry-run` before push.
 - Code pushed to GitHub: https://github.com/iwll07/compass-conference (origin/master, tracking, in sync).
 - Full verification suite green: lint, typecheck, 6 countdown unit tests, 46 browser assertions, 8-route static build.
-- Git identity: iwll07 <iwllwill01@gmail.com> (repo-local). Note: Windows credential manager previously held a different GitHub account (bmsadev); resolved via `git credential-manager github login` as iwll07.
+- Git identity: iwll07 <iwllwill01@gmail.com> (repo-local). Note: Windows credential manager previously held a different GitHub account; resolved via `git credential-manager github login` as iwll07.
 - Setup and minimal Next.js 16.3.5 App Router static-export scaffold complete.
 - User approved static export instead of the deprecated adapter, and chose to WAIT for exact registration fields (no form/schema until supplied).
 - Native Node remains 22.6.0; `.nvmrc` requests 22.14.0. Engine warnings remain until the actual runtime is upgraded.

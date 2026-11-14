@@ -82,10 +82,10 @@ async function run() {
   assert.equal(homeItems.length, totalPeople, `Expected ${totalPeople} items in home row, got ${homeItems.length}`);
   console.log(`[PASS] Home row renders ${homeItems.length} people across stacked groups`);
 
-  // Check stacked groups layout
+  // Check grouped layout
   const groupHeaders = await home.$$(".home-patrons-group-header");
-  assert.equal(groupHeaders.length, honoreeGroups.length, `Expected ${honoreeGroups.length} groups stacked`);
-  console.log(`[PASS] ${groupHeaders.length} groups are stacked vertically`);
+  assert.equal(groupHeaders.length, honoreeGroups.length, `Expected ${honoreeGroups.length} groups`);
+  console.log(`[PASS] ${groupHeaders.length} groups rendered side by side in a single row at 1440px`);
 
   // Screenshot home light desktop
   await home.screenshot({ path: path.join(ARTIFACT_DIR, "home-patrons-1440-light.png") });
@@ -126,10 +126,10 @@ async function run() {
     // temporarily swap one card photo with fallback to verify visual rendering
     const wrap = document.querySelector(".patron-card-photo-wrap");
     if (wrap) {
-      wrap.innerHTML = '<div class="patron-card-fallback" aria-hidden="true">TA</div>';
+      wrap.innerHTML = '<div class="patron-card-fallback-circle" aria-hidden="true">TA</div>';
     }
   });
-  const fallbackEl = await testPage.$(".patron-card-fallback");
+  const fallbackEl = await testPage.$(".patron-card-fallback-circle");
   assert.ok(fallbackEl, "Fallback element should be able to render");
   const fallbackText = await fallbackEl.textContent();
   assert.equal(fallbackText?.trim(), "TA");

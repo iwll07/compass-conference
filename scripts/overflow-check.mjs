@@ -27,6 +27,9 @@ for (const [label, viewport] of viewports) {
       const vw = document.documentElement.clientWidth;
       const bad = [];
       document.querySelectorAll("body *").forEach((el) => {
+        // Elements inside an intentional scroll container (overflow-x: auto/scroll)
+        // legitimately extend beyond the viewport horizontally.
+        if (el.closest(".home-patrons-scroll")) return;
         const r = el.getBoundingClientRect();
         if (r.right > vw + 1 || r.left < -1) {
           bad.push(`${el.tagName}.${String(el.className).split(" ")[0]} right=${Math.round(r.right)} left=${Math.round(r.left)}`);

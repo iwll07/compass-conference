@@ -18,67 +18,92 @@ export function HomePatronsRow({ groups = honoreeGroups }: { groups?: HonoreeGro
         </Link>
       </div>
 
-      <div className="home-patrons-groups">
-        {visibleGroups.map((group) => (
-          <div key={group.id} className="home-patrons-group">
-            <div className="home-patrons-group-header">
-              <span className="home-patrons-group-label">{group.label}</span>
-              <span className="home-patrons-group-line" aria-hidden="true" />
-            </div>
-            <ul className="home-patrons-list">
-              {group.people.map((person, index) => {
-                const initials = getInitials(person.name);
-                const isLast = index === group.people.length - 1;
+      <div
+        className="home-patrons-scroll"
+        tabIndex={0}
+        role="region"
+        aria-label="Patrons and special guests"
+      >
+        <div className="home-patrons-groups">
+          {visibleGroups.map((group) => (
+            <div key={group.id} className="home-patrons-group">
+              <div className="home-patrons-group-header">
+                <span className="home-patrons-group-label">{group.label}</span>
+                <span className="home-patrons-group-line" aria-hidden="true" />
+              </div>
+              <ul className="home-patrons-list">
+                {group.people.map((person, index) => {
+                  const initials = getInitials(person.name);
+                  const isFirst = index === 0;
+                  const isLast = index === group.people.length - 1;
 
-                return (
-                  <li key={person.id} className="home-patrons-item">
-                    <div className="home-patrons-pulse-container" aria-hidden="true">
-                      <svg
-                        className="home-patrons-pulse-svg"
-                        viewBox="0 0 100 72"
-                        preserveAspectRatio="none"
-                      >
-                        {/* Continuous line running through center y=36 */}
-                        <line
-                          x1="0"
-                          y1="36"
-                          x2={isLast ? "50" : "100"}
-                          y2="36"
-                          className="home-patrons-pulse-line"
-                        />
-                        {/* Heartbeat pulse in gap before the next item (x: 82 to 98) */}
-                        {!isLast && (
-                          <path
-                            d="M 80 36 L 84 36 L 87 22 L 91 50 L 94 33 L 96 36 L 100 36"
-                            className="home-patrons-pulse-beat"
+                  let maskStyle: React.CSSProperties | undefined;
+                  if (isFirst && isLast) {
+                    maskStyle = {
+                      maskImage: "linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%)",
+                      WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 25%, black 75%, transparent 100%)",
+                    };
+                  } else if (isFirst) {
+                    maskStyle = {
+                      maskImage: "linear-gradient(to right, transparent 0%, black 35%)",
+                      WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 35%)",
+                    };
+                  } else if (isLast) {
+                    maskStyle = {
+                      maskImage: "linear-gradient(to right, black 65%, transparent 100%)",
+                      WebkitMaskImage: "linear-gradient(to right, black 65%, transparent 100%)",
+                    };
+                  }
+
+                  return (
+                    <li key={person.id} className="home-patrons-item">
+                      <div className="home-patrons-pulse-container" aria-hidden="true">
+                        <svg
+                          className="home-patrons-pulse-svg"
+                          viewBox="0 0 100 72"
+                          preserveAspectRatio="none"
+                          style={maskStyle}
+                        >
+                          <line
+                            x1="0"
+                            y1="36"
+                            x2="100"
+                            y2="36"
+                            className="home-patrons-pulse-line"
                           />
-                        )}
-                      </svg>
-                      <div className="home-patrons-portrait-ring">
-                        {person.photo ? (
-                          <Image
-                            src={person.photo.src}
-                            alt=""
-                            width={person.photo.width}
-                            height={person.photo.height}
-                            loading="lazy"
-                            className="home-patrons-portrait"
-                          />
-                        ) : (
-                          <div className="home-patrons-fallback">{initials}</div>
-                        )}
+                          {!isLast && (
+                            <path
+                              d="M 76 36 L 80 36 L 83 20 L 87 52 L 90 31 L 93 36 L 98 36"
+                              className="home-patrons-pulse-beat"
+                            />
+                          )}
+                        </svg>
+                        <div className="home-patrons-portrait-ring">
+                          {person.photo ? (
+                            <Image
+                              src={person.photo.thumb.src}
+                              alt=""
+                              width={person.photo.thumb.width}
+                              height={person.photo.thumb.height}
+                              loading="lazy"
+                              className="home-patrons-portrait"
+                            />
+                          ) : (
+                            <div className="home-patrons-fallback">{initials}</div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="home-patrons-info">
-                      <h3 className="home-patrons-name">{person.name}</h3>
-                      <p className="home-patrons-role">{person.title}</p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+                      <div className="home-patrons-info">
+                        <h3 className="home-patrons-name">{person.name}</h3>
+                        <p className="home-patrons-role">{person.title}</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
