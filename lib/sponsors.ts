@@ -1,6 +1,6 @@
 export type SponsorTier = "diamond" | "gold" | "silver";
 
-export type SponsorLinkKind = "facebook" | "instagram" | "whatsapp" | "email";
+export type SponsorLinkKind = "facebook" | "instagram" | "whatsapp" | "website" | "email";
 
 export interface SponsorLink {
   kind: SponsorLinkKind;
@@ -139,6 +139,79 @@ export const sponsors: Sponsor[] = [
           {
             lead: "مواقع إلكترونية احترافية:",
             text: "تصميم وبرمجة مواقع سريعة وعصرية للشركات والمؤسسات والبراندات.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "sim-era",
+    name: "Sim Era",
+    tier: "diamond",
+    logo: {
+      src: "/sim-era-logo.png",
+      width: 549,
+      height: 402,
+      alt: "Sim Era logo",
+    },
+    href: null,
+    tagline: "Medical Simulation & Education Partner of COMPASS 2026",
+    summary:
+      "Sim Era is an Egyptian medical education specialist established in 2009, providing turnkey medical skill labs, surgical and clinical simulators, anatomical models, plastinated specimens, and interactive anatomy software. Proudly advancing hands-on clinical training at COMPASS 2026.",
+    links: [
+      {
+        kind: "website",
+        href: "https://www.sim-era.com/",
+      },
+      {
+        kind: "email",
+        href: "mailto:info@sim-era.com",
+      },
+    ],
+    details: {
+      en: {
+        title: "Medical Simulation & Education Partner of COMPASS 2026",
+        intro:
+          "Since 2009, Sim Era has equipped medical schools and training centres across Egypt with the physical and digital tools behind hands-on clinical learning:",
+        items: [
+          {
+            lead: "Turnkey Medical Skill Labs:",
+            text: "Skill laboratories planned, equipped, and commissioned end to end, from layout to installed equipment.",
+          },
+          {
+            lead: "Surgical & Clinical Simulators:",
+            text: "Procedure-ready trainers and simulators for supervised, repeatable clinical practice.",
+          },
+          {
+            lead: "Anatomical Models & Plastinated Specimens:",
+            text: "Detailed physical anatomy resources for teaching, demonstration, and revision.",
+          },
+          {
+            lead: "Interactive Anatomy Software:",
+            text: "Digital anatomy platforms that let students explore structures layer by layer.",
+          },
+        ],
+      },
+      ar: {
+        title: "شريك المحاكاة والتعليم الطبي لمؤتمر COMPASS 2026",
+        intro:
+          "منذ عام 2009، تجهّز Sim Era كليات الطب ومراكز التدريب في مصر بالأدوات المادية والرقمية التي يقوم عليها التعلّم السريري العملي:",
+        items: [
+          {
+            lead: "معامل المهارات الطبية المتكاملة:",
+            text: "معامل يتم تخطيطها وتجهيزها وتركيبها بالكامل، من التصميم والمعدات وحتى التشغيل.",
+          },
+          {
+            lead: "محاكيات الجراحة والتدريب السريري:",
+            text: "أجهزة ومحاكيات جاهزة للتدريب على الإجراءات تحت إشراف سريري.",
+          },
+          {
+            lead: "المجسمات التشريحية والعينات المُجسَّمة:",
+            text: "وسائل تشريح مادية دقيقة للشرح والعرض والمراجعة.",
+          },
+          {
+            lead: "برمجيات التشريح التفاعلية:",
+            text: "منصات تشريح رقمية تتيح للطلاب استكشاف الأعضاء طبقةً بطبقة.",
           },
         ],
       },

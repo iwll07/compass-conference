@@ -1103,9 +1103,10 @@ button.sponsor-strip-tile { cursor: pointer; }
   min-width: 0;
 }
 .sponsor-diamond-logo {
-  width: 72px;
   height: 72px;
-  border-radius: 50%;
+  width: auto;
+  max-width: 200px;
+  border-radius: 8px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -1322,8 +1323,9 @@ button.sponsor-tile {
     width: 100%;
   }
   .sponsor-diamond-logo {
-    width: 64px;
     height: 64px;
+    width: auto;
+    max-width: 180px;
   }
   .sponsor-diamond-links {
     width: 100%;

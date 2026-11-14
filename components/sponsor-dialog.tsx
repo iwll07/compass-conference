@@ -6,6 +6,7 @@ import {
   FacebookLogo,
   InstagramLogo,
   WhatsappLogo,
+  Globe,
   EnvelopeSimple,
 } from "@phosphor-icons/react/dist/ssr";
 import { Sponsor, SponsorLinkKind } from "@/lib/sponsors";
@@ -19,6 +20,7 @@ const LINK_LABELS: Record<SponsorLinkKind, { en: string; ar: string; platform: s
   facebook: { en: "Facebook", ar: "فيسبوك", platform: "Facebook" },
   instagram: { en: "Instagram", ar: "إنستغرام", platform: "Instagram" },
   whatsapp: { en: "WhatsApp", ar: "واتساب", platform: "WhatsApp" },
+  website: { en: "Website", ar: "الموقع", platform: "Website" },
   email: { en: "Email", ar: "البريد", platform: "Email" },
 };
 
@@ -31,6 +33,8 @@ function renderLinkIcon(kind: SponsorLinkKind) {
       return <InstagramLogo size={size} aria-hidden="true" />;
     case "whatsapp":
       return <WhatsappLogo size={size} aria-hidden="true" />;
+    case "website":
+      return <Globe size={size} aria-hidden="true" />;
     case "email":
       return <EnvelopeSimple size={size} aria-hidden="true" />;
   }
@@ -256,7 +260,10 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
               {sponsor.links.map((link) => {
                 const labelObj = LINK_LABELS[link.kind];
                 const visibleLabel = isRtl ? labelObj.ar : labelObj.en;
-                const ariaLabel = `${sponsor.name} on ${labelObj.platform}`;
+                const ariaLabel =
+                  link.kind === "website"
+                    ? `Visit ${sponsor.name} website`
+                    : `${sponsor.name} on ${labelObj.platform}`;
                 const isExternal = link.kind !== "email";
 
                 return (

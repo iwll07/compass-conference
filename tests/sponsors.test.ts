@@ -18,6 +18,29 @@ test("sponsors data: Mood Digital is present as Diamond partner", () => {
   );
 });
 
+test("sponsors data: Sim Era is present as a Diamond partner", () => {
+  const sim = sponsors.find((s) => s.id === "sim-era");
+  assert.ok(sim, "Sim Era must exist in sponsors list");
+  assert.equal(sim.name, "Sim Era");
+  assert.equal(sim.tier, "diamond");
+  assert.equal(sim.tagline, "Medical Simulation & Education Partner of COMPASS 2026");
+  assert.equal(sim.logo.src, "/sim-era-logo.png");
+  assert.equal(sim.logo.width, 549);
+  assert.equal(sim.logo.height, 402);
+  assert.equal(sim.logo.alt, "Sim Era logo");
+  assert.ok(sim.details, "Sim Era must have details");
+  assert.equal(
+    sim.summary,
+    "Sim Era is an Egyptian medical education specialist established in 2009, providing turnkey medical skill labs, surgical and clinical simulators, anatomical models, plastinated specimens, and interactive anatomy software. Proudly advancing hands-on clinical training at COMPASS 2026."
+  );
+  assert.deepEqual(
+    sim.links?.map((link) => link.kind),
+    ["website", "email"]
+  );
+  assert.equal(sim.links?.[0].href, "https://www.sim-era.com/");
+  assert.equal(sim.links?.[1].href, "mailto:info@sim-era.com");
+});
+
 test("sponsors sorting: diamond -> gold -> silver, then by name", () => {
   const unsorted: Sponsor[] = [
     {

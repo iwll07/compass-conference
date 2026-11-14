@@ -177,14 +177,14 @@ try {
   );
 
   const homeTile = page.locator(".sponsor-strip-tile-diamond");
-  check("Diamond sponsor tile on home strip exists", (await homeTile.count()) === 1);
+  check("Diamond sponsor tiles on home strip exist", (await homeTile.count()) === 2);
 
   // Home strip screenshot
   const shotHomeStrip = await page.screenshot({ fullPage: false });
   saveShot("home-strip-desktop.png", shotHomeStrip);
 
   // Click home strip logo opens dialog
-  await homeTile.click();
+  await homeTile.first().click();
   await page.waitForTimeout(200);
   check("Dialog opens from home strip tile", (await page.locator("dialog.sponsor-dialog[open]").count()) === 1);
   await page.keyboard.press("Escape");
@@ -194,15 +194,17 @@ try {
   await page.goto(BASE + "/sponsors/", { waitUntil: "networkidle" });
   await page.waitForTimeout(300);
 
-  const diamondPanel = page.locator(".sponsor-diamond-panel");
-  check("Diamond panel on /sponsors exists", (await diamondPanel.count()) === 1);
+  const diamondPanels = page.locator(".sponsor-diamond-panel");
+  check("Both diamond panels on /sponsors exist", (await diamondPanels.count()) === 2);
+  // Mood Digital sorts first (M before S) and owns the detailed assertions below.
+  const diamondPanel = diamondPanels.first();
 
   // Logo checks
   const logoImg = diamondPanel.locator(".sponsor-diamond-logo");
   check("Diamond logo renders in panel", (await logoImg.count()) === 1);
-  check("Diamond logo has alt 'Mood Digital'", (await logoImg.getAttribute("alt")) === "Mood Digital");
+  check("Diamond logo uses its data alt", (await logoImg.getAttribute("alt")) === "Mood Digital logo");
   const logoDims = await logoImg.evaluate((el) => ({ w: el.clientWidth, h: el.clientHeight }));
-  check("Diamond logo renders at 72px", logoDims.w === 72 && logoDims.h === 72, `${logoDims.w}x${logoDims.h}`);
+  check("Diamond logo renders at 72px height", logoDims.h === 72 && logoDims.w > 0, `${logoDims.w}x${logoDims.h}`);
 
   // Name & tagline
   const nameEl = diamondPanel.locator(".sponsor-diamond-name");
@@ -365,6 +367,46 @@ try {
   await page.keyboard.press("Escape");
   await page.waitForTimeout(150);
 
+  // Sim Era: second diamond panel
+  const simPanel = diamondPanels.filter({ hasText: "Sim Era" });
+  check("Sim Era diamond panel exists", (await simPanel.count()) === 1);
+  check(
+    "Sim Era panel has correct tagline",
+    (await simPanel.locator(".sponsor-diamond-tagline").textContent())?.trim() ===
+      "Medical Simulation & Education Partner of COMPASS 2026"
+  );
+  check(
+    "Sim Era logo has alt 'Sim Era logo'",
+    (await simPanel.locator(".sponsor-diamond-logo").getAttribute("alt")) === "Sim Era logo"
+  );
+  const simLinks = simPanel.locator(".sponsor-diamond-link");
+  check("Sim Era panel has 2 icon links", (await simLinks.count()) === 2);
+  const simWebsite = simPanel.locator('.sponsor-diamond-link[aria-label="Visit Sim Era website"]');
+  check("Sim Era website href matches", (await simWebsite.getAttribute("href")) === "https://www.sim-era.com/");
+  check("Sim Era website opens in new tab", (await simWebsite.getAttribute("target")) === "_blank");
+  const simEmail = simPanel.locator('.sponsor-diamond-link[aria-label="Sim Era on Email"]');
+  check("Sim Era email href matches", (await simEmail.getAttribute("href")) === "mailto:info@sim-era.com");
+  check("Sim Era email has no target", (await simEmail.getAttribute("target")) === null);
+
+  // Sim Era dialog: EN and AR details render
+  await simPanel.locator("button.sponsor-diamond-btn").click();
+  await page.waitForTimeout(200);
+  const simDialog = page.locator("dialog.sponsor-dialog[open]");
+  check("Sim Era dialog opens", (await simDialog.count()) === 1);
+  check(
+    "Sim Era dialog shows English title",
+    (await simDialog.locator(".sponsor-dialog-title").textContent())?.trim() ===
+      "Medical Simulation & Education Partner of COMPASS 2026"
+  );
+  await simDialog.locator('button[role="tab"]:has-text("العربية")').click();
+  await page.waitForTimeout(150);
+  check(
+    "Sim Era dialog switches to Arabic",
+    (await simDialog.locator(".sponsor-dialog-panel").getAttribute("dir")) === "rtl"
+  );
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+
   // Screenshots at 1440, 1280, 1024, 390 in light and dark
   // 1440 light & dark
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -427,12 +469,12 @@ try {
   check("No horizontal overflow on /sponsors/ at 390px", noOverflow);
 
   // Check mobile stacked layout below 700px
-  const mobileHeaderStacked = await mobilePage.locator(".sponsor-diamond-header").evaluate((el) => {
+  const mobileHeaderStacked = await mobilePage.locator(".sponsor-diamond-header").first().evaluate((el) => {
     return getComputedStyle(el).flexDirection === "column";
   });
   check("Below 700px: Diamond header stacks vertically", mobileHeaderStacked);
 
-  const mobileBtnFullWidth = await mobilePage.locator("button.sponsor-diamond-btn").evaluate((el) => {
+  const mobileBtnFullWidth = await mobilePage.locator("button.sponsor-diamond-btn").first().evaluate((el) => {
     const parentPadding = parseFloat(getComputedStyle(el.parentElement).paddingLeft) + parseFloat(getComputedStyle(el.parentElement).paddingRight);
     const parentContentWidth = el.parentElement.clientWidth - parentPadding;
     return Math.abs(el.offsetWidth - parentContentWidth) <= 4;
@@ -460,7 +502,7 @@ try {
   await arPage.goto(BASE + "/sponsors/", { waitUntil: "networkidle" });
   await arPage.waitForTimeout(200);
 
-  await arPage.locator(".sponsor-diamond-panel button:has-text('Learn more')").click();
+  await arPage.locator(".sponsor-diamond-panel button:has-text('Learn more')").first().click();
   await arPage.waitForTimeout(250);
 
   const arActiveTab = arPage.locator("dialog.sponsor-dialog[open] .sponsor-dialog-tab-active");

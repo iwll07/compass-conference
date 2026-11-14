@@ -7,11 +7,13 @@ import {
   FacebookLogo,
   InstagramLogo,
   WhatsappLogo,
+  Globe,
   EnvelopeSimple,
   ArrowRightIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import {
   type Sponsor,
+  type SponsorLinkKind,
   type SponsorTier,
   SPONSOR_TIERS,
   SPONSOR_TIER_LABELS,
@@ -22,6 +24,14 @@ import { SponsorDialog } from "@/components/sponsor-dialog";
 interface SponsorsViewProps {
   sponsors: Sponsor[];
 }
+
+const LINK_META: Record<SponsorLinkKind, { icon: typeof FacebookLogo; name: string }> = {
+  facebook: { icon: FacebookLogo, name: "Facebook" },
+  instagram: { icon: InstagramLogo, name: "Instagram" },
+  whatsapp: { icon: WhatsappLogo, name: "WhatsApp" },
+  website: { icon: Globe, name: "Website" },
+  email: { icon: EnvelopeSimple, name: "Email" },
+};
 
 export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
@@ -68,9 +78,9 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
                         <div className="sponsor-diamond-brand">
                           <Image
                             src={sponsor.logo.src}
-                            alt="Mood Digital"
-                            width={72}
-                            height={72}
+                            alt={sponsor.logo.alt}
+                            width={sponsor.logo.width}
+                            height={sponsor.logo.height}
                             className="sponsor-diamond-logo"
                           />
                           <div className="sponsor-diamond-titles">
@@ -86,28 +96,17 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
                           >
                             {sponsor.links.map((link) => {
                               const isEmail = link.kind === "email";
-                              const Icon =
-                                link.kind === "facebook"
-                                  ? FacebookLogo
-                                  : link.kind === "instagram"
-                                  ? InstagramLogo
-                                  : link.kind === "whatsapp"
-                                  ? WhatsappLogo
-                                  : EnvelopeSimple;
-                              const labelName =
-                                link.kind === "whatsapp"
-                                  ? "WhatsApp"
-                                  : link.kind === "facebook"
-                                  ? "Facebook"
-                                  : link.kind === "instagram"
-                                  ? "Instagram"
-                                  : "Email";
+                              const { icon: Icon, name } = LINK_META[link.kind];
+                              const ariaLabel =
+                                link.kind === "website"
+                                  ? `Visit ${sponsor.name} website`
+                                  : `${sponsor.name} on ${name}`;
                               return (
                                 <a
                                   key={link.kind}
                                   href={link.href}
                                   className="sponsor-diamond-link hover-lift"
-                                  aria-label={`${sponsor.name} on ${labelName}`}
+                                  aria-label={ariaLabel}
                                   {...(!isEmail
                                     ? { target: "_blank", rel: "noopener noreferrer" }
                                     : {})}
