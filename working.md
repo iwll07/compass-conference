@@ -10,18 +10,19 @@
       - *"Special guests"*: Prof. Dr. Sherine Ghaleb (Head of the Cairo Medical Syndicate), Prof. Dr. Osama Abdelhay (Head of the Egyptian Medical Syndicate), Prof. Dr. Emad El-Banna (Head of the Beni Suef Medical Syndicate).
     - **Initials Fallback (`getInitials`):** Strips honorifics ("Prof.", "Dr.") case-insensitively and returns 2-letter uppercase initials for names without a photo or if an image fails to load.
     - Fully dynamic: empty groups do not render; adding someone only requires a new entry in `lib/honorees.ts` and an optimized square portrait under `public/people/`.
-  - **Photo Requirements:**
-    - Format: Square (480×480) JPEG or WebP, under 120KB (current set is 17KB - 34KB).
-    - Location: `public/people/<kebab-case-name>.<ext>` with strictly no spaces in filenames.
-    - Crop: Bias towards the top so heads and faces are fully preserved and naturally framed.
-  - **About Page (`app/about/page.tsx`):**
+  - **Photo Requirements & Gradient Baseline:**
+    - Format: Transparent PNGs (isolated portraits with background removed), 480×480 square, with bottom torso anchored at bottom edge.
+    - Location: `public/people/<kebab-case-name>.png` with strictly no spaces in filenames.
+    - Styling: Cutout sits with a transparent frame (no clunky gray rectangular box), capped at the bottom with a 5px gradient baseline strip in COMPASS colors (`linear-gradient(90deg, #082a4b 0%, #06797f 55%, #72d6ca 100%)` in light mode, `#101f29` to `#8ae2d6` in dark mode).
+    - Torso and desk/suit meet the gradient strip naturally, with head and shoulders rising out of the baseline.
+  - **About Page (`app/about/page.tsx`, `app/globals.css`):**
     - Section `id="patrons"` with heading *"Patrons and special guests"* and generic intro *"COMPASS is honoured by the support of the university's leadership and by the presence of distinguished guests."*
     - Replaced former organizing committee placeholder while preserving student-led identity across the site.
-    - Identical big cards grid (`repeat(auto-fill, minmax(300px, 1fr))`): 112×132 rounded 12px photo (`object-fit: cover`, top-biased), 20px serif name, 13px muted title, equal-height (236px min-height), surface background token with 0.5px line border and 14px radius. Lazy loading with `next/image`. Single column on mobile (<600px).
+    - Identical big cards grid (`repeat(auto-fill, minmax(300px, 1fr))`): 112×132 photo frame with transparent background, bottom 5px gradient strip in COMPASS brand colors, 20px serif name, 13px muted title, equal-height (236px min-height), surface background token with 0.5px line border and 14px radius. Lazy loading with `next/image`. Single column on mobile (<600px).
   - **Homepage Section (`components/home-patrons-row.tsx`, `app/globals.css`):**
     - Sits after *"More than a seat in the room"* explore section and before the sponsor strip, with text link to `/about#patrons`.
     - Stacked vertical groups (`.home-patrons-groups` with 40px gap): "Under the patronage of" and "Special guests" each rendered in their own full-width section with small uppercase accent label and 1px hairline divider.
-    - Each person is a column (`.home-patrons-item`, 175px wide) with 72px round portrait (6px section background outline ring), 14px serif name, and 11.5px muted title.
+    - Each person is a column (`.home-patrons-item`, 175px wide) with 72px round portrait ring, 5px bottom gradient arc strip in COMPASS colors, 14px serif name, and 11.5px muted title.
     - Continuous SVG pulse ECG heartbeat line runs behind the portraits across each group on desktop with inline heartbeat peaks between portraits.
     - Responsive mobile layout (<820px): pulse line cleanly hides, and items wrap naturally into a 2-column flex layout with zero horizontal overflow (no horizontal scrollbar).
 - **COMPASS Sponsor System & Mood Digital Partner Integration (2026-10-22):**

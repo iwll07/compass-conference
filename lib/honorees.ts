@@ -37,7 +37,7 @@ export const honoreeGroups: HonoreeGroup[] = [
         name: "Prof. Dr. Tarek Ali",
         title: "President of Beni Suef National University",
         photo: {
-          src: "/people/tarek-ali.jpg",
+          src: "/people/tarek-ali.png",
           width: 480,
           height: 480,
         },
@@ -47,7 +47,7 @@ export const honoreeGroups: HonoreeGroup[] = [
         name: "Prof. Dr. Rasha Tawfik",
         title: "Vice President for Academic Affairs",
         photo: {
-          src: "/people/rasha-tawfik.jpg",
+          src: "/people/rasha-tawfik.png",
           width: 480,
           height: 480,
         },
@@ -57,7 +57,7 @@ export const honoreeGroups: HonoreeGroup[] = [
         name: "Prof. Dr. Ahmed Osama",
         title: "Dean of the Health Sciences Sector",
         photo: {
-          src: "/people/ahmed-osama.jpg",
+          src: "/people/ahmed-osama.png",
           width: 480,
           height: 480,
         },
@@ -67,7 +67,7 @@ export const honoreeGroups: HonoreeGroup[] = [
         name: "Prof. Dr. Doaa Hamdy",
         title: "Managing Director, Medicine and Surgery Program",
         photo: {
-          src: "/people/doaa-hamdy.jpg",
+          src: "/people/doaa-hamdy.png",
           width: 480,
           height: 480,
         },
@@ -83,7 +83,7 @@ export const honoreeGroups: HonoreeGroup[] = [
         name: "Prof. Dr. Sherine Ghaleb",
         title: "Head of the Cairo Medical Syndicate",
         photo: {
-          src: "/people/sherine-ghaleb.jpg",
+          src: "/people/sherine-ghaleb.png",
           width: 480,
           height: 480,
         },
@@ -93,7 +93,7 @@ export const honoreeGroups: HonoreeGroup[] = [
         name: "Prof. Dr. Osama Abdelhay",
         title: "Head of the Egyptian Medical Syndicate",
         photo: {
-          src: "/people/osama-abdelhay.jpg",
+          src: "/people/osama-abdelhay.png",
           width: 480,
           height: 480,
         },
@@ -103,7 +103,7 @@ export const honoreeGroups: HonoreeGroup[] = [
         name: "Prof. Dr. Emad El-Banna",
         title: "Head of the Beni Suef Medical Syndicate",
         photo: {
-          src: "/people/emad-el-banna.jpg",
+          src: "/people/emad-el-banna.png",
           width: 480,
           height: 480,
         },
