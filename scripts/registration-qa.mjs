@@ -274,8 +274,15 @@ async function setupMock(page, onPayload) {
   const footerCount = await card.locator(".reg-card-footer").count();
   check("card has navy footer band", footerCount === 1);
 
-  const saveBtn = page.locator("button", { hasText: "Save card as image" });
-  check("Save card as image button exists", await saveBtn.count() === 1);
+  const shareBtn = page.locator("button", { hasText: "Share your card" });
+  check("Share your card button exists", await shareBtn.count() === 1);
+
+  const shareNote = page.locator(".reg-share-note");
+  check(
+    "confirmation invites the attendee to show they are attending",
+    (await shareNote.innerText()).includes("attending COMPASS"),
+    await shareNote.innerText()
+  );
 
   // Test 1: Fallback download mechanism
   await page.evaluate(() => {
@@ -284,7 +291,7 @@ async function setupMock(page, onPayload) {
 
   const [download] = await Promise.all([
     page.waitForEvent("download", { timeout: 10000 }),
-    saveBtn.click(),
+    shareBtn.click(),
   ]);
   check(
     "downloaded card filename matches compass-attendee-card.png",
@@ -296,16 +303,31 @@ async function setupMock(page, onPayload) {
   await page.evaluate(() => {
     window.navigator.canShare = (data) => !!data?.files?.length;
     window.navigator.share = async (data) => {
-      window._sharedData = { title: data.title, fileName: data.files?.[0]?.name };
+      window._sharedData = {
+        title: data.title,
+        text: data.text,
+        fileName: data.files?.[0]?.name,
+      };
     };
   });
-  await saveBtn.click();
+  await shareBtn.click();
   await page.waitForTimeout(600);
   const shared = await page.evaluate(() => window._sharedData);
   check(
     "navigator.share called with file when canShare is supported",
     shared?.fileName === "compass-attendee-card.png",
     JSON.stringify(shared)
+  );
+  check(
+    "shared title announces attendance",
+    shared?.title === "I'm attending COMPASS",
+    JSON.stringify(shared?.title)
+  );
+  check(
+    "shared text announces attendance and links the site",
+    shared?.text?.includes("I'm attending COMPASS") &&
+      shared?.text?.includes("https://compassbsnu.page"),
+    JSON.stringify(shared?.text)
   );
 
   await page.screenshot({ path: ".playwright-cli/qa/registration-desktop-light.png" });
@@ -1138,7 +1160,13 @@ async function setupAdminMock(page, userEmail) {
   const rmAnimation = await rmSkeleton.evaluate((el) => {
     return window.getComputedStyle(el).animationName;
   });
-  check("skeleton: reduced motion disables pulse animation", rmAnimation === "none");
+  // Edge reports the computed name as "" rather than "none" once the
+  // reduced-motion rule resets the shorthand, so accept both spellings.
+  check(
+    "skeleton: reduced motion disables pulse animation",
+    rmAnimation === "none" || rmAnimation === "",
+    `animationName=${JSON.stringify(rmAnimation)}`
+  );
   await reducedMotionContext.close();
 
   // 3. Skeleton resolves into Coming soon notice (status: 'soon')

@@ -125,7 +125,7 @@ export function RegistrationForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState<RegistrationSuccess | null>(null);
-  const [savingImage, setSavingImage] = useState(false);
+  const [sharingCard, setSharingCard] = useState(false);
   const successRef = useRef<HTMLHeadingElement>(null);
 
   function onChange<K extends keyof FormData>(field: K, value: string) {
@@ -265,9 +265,9 @@ export function RegistrationForm() {
     const firstName = success.fullName.split(/\s+/)[0];
     const googleCalendarUrl = buildGoogleCalendarUrl(conferenceWindow);
 
-    async function onSaveImage() {
-      if (savingImage || !success) return;
-      setSavingImage(true);
+    async function onShareCard() {
+      if (sharingCard || !success) return;
+      setSharingCard(true);
       try {
         const { exportCardAsImage } = await import("@/lib/registration-card-canvas");
         await exportCardAsImage({
@@ -277,9 +277,9 @@ export function RegistrationForm() {
           universityOther: success.universityOther,
         });
       } catch (err) {
-        console.warn("Failed to export card image:", err);
+        console.warn("Failed to share card image:", err);
       } finally {
-        setSavingImage(false);
+        setSharingCard(false);
       }
     }
 
@@ -330,14 +330,17 @@ export function RegistrationForm() {
               Apple / Outlook (.ics)
             </a>
           </div>
+          <p className="reg-share-note">
+            Let people know you&apos;re attending COMPASS — your card is ready to share.
+          </p>
           <div className="reg-actions">
             <button
               type="button"
               className="button button-secondary"
-              onClick={onSaveImage}
-              disabled={savingImage}
+              onClick={onShareCard}
+              disabled={sharingCard}
             >
-              {savingImage ? "Saving card…" : "Save card as image"}
+              {sharingCard ? "Preparing your card…" : "Share your card"}
             </button>
             <Link href="/" className="text-link reg-home-link">
               Back to home

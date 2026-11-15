@@ -1,5 +1,5 @@
 import { conferenceWindow, formatEventDate, formatEventTimeRange } from "@/lib/event";
-import { SITE_HOST, SITE_TAGLINE } from "@/lib/site";
+import { SITE_HOST, SITE_ORIGIN, SITE_TAGLINE } from "@/lib/site";
 import {
   CARD_WIDTH,
   CARD_HEIGHT,
@@ -370,8 +370,8 @@ export async function exportCardAsImage(attendee: AttendeeCanvasData): Promise<v
           if (navigator.canShare({ files: [file] })) {
             await navigator.share({
               files: [file],
-              title: "COMPASS Attendee Card",
-              text: `Registered for COMPASS: ${attendee.fullName}`,
+              title: "I'm attending COMPASS",
+              text: `I'm attending COMPASS — ${SITE_TAGLINE}. See you there: ${SITE_ORIGIN}`,
             });
             resolve();
             return;

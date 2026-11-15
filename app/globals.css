@@ -442,6 +442,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .reg-calendar-link { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .reg-calendar-link:hover { text-decoration: underline; }
 .reg-calendar-sep { color: var(--muted); user-select: none; }
+.reg-share-note { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; max-width: 44ch; }
 .reg-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .reg-home-link { color: var(--accent); }
 .reg-contact { margin-top: 24px; font-size: 13px; color: var(--muted); max-width: 44ch; }
