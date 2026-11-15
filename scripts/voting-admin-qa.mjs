@@ -48,6 +48,7 @@ async function createAdminPage(config = {}) {
   const patches = [];
   let resultsCalls = 0;
   let resetCalls = 0;
+  let castCalls = 0;
 
   const context = await browser.newContext({ viewport });
   await context.addInitScript((theme) => {
@@ -122,6 +123,15 @@ async function createAdminPage(config = {}) {
       });
     }
 
+    if (url.includes("/rest/v1/rpc/cast_vote")) {
+      castCalls += 1;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify("ok"),
+      });
+    }
+
     if (url.includes("/rest/v1/rpc/clear_all_votes")) {
       const deleted = tallies.reduce((sum, value) => sum + value, 0);
       tallies.fill(0);
@@ -186,6 +196,7 @@ async function createAdminPage(config = {}) {
     patches,
     resultsCalls: () => resultsCalls,
     resetCalls: () => resetCalls,
+    castCalls: () => castCalls,
   };
 }
 
@@ -249,6 +260,20 @@ async function createAdminPage(config = {}) {
       ?.replace(/\s+/g, " ")
       .trim() ===
       "To reset test votes, delete rows from the votes table in Supabase."
+  );
+
+  const previewBtn = page.locator(".vote-preview-btn");
+  check(
+    "admin: 'Open vote preview' button exists",
+    (await previewBtn.count()) === 1
+  );
+  check(
+    "admin: preview button links to the vote preview",
+    (await previewBtn.getAttribute("href")) === "/vote/?preview=true"
+  );
+  check(
+    "admin: preview button opens in a new tab",
+    (await previewBtn.getAttribute("target")) === "_blank"
   );
 
   // Close voting.
@@ -415,6 +440,112 @@ async function createAdminPage(config = {}) {
       .getAttribute("aria-checked")) === "true"
   );
 
+  await context.close();
+}
+
+// ---- Admin vote preview (?preview=true) -------------------------------------
+
+{
+  const { context, page, castCalls } = await createAdminPage({ status: "soon" });
+
+  // Let the magic-link hash finish hydrating the session before leaving /admin.
+  await page.waitForSelector(".vote-admin-section");
+
+  // The public page must stay exactly as it is for everyone else.
+  await page.goto(BASE + "/vote/", { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".vote-status");
+  check(
+    "preview: the public page still hides the ballot while soon",
+    (await page.locator(".vote-button").count()) === 0 &&
+      (await page.locator(".admin-preview-banner").count()) === 0
+  );
+
+  // The signed-in admin gets the real ballot plus a banner.
+  await page.goto(BASE + "/vote/?preview=true", { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".admin-preview-banner");
+  check(
+    "preview: signed-in admin sees the banner",
+    (await page.locator(".admin-preview-banner").count()) === 1
+  );
+  const banner =
+    (await page.locator(".admin-preview-banner").textContent()) ?? "";
+  check("preview: banner states the public status", banner.includes("soon"));
+  check(
+    "preview: banner warns the votes are real",
+    banner.replace(/\s+/g, " ").includes("votes cast in preview are real votes.")
+  );
+  {
+    const href =
+      (await page.locator(".admin-preview-back-link").getAttribute("href")) ??
+      "";
+    check(
+      "preview: banner links back to admin",
+      href.startsWith("/admin") && href.endsWith("#admin-voting"),
+      href
+    );
+  }
+  check(
+    "preview: the ballot is shown despite the soon status",
+    (await page.locator(".vote-button").count()) === 6
+  );
+  check(
+    "preview: first card is Malak",
+    (await page.locator(".vote-card-presenter").first().innerText()).includes(
+      "Malak Ashraf Saad Abdelfatah"
+    )
+  );
+  check(
+    "preview: the status line reads as open",
+    (await page.locator(".vote-status").first().innerText()).includes(
+      "Voting is open. Choose one presentation."
+    )
+  );
+
+  // A preview vote goes through the same cast_vote path as a public vote.
+  await page.locator(".vote-button").first().click();
+  await page.waitForSelector(".vote-dialog[open]");
+  await page.locator(".vote-dialog input").fill("1012345678");
+  await page.locator(".vote-dialog-submit").click();
+  await page.waitForFunction(
+    () => !document.querySelector(".vote-dialog")?.open,
+    null,
+    { timeout: 5000 }
+  );
+  check("preview: the vote reached cast_vote", castCalls() === 1);
+  check(
+    "preview: the chosen card is marked",
+    (await page.locator(".vote-card-marker").count()) === 1
+  );
+
+  await context.close();
+}
+
+// Without a session the query string is ignored: no banner, no ballot.
+{
+  const { context, page } = await createAdminPage({
+    signedIn: false,
+    status: "soon",
+  });
+  await page.goto(BASE + "/vote/?preview=true", { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".vote-status");
+  check(
+    "preview: signed-out visitor gets no banner",
+    (await page.locator(".admin-preview-banner").count()) === 0
+  );
+  check(
+    "preview: signed-out visitor gets no ballot",
+    (await page.locator(".vote-button").count()) === 0
+  );
+  check(
+    "preview: signed-out visitor is not left on the skeleton",
+    (await page.locator(".vote-skeleton").count()) === 0
+  );
+  check(
+    "preview: signed-out visitor sees the real soon status",
+    (await page.locator(".vote-status").first().innerText()).includes(
+      "Voting opens during the conference."
+    )
+  );
   await context.close();
 }
 

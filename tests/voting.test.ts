@@ -94,6 +94,33 @@ test("clear_all_votes migration matches the reset gate", () => {
   }
 });
 
+test("vote preview migration lets a signed-in admin vote while voting is shut", () => {
+  const sql = fs.readFileSync(
+    path.join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20261115000400_allow_admin_preview_votes.sql"
+    ),
+    "utf8"
+  );
+  // Replaces cast_vote only; results stay untouched so nothing leaks.
+  assert.match(sql, /create or replace function public\.cast_vote\(/);
+  assert.match(sql, /security definer/);
+  assert.match(sql, /set search_path = public/);
+  // The role is read the SQL-Editor-safe way and drives the preview escape.
+  assert.match(sql, /json_extract_path_text\(/);
+  assert.match(sql, /v_role is distinct from 'authenticated'/);
+  assert.match(
+    sql,
+    /grant execute on function public\.cast_vote\(text, text\) to anon, authenticated/
+  );
+  // Every other gate is still present in the replaced body.
+  assert.match(sql, /v_phone !~ '\^\\\+20\(10\|11\|12\|15\)\[0-9\]\{8\}\$'/);
+  assert.match(sql, /return 'not_registered'/);
+  assert.match(sql, /on conflict \(voter_key\) do nothing/);
+});
+
 // ---- Winners and percentages ------------------------------------------------
 
 test("getVoteWinners: no winner when there are no tallies or no votes", () => {

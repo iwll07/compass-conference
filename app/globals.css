@@ -217,10 +217,10 @@ svg { flex-shrink: 0; vertical-align: middle; }
 
 /* ---- Registrations Admin UI (/admin) -------------------------------- */
 .reg-status-section { margin-top: 18px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
-.reg-status-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.reg-status-header, .vote-status-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
 .reg-status-title, .vote-status-title { font-size: 18px; font-family: "Source Serif 4", Georgia, serif; }
 .reg-status-desc, .vote-status-desc { font-size: 13px; color: var(--muted); margin: 3px 0 0; max-width: 52ch; }
-.reg-preview-btn { min-height: 38px; padding: 8px 14px; font-size: 12px; }
+.reg-preview-btn, .vote-preview-btn { min-height: 38px; padding: 8px 14px; font-size: 12px; }
 .reg-status-options, .vote-status-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 .reg-status-pill, .vote-status-pill { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; text-align: left; cursor: pointer; transition: border-color 160ms, background-color 160ms, box-shadow 160ms; }
 .reg-status-pill:hover:not(:disabled), .vote-status-pill:hover:not(:disabled) { border-color: var(--accent); }

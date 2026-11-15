@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
+import { ArrowsClockwiseIcon, ArrowUpRightIcon } from "@phosphor-icons/react";
 import { getSupabase } from "@/lib/supabase";
 import { votingCandidates } from "@/lib/voting-candidates";
 import {
@@ -219,11 +219,25 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
 
       <div className="admin-collapse-body">
         <section className="vote-admin-section" aria-label="Voting status control">
-          <h3 className="vote-status-title">Best student presentation</h3>
-          <p className="vote-status-desc">
-            Controls the public vote page. All admins can change the status and
-            publish live results.
-          </p>
+          <div className="vote-status-header">
+            <div>
+              <h3 className="vote-status-title">Best student presentation</h3>
+              <p className="vote-status-desc">
+                Controls the public vote page. All admins can change the status
+                and publish live results.
+              </p>
+            </div>
+            <a
+              href="/vote/?preview=true"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="button button-secondary vote-preview-btn"
+              title="Open the live vote page in preview mode"
+            >
+              Open vote preview
+              <ArrowUpRightIcon size={16} aria-hidden="true" />
+            </a>
+          </div>
 
           <div
             className="vote-status-options vote-admin-status"

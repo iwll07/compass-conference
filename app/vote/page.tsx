@@ -1,5 +1,9 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { VotePageContent } from "@/components/vote-page-content";
+import {
+  VotePageContent,
+  VoteSkeleton,
+} from "@/components/vote-page-content";
 
 export const metadata: Metadata = {
   title: "Vote | COMPASS",
@@ -16,7 +20,10 @@ export default function VotePage() {
           <h1>Best student presentation</h1>
         </div>
       </header>
-      <VotePageContent />
+      {/* Suspense is required because VotePageContent reads ?preview=true. */}
+      <Suspense fallback={<VoteSkeleton />}>
+        <VotePageContent />
+      </Suspense>
     </main>
   );
 }

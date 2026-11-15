@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import type { CSSProperties } from "react";
 import Image from "next/image";
@@ -8,6 +10,7 @@ import { getInitials } from "@/lib/honorees";
 import { normalizeEgyptianPhone } from "@/lib/registration";
 import { votingCandidates, type VotingCandidate } from "@/lib/voting-candidates";
 import { VoteCompassRose } from "@/components/vote-compass-rose";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   castVote,
   fetchVotingResults,
@@ -35,7 +38,7 @@ function candidatePhotos(candidate: VotingCandidate): string[] {
   );
 }
 
-function VoteSkeleton() {
+export function VoteSkeleton() {
   return (
     <div
       className="vote-skeleton reg-skeleton-pulse"
@@ -55,12 +58,52 @@ function VoteSkeleton() {
 }
 
 export function VotePageContent() {
+  const searchParams = useSearchParams();
+  const isPreviewParam = searchParams.get("preview") === "true";
+
   const mounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
     () => false
   );
   const { status, liveResults, loading: settingsLoading } = useVotingSettings();
+
+  // Admin preview: ?preview=true renders the ballot even while the public
+  // status is not open, but only for a signed-in session — the same gate the
+  // registration form preview uses. The session is checked here rather than
+  // trusted from the URL, so a shared link cannot open a ballot for the public.
+  const [sessionState, setSessionState] = useState<
+    "unknown" | "signed-in" | "signed-out"
+  >(() => (isPreviewParam ? "unknown" : "signed-out"));
+
+  useEffect(() => {
+    if (!isPreviewParam || !isSupabaseConfigured) return;
+    try {
+      const supabase = getSupabase();
+      supabase.auth.getSession().then(({ data }) => {
+        setSessionState(data.session ? "signed-in" : "signed-out");
+      });
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSessionState(session ? "signed-in" : "signed-out");
+      });
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch {
+      // Degrade to the public page instead of leaving the skeleton up. The
+      // microtask keeps this out of the effect's synchronous body.
+      Promise.resolve().then(() => setSessionState("signed-out"));
+    }
+  }, [isPreviewParam]);
+
+  const previewActive = isPreviewParam && sessionState === "signed-in";
+  const sessionPending =
+    isPreviewParam && isSupabaseConfigured && sessionState === "unknown";
+  // The preview shows the ballot as it looks while voting is open. The public
+  // status still drives the banner, so the admin can see what is live now.
+  const effectiveStatus = previewActive ? "open" : status;
 
   const [storedVote, setStoredVote] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
@@ -95,7 +138,8 @@ export function VotePageContent() {
   const errorId = useId();
 
   const resultsVisible =
-    status === "closed" || (status === "open" && liveResults);
+    effectiveStatus === "closed" ||
+    (effectiveStatus === "open" && liveResults);
   const selected = selectedId
     ? votingCandidates.find((candidate) => candidate.id === selectedId) ?? null
     : null;
@@ -224,7 +268,7 @@ export function VotePageContent() {
     }
   }
 
-  if (!mounted || settingsLoading) {
+  if (!mounted || settingsLoading || sessionPending) {
     return <VoteSkeleton />;
   }
 
@@ -246,9 +290,9 @@ export function VotePageContent() {
   const { winners } = getVoteWinners(results?.candidates ?? []);
 
   let statusText: string;
-  if (status === "soon") {
+  if (effectiveStatus === "soon") {
     statusText = "Voting opens during the conference.";
-  } else if (status === "closed") {
+  } else if (effectiveStatus === "closed") {
     statusText = "Voting has closed. Thank you to everyone who took part.";
   } else if (storedVote) {
     statusText = liveResults
@@ -262,6 +306,26 @@ export function VotePageContent() {
 
   return (
     <section className="vote-content">
+      {previewActive && (
+        <aside
+          className="admin-preview-banner"
+          role="status"
+          aria-label="Admin preview mode"
+        >
+          <div className="admin-preview-banner-text">
+            <strong>Admin Vote Preview</strong>
+            <span>
+              The public status is currently:{" "}
+              <strong className="preview-status-tag">{status}</strong> — votes
+              cast in preview are real votes.
+            </span>
+          </div>
+          <Link href="/admin#admin-voting" className="admin-preview-back-link">
+            Return to admin
+          </Link>
+        </aside>
+      )}
+
       <p className="vote-status" aria-live="polite">
         {statusText}
       </p>
@@ -289,7 +353,8 @@ export function VotePageContent() {
         {votingCandidates.map((candidate) => {
           const votes = votesById.get(candidate.id) ?? 0;
           const percentage = getVotePercentage(votes, total);
-          const isWinner = status === "closed" && winners.includes(candidate.id);
+          const isWinner =
+            effectiveStatus === "closed" && winners.includes(candidate.id);
           const isStored = storedVote === candidate.id;
           const photos = candidatePhotos(candidate);
           const meta = [candidate.university, candidate.academicYear]
@@ -380,7 +445,7 @@ export function VotePageContent() {
                       </div>
                     )}
 
-                    {status === "open" &&
+                    {effectiveStatus === "open" &&
                       (isStored ? (
                         <p className="vote-card-marker">Your vote</p>
                       ) : (
