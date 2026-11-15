@@ -21,6 +21,7 @@ import {
   type LinkTarget,
 } from "@/lib/announcements";
 import { AdminRegistrations } from "@/components/admin-registrations";
+import { AdminVoting } from "@/components/admin-voting";
 
 /** The only account allowed to read the announcement audit log. Mirrors the
  *  `announcement_log` SELECT policy in supabase/migrations — keep in sync. */
@@ -549,6 +550,10 @@ export default function AdminPage() {
           {/* Registrations list, summary, filters, and export. Shown to all signed-in
               admins. Delete permissions are gated in the database and checked via sessionEmail. */}
           <AdminRegistrations sessionEmail={sessionEmail} />
+
+          {/* Voting controls. Every signed-in admin may run the contest; the
+              database grants UPDATE on voting_settings to authenticated. */}
+          <AdminVoting />
 
           {/* History is rendered only for the privileged account. Hiding it is
               presentation, not security — the RLS policy on announcement_log is

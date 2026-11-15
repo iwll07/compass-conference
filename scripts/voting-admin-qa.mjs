@@ -1,0 +1,351 @@
+// Admin voting QA. Every Supabase request is mocked: this script never reads
+// or writes the live database. Auth is a fake magic-link session in the URL,
+// exactly like scripts/registration-qa.mjs uses.
+//
+// Usage: node scripts/voting-admin-qa.mjs
+import { chromium } from "@playwright/test";
+import fs from "node:fs";
+
+const BASE = process.env.BASE_URL ?? "http://localhost:3002";
+const OUT = ".playwright-cli/qa/voting-admin";
+fs.mkdirSync(OUT, { recursive: true });
+
+const results = [];
+function check(name, pass, detail = "") {
+  results.push({ name, pass: !!pass, detail });
+  console.log(`${pass ? "ok" : "FAIL"} - ${name}${pass ? "" : " :: " + detail}`);
+}
+
+const CANDIDATE_IDS = [
+  "artificial-intelligence-revolution-or-risk",
+  "base-editing-revolution",
+  "dna-origami-nanorobotics",
+  "digital-phenotyping-mental-health",
+  "preeclampsia-statin-metformin-vitamin-d",
+  "organoids-miniature-organs",
+];
+
+const browser = await chromium.launch({ channel: "msedge" });
+
+/**
+ * One mock server per page. The mutable objects are the "database": PATCH
+ * writes into voting, and voting_results() reads it back, so a status change
+ * has to survive the page's follow-up refresh for the test to pass.
+ */
+async function createAdminPage(config = {}) {
+  const {
+    signedIn = true,
+    status = "open",
+    liveResults = false,
+    votes = [10, 4, 3, 2, 1, 0],
+    theme = "light",
+    viewport = { width: 1440, height: 1000 },
+  } = config;
+
+  const voting = { status, live_results: liveResults };
+  const tallies = [...votes];
+  const patches = [];
+  let resultsCalls = 0;
+
+  const context = await browser.newContext({ viewport });
+  await context.addInitScript((theme) => {
+    localStorage.setItem("compass-theme", theme);
+  }, theme);
+
+  await context.route("**/auth/v1/user*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: "mock-user-id",
+        email: "admin@example.com",
+        role: "authenticated",
+        app_metadata: {},
+        user_metadata: {},
+      }),
+    })
+  );
+
+  await context.route("**/auth/v1/token*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        access_token: "mock-token",
+        token_type: "bearer",
+        expires_in: 3600,
+        refresh_token: "mock-refresh",
+        user: { id: "mock-user-id", email: "admin@example.com" },
+      }),
+    })
+  );
+
+  await context.route("**/rest/v1/**", async (route) => {
+    const request = route.request();
+    const url = request.url();
+    const method = request.method();
+
+    if (url.includes("/rest/v1/voting_settings")) {
+      if (method === "PATCH") {
+        const body = JSON.parse(request.postData() ?? "{}");
+        patches.push(body);
+        Object.assign(voting, body);
+        return route.fulfill({ status: 204, body: "" });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: "current",
+          status: voting.status,
+          live_results: voting.live_results,
+        }),
+      });
+    }
+
+    if (url.includes("/rest/v1/rpc/voting_results")) {
+      resultsCalls += 1;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: voting.status,
+          live_results: voting.live_results,
+          total: tallies.reduce((sum, value) => sum + value, 0),
+          candidates: CANDIDATE_IDS.map((id, index) => ({
+            id,
+            votes: tallies[index] ?? 0,
+          })),
+        }),
+      });
+    }
+
+    if (url.includes("/rest/v1/registration_settings")) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: "current", status: "open" }),
+      });
+    }
+
+    if (url.includes("/rest/v1/rpc/registration_summary")) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          total: 0,
+          by_university: [],
+          by_academic_year: [],
+        }),
+      });
+    }
+
+    if (url.includes("/rest/v1/rpc/search_registrations")) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      });
+    }
+
+    // Everything else on the admin page (announcements, logs, registration
+    // counts) is empty. An empty array is a valid PostgREST response for a
+    // list select and keeps the page quiet.
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: { "content-range": "0-0/0" },
+      body: JSON.stringify([]),
+    });
+  });
+
+  const page = await context.newPage();
+  const hash = signedIn
+    ? "/admin/#access_token=mock-token&refresh_token=mock-refresh&expires_in=3600&token_type=bearer&type=recovery"
+    : "/admin/";
+  await page.goto(BASE + hash, { waitUntil: "domcontentloaded" });
+
+  return { context, page, voting, tallies, patches, resultsCalls: () => resultsCalls };
+}
+
+// ---- Controls and results ---------------------------------------------------
+
+{
+  const { context, page, voting, tallies, patches, resultsCalls } =
+    await createAdminPage();
+
+  await page.waitForSelector(".vote-admin-section");
+
+  check(
+    "admin: voting section is present",
+    (await page.locator(".vote-admin-section").count()) === 1
+  );
+  check(
+    "admin: status pills match the three states",
+    (await page.locator(".vote-admin-status [role=radio]").count()) === 3
+  );
+  check(
+    "admin: open is selected",
+    (await page
+      .locator(".vote-admin-status")
+      .getByRole("radio", { name: /^Open/ })
+      .getAttribute("aria-checked")) === "true"
+  );
+  check(
+    "admin: live results start unchecked",
+    !(await page.locator(".vote-admin-toggle input").isChecked())
+  );
+
+  await page.waitForSelector(".vote-admin-table tbody tr");
+  check(
+    "admin: six candidate rows",
+    (await page.locator(".vote-admin-table tbody tr").count()) === 6
+  );
+
+  const firstRow = page.locator(".vote-admin-table tbody tr").first();
+  const firstCells = firstRow.locator("td");
+  check(
+    "admin: first row shows the presenter",
+    (await firstCells.nth(0).textContent())?.includes("Lobna Ahmed Diab") === true
+  );
+  check(
+    "admin: first row votes",
+    (await firstCells.nth(1).textContent())?.trim() === "10"
+  );
+  check(
+    "admin: first row percentage",
+    (await firstCells.nth(2).textContent())?.trim() === "50%"
+  );
+  check(
+    "admin: total row",
+    (await page.locator(".vote-admin-total").textContent())?.includes(
+      "20 votes cast"
+    ) === true
+  );
+  check(
+    "admin: reset note is exact",
+    (await page.locator(".vote-admin-note").textContent())
+      ?.replace(/\s+/g, " ")
+      .trim() ===
+      "To reset test votes, delete rows from the votes table in Supabase."
+  );
+
+  // Close voting.
+  await page
+    .locator(".vote-admin-status")
+    .getByRole("radio", { name: /^Closed/ })
+    .click();
+  await page.waitForFunction(
+    () => document.querySelector(".admin-notice")?.textContent?.includes("Voting is now closed."),
+    null,
+    { timeout: 5000 }
+  );
+  check(
+    "admin: closed PATCH sent",
+    patches.some((patch) => patch.status === "closed" && !("live_results" in patch))
+  );
+  check("admin: closed persisted", voting.status === "closed");
+  check(
+    "admin: closed becomes selected",
+    (await page
+      .locator(".vote-admin-status")
+      .getByRole("radio", { name: /^Closed/ })
+      .getAttribute("aria-checked")) === "true"
+  );
+  check(
+    "admin: status notice",
+    (await page.locator(".admin-notice").textContent())?.includes(
+      "Voting is now closed."
+    ) === true
+  );
+
+  // Publish live results.
+  await page.locator(".vote-admin-toggle input").check();
+  await page.waitForFunction(
+    () =>
+      document.querySelector(".admin-notice")?.textContent?.includes(
+        "Live results are now visible"
+      ),
+    null,
+    { timeout: 5000 }
+  );
+  check(
+    "admin: live-results PATCH sent",
+    patches.some((patch) => patch.live_results === true && !("status" in patch))
+  );
+  check("admin: live results persisted", voting.live_results === true);
+  check(
+    "admin: live results notice",
+    (await page.locator(".admin-notice").textContent())?.includes(
+      "Live results are now visible while voting is open."
+    ) === true
+  );
+
+  // Refresh picks up new tallies without a page reload.
+  tallies.splice(0, tallies.length, 12, 5, 2, 1, 0, 0);
+  const before = resultsCalls();
+  await page.locator(".vote-admin-refresh").click();
+  await page.waitForFunction(
+    () => document.querySelector(".vote-admin-table tbody tr td:nth-child(2)")?.textContent?.trim() === "12",
+    null,
+    { timeout: 5000 }
+  );
+  check("admin: refresh re-fetches results", resultsCalls() > before);
+  check(
+    "admin: refresh updates the total",
+    (await page.locator(".vote-admin-total").textContent())?.includes(
+      "20 votes cast"
+    ) === true
+  );
+  check(
+    "admin: refresh updates the percentage",
+    (await page
+      .locator(".vote-admin-table tbody tr")
+      .first()
+      .locator("td")
+      .nth(2)
+      .textContent())?.trim() === "60%"
+  );
+
+  await context.close();
+}
+
+// ---- Signed out -------------------------------------------------------------
+
+{
+  const { context, page } = await createAdminPage({ signedIn: false });
+  await page.waitForSelector(".admin-login");
+  check(
+    "signed out: no voting controls",
+    (await page.locator(".vote-admin-section").count()) === 0
+  );
+  await context.close();
+}
+
+// ---- Screenshots ------------------------------------------------------------
+
+async function shot(theme, width) {
+  const { context, page } = await createAdminPage({
+    theme,
+    viewport: { width, height: width === 390 ? 844 : 1000 },
+  });
+  await page.waitForSelector(".vote-admin-table tbody tr");
+  await page.waitForTimeout(150);
+  await page.locator("#admin-voting").screenshot({
+    path: `${OUT}/voting-${width}-${theme}.png`,
+  });
+  await context.close();
+}
+
+for (const theme of ["light", "dark"]) {
+  for (const width of [1440, 390]) {
+    await shot(theme, width);
+  }
+}
+
+await browser.close();
+
+const failed = results.filter((result) => !result.pass);
+console.log(`\nPASS ${results.length - failed.length}/${results.length}`);
+if (failed.length) console.log(JSON.stringify(failed, null, 2));
+process.exit(failed.length ? 1 : 0);
