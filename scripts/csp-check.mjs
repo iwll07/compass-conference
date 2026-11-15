@@ -17,6 +17,17 @@ await context.route("**/rest/v1/registration_settings*", (route) => {
     route.continue();
   }
 });
+await context.route("**/rest/v1/voting_settings*", (route) => {
+  if (route.request().method() === "GET") {
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "current", status: "soon", live_results: false }),
+    });
+  } else {
+    route.continue();
+  }
+});
 const page = await context.newPage();
 const cspErrors = [];
 const consoleErrors = [];
@@ -98,7 +109,7 @@ await page.waitForSelector("#mobile-nav.mobile-nav-open", { state: "visible", ti
 check("mobile menu opens under CSP", await page.locator("#mobile-nav").isVisible());
 
 // Check /registration/ and /admin/ routes for zero CSP violations
-for (const route of ["/registration/", "/admin/"]) {
+for (const route of ["/registration/", "/vote/", "/admin/"]) {
   await page.goto(BASE + route, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1000);
   check(`no CSP violations on ${route}`, cspErrors.length === 0, JSON.stringify(cspErrors.slice(0, 3)));

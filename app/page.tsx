@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRightIcon, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { Countdown } from "@/components/countdown";
 import { Announcements } from "@/components/announcements";
+import { HomeVoteBand } from "@/components/home-vote-band";
 import { HeroRegistrationCta } from "@/components/hero-registration-cta";
 import { lastConference } from "@/lib/calls";
 import { sponsors } from "@/lib/sponsors";
@@ -33,6 +34,9 @@ export default function HomePage() {
     {/* Announcements sit after the event strip (countdown + location), framed
         by hairlines above and below. */}
     <Announcements />
+    {/* The vote band disappears while the contest is not open or closed, so the
+        homepage never advertises a ballot that cannot be cast. */}
+    <HomeVoteBand />
     <section className="home-intro"><div className="reveal"><h2>Good medicine starts<br />with good questions.</h2><span className="intro-rule" /></div><div className="intro-prose reveal" style={stagger(80)}><p className="lead">Between what we learn and how we care, there is a conversation worth having.</p><p>COMPASS brings medical practice and scientific studies into the same room. Built by students at BSNU, it is a place to ask better questions, share work, and find a direction of your own.</p><Link href="/about" className="text-link">Why we’re coming together <ArrowUpRightIcon size={18} aria-hidden="true" /></Link></div></section>
     <section className="explore-section"><div className="explore-heading reveal"><h2>More than<br />a seat in the room.</h2><p>A program taking shape around learning, exchange, and student research.</p></div><div className="explore-list"><Link href="/agenda" className="reveal" style={stagger(0)}><div><h3 className="link-underline">Follow the conversation</h3><p>Talks, sessions, and space for questions.</p></div><span className="explore-detail">The agenda<ArrowUpRightIcon size={24} aria-hidden="true" /></span></Link><Link href="/speakers" className="reveal" style={stagger(80)}><div><h3 className="link-underline">Meet the minds behind it</h3><p>Speakers, their work, and the ideas they’ll share.</p></div><span className="explore-detail">Speakers & guests<ArrowUpRightIcon size={24} aria-hidden="true" /></span></Link><Link href="/posters" className="reveal" style={stagger(160)}><div><h3 className="link-underline">Make room for new research</h3><p>Student questions deserve a wider audience.</p></div><span className="explore-detail">Student posters<ArrowUpRightIcon size={24} aria-hidden="true" /></span></Link></div></section>
     <section className="sponsor-strip reveal">

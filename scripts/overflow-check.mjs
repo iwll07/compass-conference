@@ -11,7 +11,7 @@ function check(name, pass, detail = "") {
 }
 
 const browser = await chromium.launch({ channel: "msedge", headless: false, args: ["--window-position=3000,3000"] });
-const routes = ["/", "/about/", "/agenda/", "/speakers/", "/posters/", "/sponsors/", "/registration/"];
+const routes = ["/", "/about/", "/agenda/", "/speakers/", "/posters/", "/sponsors/", "/registration/", "/vote/"];
 const viewports = [
   ["desktop", { width: 1440, height: 1000 }],
   ["laptop", { width: 1280, height: 800 }],
@@ -28,8 +28,11 @@ for (const [label, viewport] of viewports) {
       const bad = [];
       document.querySelectorAll("body *").forEach((el) => {
         // Elements inside an intentional scroll container (overflow-x: auto/scroll)
-        // legitimately extend beyond the viewport horizontally.
-        if (el.closest(".home-patrons-scroll")) return;
+        // legitimately extend beyond the viewport horizontally. The vote card
+        // stage is in the list because the two-presenter cut-outs are scaled up
+        // and deliberately clipped by its overflow: hidden — the page itself
+        // still has no horizontal scroll (checked below).
+        if (el.closest(".home-patrons-scroll, .vote-card-stage")) return;
         const r = el.getBoundingClientRect();
         if (r.right > vw + 1 || r.left < -1) {
           bad.push(`${el.tagName}.${String(el.className).split(" ")[0]} right=${Math.round(r.right)} left=${Math.round(r.left)}`);
