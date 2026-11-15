@@ -17,10 +17,10 @@ function check(name, pass, detail = "") {
 }
 
 const CANDIDATE_IDS = [
+  "digital-phenotyping-mental-health",
   "artificial-intelligence-revolution-or-risk",
   "base-editing-revolution",
   "dna-origami-nanorobotics",
-  "digital-phenotyping-mental-health",
   "preeclampsia-statin-metformin-vitamin-d",
   "organoids-miniature-organs",
 ];
@@ -227,7 +227,7 @@ async function createAdminPage(config = {}) {
   const firstCells = firstRow.locator("td");
   check(
     "admin: first row shows the presenter",
-    (await firstCells.nth(0).textContent())?.includes("Lobna Ahmed Diab") === true
+    (await firstCells.nth(0).textContent())?.includes("Malak Ashraf Saad Abdelfatah") === true
   );
   check(
     "admin: first row votes",

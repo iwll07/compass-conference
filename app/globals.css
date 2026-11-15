@@ -1964,8 +1964,8 @@ button.sponsor-tile {
    reads at a similar size to a single presenter. The transparent outer margins
    absorb the overflow, so no shoulder is clipped. */
 .vote-card-figures--pair .vote-card-figure { flex: 0 0 50%; }
-.vote-card-figures--pair .vote-card-photo { transform: scale(1.5); transform-origin: bottom center; }
-.vote-card-photo { display: block; width: 100%; height: 100%; object-fit: contain; object-position: bottom center; }
+.vote-card-figures--pair .vote-card-photo { transform: translateX(var(--photo-shift, 0%)) scale(1.5); transform-origin: bottom center; }
+.vote-card-photo { display: block; width: 100%; height: 100%; object-fit: contain; object-position: bottom center; transform: translateX(var(--photo-shift, 0%)); }
 .vote-card-stage::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: linear-gradient(90deg, #082a4b 0%, #06797f 100%); pointer-events: none; z-index: 3; }
 :root[data-theme="dark"] .vote-card-stage::after { background: linear-gradient(90deg, #23484a 0%, #06797f 55%, #8ae2d6 100%); }
 .vote-card-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding-bottom: 24px; }

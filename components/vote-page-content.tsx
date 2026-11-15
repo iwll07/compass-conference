@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { TrophyIcon, XIcon } from "@phosphor-icons/react";
 import { getInitials } from "@/lib/honorees";
@@ -309,18 +310,33 @@ export function VotePageContent() {
                         photos.length > 1 ? " vote-card-figures--pair" : ""
                       }`}
                     >
-                      {photos.map((photo) => (
-                        <div className="vote-card-figure" key={photo}>
-                          <Image
-                            src={photo}
-                            alt=""
-                            width={480}
-                            height={480}
-                            loading="lazy"
-                            className="vote-card-photo"
-                          />
-                        </div>
-                      ))}
+                      {photos.map((photo, index) => {
+                        // Per-photo framing nudge from the candidate data; the
+                        // pair card also scales each cut-out (see CSS).
+                        const shift =
+                          index === 0
+                            ? candidate.photoShift
+                            : candidate.coPresenterShift;
+                        return (
+                          <div className="vote-card-figure" key={photo}>
+                            <Image
+                              src={photo}
+                              alt=""
+                              width={480}
+                              height={480}
+                              loading="lazy"
+                              className="vote-card-photo"
+                              style={
+                                shift
+                                  ? ({
+                                      "--photo-shift": `${shift}%`,
+                                    } as CSSProperties)
+                                  : undefined
+                              }
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="vote-card-initials">

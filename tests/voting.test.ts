@@ -169,6 +169,15 @@ test("voting candidates: ids are unique, kebab-case and have required text", () 
     assert.ok(candidate.title.trim().length > 0, `${candidate.id}: missing title`);
     assert.equal(typeof candidate.university, "string");
     assert.equal(typeof candidate.academicYear, "string");
+
+    for (const field of ["photoShift", "coPresenterShift"] as const) {
+      const shift = candidate[field];
+      if (shift === undefined) continue;
+      assert.ok(
+        Number.isFinite(shift) && Math.abs(shift) <= 50,
+        `${candidate.id}: ${field} should be a finite percentage within 50`
+      );
+    }
   }
 });
 

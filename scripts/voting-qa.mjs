@@ -16,10 +16,10 @@ function check(name, pass, detail = "") {
 }
 
 const CANDIDATE_IDS = [
+  "digital-phenotyping-mental-health",
   "artificial-intelligence-revolution-or-risk",
   "base-editing-revolution",
   "dna-origami-nanorobotics",
-  "digital-phenotyping-mental-health",
   "preeclampsia-statin-metformin-vitamin-d",
   "organoids-miniature-organs",
 ];
@@ -193,13 +193,13 @@ async function shot(page, name, width, theme) {
   check(
     "open: accessible name includes title and presenter",
     (await buttons.first().getAttribute("aria-label")).includes(
-      "Vote for Artificial intelligence: Revolution or risk by Lobna Ahmed Diab & Abdelrahman Eid Abdelfatah"
+      "Vote for From screen taps to mental health: The power of digital phenotyping by Malak Ashraf Saad Abdelfatah"
     )
   );
 
   await buttons.first().click();
   await page.waitForSelector(".vote-dialog[open]");
-  check("dialog: shows chosen presentation", (await page.locator(".vote-dialog-title").innerText()).includes("Artificial intelligence"));
+  check("dialog: shows chosen presentation", (await page.locator(".vote-dialog-title").innerText()).includes("From screen taps to mental health"));
   check(
     "dialog: phone input receives focus",
     await page.evaluate(() =>
@@ -397,7 +397,7 @@ async function shot(page, name, width, theme) {
   check(
     "closed: winner is the top card",
     (await page.locator(".vote-card--winner .vote-card-title").innerText()).includes(
-      "Artificial intelligence"
+      "From screen taps to mental health"
     )
   );
   check(
