@@ -362,7 +362,7 @@ async function createAdminPage(config = {}) {
   );
   check(
     "reset: confirm is disabled until RESET is typed",
-    await page.locator(".reg-modal-delete-btn").isDisabled()
+    await page.locator(".vote-modal-delete-btn").isDisabled()
   );
 
   // Cancel must not touch the database.
@@ -377,9 +377,9 @@ async function createAdminPage(config = {}) {
   await page.locator("#vote-reset-input").fill("RESET");
   check(
     "reset: confirm enables once RESET is typed",
-    await page.locator(".reg-modal-delete-btn").isEnabled()
+    await page.locator(".vote-modal-delete-btn").isEnabled()
   );
-  await page.locator(".vote-admin-dialog .reg-modal-delete-btn").click();
+  await page.locator(".vote-admin-dialog .vote-modal-delete-btn").click();
   await page.waitForFunction(
     () =>
       document

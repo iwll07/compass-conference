@@ -70,6 +70,12 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .button { display: inline-flex; align-items: center; justify-content: space-between; gap: 25px; min-height: 50px; padding: 12px 23px; text-decoration: none; background: var(--button); color: var(--button-ink); border: 1px solid var(--button); border-radius: 2px; font-size: 13px; font-weight: 600; transition: transform 160ms cubic-bezier(.23,1,.32,1), background-color 160ms, box-shadow 160ms; }
 .button-secondary { background: transparent; color: var(--ink); border-color: var(--line); }
 .hero-register-disabled { opacity: 0.85; cursor: default; user-select: none; pointer-events: none; }
+/* Hero vote call, rendered under the registration call only while the contest
+   is open or closed (see components/hero-vote-cta.tsx). Dimmed harder than the
+   registration badge: "Voting closed" is a statement of fact, not a call that
+   is merely not open yet, and it should not compete with the live call above. */
+.hero-vote-cta { display: flex; justify-content: center; }
+.hero-vote-disabled { opacity: 0.6; cursor: default; user-select: none; pointer-events: none; }
 /* Hero text colour for the Discover COMPASS text link: --hero-ink (white over
    the scrim) rather than the page's default --ink, which is dark on light. */
 .hero-link { color: var(--hero-ink); }
@@ -212,20 +218,20 @@ svg { flex-shrink: 0; vertical-align: middle; }
 /* ---- Registrations Admin UI (/admin) -------------------------------- */
 .reg-status-section { margin-top: 18px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
 .reg-status-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
-.reg-status-title { font-size: 18px; font-family: "Source Serif 4", Georgia, serif; }
-.reg-status-desc { font-size: 13px; color: var(--muted); margin: 3px 0 0; max-width: 52ch; }
+.reg-status-title, .vote-status-title { font-size: 18px; font-family: "Source Serif 4", Georgia, serif; }
+.reg-status-desc, .vote-status-desc { font-size: 13px; color: var(--muted); margin: 3px 0 0; max-width: 52ch; }
 .reg-preview-btn { min-height: 38px; padding: 8px 14px; font-size: 12px; }
-.reg-status-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-.reg-status-pill { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; text-align: left; cursor: pointer; transition: border-color 160ms, background-color 160ms, box-shadow 160ms; }
-.reg-status-pill:hover:not(:disabled) { border-color: var(--accent); }
-.reg-status-pill-active { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
-.reg-status-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
-.reg-status-dot-soon { background: #eab308; }
-.reg-status-dot-open { background: #16a34a; }
-.reg-status-dot-closed { background: #94a3b8; }
-.reg-status-pill-text { display: flex; flex-direction: column; gap: 2px; }
-.reg-status-pill-label { font-size: 14px; font-weight: 600; color: var(--ink); }
-.reg-status-pill-sub { font-size: 11px; color: var(--muted); }
+.reg-status-options, .vote-status-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.reg-status-pill, .vote-status-pill { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; text-align: left; cursor: pointer; transition: border-color 160ms, background-color 160ms, box-shadow 160ms; }
+.reg-status-pill:hover:not(:disabled), .vote-status-pill:hover:not(:disabled) { border-color: var(--accent); }
+.reg-status-pill-active, .vote-status-pill-active { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+.reg-status-dot, .vote-status-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.reg-status-dot-soon, .vote-status-dot-soon { background: #eab308; }
+.reg-status-dot-open, .vote-status-dot-open { background: #16a34a; }
+.reg-status-dot-closed, .vote-status-dot-closed { background: #94a3b8; }
+.reg-status-pill-text, .vote-status-pill-text { display: flex; flex-direction: column; gap: 2px; }
+.reg-status-pill-label, .vote-status-pill-label { font-size: 14px; font-weight: 600; color: var(--ink); }
+.reg-status-pill-sub, .vote-status-pill-sub { font-size: 11px; color: var(--muted); }
 
 /* Admin Preview Mode Banner (/registration?preview=true) */
 .admin-preview-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 18px; background: var(--surface); border: 1px dashed var(--accent); border-radius: 4px; margin-bottom: 24px; font-size: 13px; flex-wrap: wrap; }
@@ -286,20 +292,20 @@ svg { flex-shrink: 0; vertical-align: middle; }
 
 /* Single registration delete confirmation modal */
 .reg-modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
-.reg-modal-box { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 16px 36px rgba(0, 0, 0, .25); max-width: 440px; width: 100%; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
-.reg-modal-title { font-size: 20px; font-family: "Source Serif 4", Georgia, serif; margin: 0; }
-.reg-modal-copy { font-size: 14px; line-height: 1.5; margin: 0; color: var(--ink); }
-.reg-modal-warn { font-size: 12px; color: var(--muted); margin: 0; }
-.reg-modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
-.reg-modal-delete-btn { background: #b91c1c; color: #fff; border: 1px solid #991b1b; }
-.reg-modal-delete-btn:hover:not(:disabled) { background: #991b1b; }
-.reg-modal-delete-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.reg-modal-box, .vote-modal-box { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 16px 36px rgba(0, 0, 0, .25); max-width: 440px; width: 100%; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.reg-modal-title, .vote-modal-title { font-size: 20px; font-family: "Source Serif 4", Georgia, serif; margin: 0; }
+.reg-modal-copy, .vote-modal-copy { font-size: 14px; line-height: 1.5; margin: 0; color: var(--ink); }
+.reg-modal-warn, .vote-modal-warn { font-size: 12px; color: var(--muted); margin: 0; }
+.reg-modal-actions, .vote-modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+.reg-modal-delete-btn, .vote-modal-delete-btn { background: #b91c1c; color: #fff; border: 1px solid #991b1b; }
+.reg-modal-delete-btn:hover:not(:disabled), .vote-modal-delete-btn:hover:not(:disabled) { background: #991b1b; }
+.reg-modal-delete-btn:disabled, .vote-modal-delete-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .reg-modal-export-prompt { margin: 2px 0; }
 .reg-modal-excel-btn { font-size: 13px; min-height: 38px; width: 100%; justify-content: center; }
-.reg-modal-confirm-input-wrap { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 2px; }
-.reg-modal-input-label { font-size: 13px; color: var(--ink); }
-.reg-modal-input { font-size: 14px; font-family: monospace; letter-spacing: 0.05em; padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); outline: none; }
-.reg-modal-input:focus { border-color: var(--accent); }
+.reg-modal-confirm-input-wrap, .vote-modal-confirm-input-wrap { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 2px; }
+.reg-modal-input-label, .vote-modal-input-label { font-size: 13px; color: var(--ink); }
+.reg-modal-input, .vote-modal-input { font-size: 14px; font-family: monospace; letter-spacing: 0.05em; padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); outline: none; }
+.reg-modal-input:focus, .vote-modal-input:focus { border-color: var(--accent); }
 
 @media (max-width: 767px) {
   .reg-summary-grid { grid-template-columns: 1fr; gap: 20px; }
@@ -2043,15 +2049,17 @@ button.sponsor-tile {
 .vote-admin-note code { padding: 1px 4px; background: var(--accent-soft); border-radius: 2px; font-size: 11px; }
 
 /* Reset danger zone (visible only to VOTING_RESET_EMAILS; the database
-   function is the real gate). Reuses the registration danger-modal classes so
-   the two destructive actions look like siblings. */
+   function is the real gate). The dialog inside reuses the registration
+   danger-modal shape through grouped selectors, so the two destructive actions
+   look like siblings without sharing class names. */
 .vote-admin-danger { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
 .vote-admin-danger h4 { font-size: 15px; font-family: "Source Serif 4", Georgia, serif; }
 .vote-admin-danger p { margin-top: 4px; max-width: 54ch; font-size: 12px; line-height: 1.55; color: var(--muted); }
-.vote-admin-reset-btn { flex-shrink: 0; }
+.vote-admin-reset-btn { flex-shrink: 0; background: transparent; color: #b91c1c; border: 1px solid color-mix(in srgb, #b91c1c 50%, var(--line)); }
+.vote-admin-reset-btn:hover:not(:disabled) { background: color-mix(in srgb, #b91c1c 10%, transparent); border-color: #b91c1c; }
 .vote-admin-dialog { width: min(440px, calc(100vw - 32px)); padding: 0; border: 0; background: transparent; color: var(--ink); }
 .vote-admin-dialog::backdrop { background: rgba(8, 42, 75, .55); backdrop-filter: blur(2px); }
-.vote-admin-dialog .reg-modal-box { width: 100%; max-width: none; margin: 0; }
+.vote-admin-dialog .vote-modal-box { width: 100%; max-width: none; margin: 0; }
 .vote-admin-reset-error { margin-top: 0; font-size: 13px; color: #b91c1c; }
 @media (max-width: 560px) {
   .vote-admin-danger { flex-direction: column; align-items: flex-start; }

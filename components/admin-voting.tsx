@@ -27,19 +27,19 @@ const STATUS_OPTIONS: {
     value: "soon",
     label: "Coming soon",
     sub: "Lineup visible, voting not open",
-    dot: "reg-status-dot-soon",
+    dot: "vote-status-dot-soon",
   },
   {
     value: "open",
     label: "Open",
     sub: "Vote buttons are live",
-    dot: "reg-status-dot-open",
+    dot: "vote-status-dot-open",
   },
   {
     value: "closed",
     label: "Closed",
     sub: "Results are public",
-    dot: "reg-status-dot-closed",
+    dot: "vote-status-dot-closed",
   },
 ];
 
@@ -219,14 +219,14 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
 
       <div className="admin-collapse-body">
         <section className="vote-admin-section" aria-label="Voting status control">
-          <h3 className="reg-status-title">Best student presentation</h3>
-          <p className="reg-status-desc">
+          <h3 className="vote-status-title">Best student presentation</h3>
+          <p className="vote-status-desc">
             Controls the public vote page. All admins can change the status and
             publish live results.
           </p>
 
           <div
-            className="reg-status-options vote-admin-status"
+            className="vote-status-options vote-admin-status"
             role="radiogroup"
             aria-label="Public voting status"
           >
@@ -237,18 +237,18 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
                 role="radio"
                 aria-checked={status === option.value}
                 disabled={busy}
-                className={`reg-status-pill ${
-                  status === option.value ? "reg-status-pill-active" : ""
+                className={`vote-status-pill ${
+                  status === option.value ? "vote-status-pill-active" : ""
                 }`}
                 onClick={() => changeStatus(option.value)}
               >
                 <span
-                  className={`reg-status-dot ${option.dot}`}
+                  className={`vote-status-dot ${option.dot}`}
                   aria-hidden="true"
                 />
-                <span className="reg-status-pill-text">
-                  <span className="reg-status-pill-label">{option.label}</span>
-                  <span className="reg-status-pill-sub">{option.sub}</span>
+                <span className="vote-status-pill-text">
+                  <span className="vote-status-pill-label">{option.label}</span>
+                  <span className="vote-status-pill-sub">{option.sub}</span>
                 </span>
               </button>
             ))}
@@ -365,7 +365,7 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
               </div>
               <button
                 type="button"
-                className="button reg-delete-all-btn vote-admin-reset-btn"
+                className="button vote-admin-reset-btn"
                 onClick={() => {
                   setResetWord("");
                   setResetError(null);
@@ -391,23 +391,23 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
             setResetWord("");
           }}
         >
-          <div className="reg-modal-box">
-            <h3 id="vote-reset-title" className="reg-modal-title">
+          <div className="vote-modal-box">
+            <h3 id="vote-reset-title" className="vote-modal-title">
               Delete every vote
             </h3>
-            <p className="reg-modal-copy">
+            <p className="vote-modal-copy">
               This permanently deletes all <strong>{total}</strong> votes and
               starts the count from zero. Presentations, their order and the
               contest status stay exactly as they are.
             </p>
-            <p className="reg-modal-warn">
+            <p className="vote-modal-warn">
               Deleted votes cannot be recovered, and there is no export.
             </p>
 
-            <div className="reg-modal-confirm-input-wrap">
+            <div className="vote-modal-confirm-input-wrap">
               <label
                 htmlFor="vote-reset-input"
-                className="reg-modal-input-label"
+                className="vote-modal-input-label"
               >
                 Type <strong>{VOTE_RESET_CONFIRMATION}</strong> (exact,
                 case-sensitive) to confirm:
@@ -415,7 +415,7 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
               <input
                 id="vote-reset-input"
                 type="text"
-                className="reg-modal-input"
+                className="vote-modal-input"
                 value={resetWord}
                 onChange={(event) => setResetWord(event.target.value)}
                 placeholder={VOTE_RESET_CONFIRMATION}
@@ -430,7 +430,7 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
               </p>
             ) : null}
 
-            <div className="reg-modal-actions">
+            <div className="vote-modal-actions">
               <button
                 type="button"
                 className="button button-secondary"
@@ -441,7 +441,7 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
               </button>
               <button
                 type="button"
-                className="button reg-modal-delete-btn"
+                className="button vote-modal-delete-btn"
                 onClick={confirmReset}
                 disabled={resetting || resetWord !== VOTE_RESET_CONFIRMATION}
               >

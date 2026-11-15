@@ -78,6 +78,28 @@ async function createPage({ status, cached = null, theme = "light", viewport = {
       "Best student presentation"
   );
 
+  // ---- Hero call, open ----
+  const heroCta = page.locator(".hero-vote-cta");
+  check("open: hero vote call is present", (await heroCta.count()) === 1);
+  const heroLink = heroCta.locator("a.button");
+  check(
+    "open: hero button says what it votes for",
+    (await heroLink.textContent())?.replace(/\s+/g, " ").trim() ===
+      "Vote for the best presentation"
+  );
+  check(
+    "open: hero button links to the vote page",
+    (await heroLink.getAttribute("href")) === "/vote/"
+  );
+  check(
+    "open: hero button has an arrow icon",
+    (await heroLink.locator("svg[aria-hidden='true']").count()) === 1
+  );
+  check(
+    "open: hero button has hover-lift",
+    ((await heroLink.getAttribute("class")) ?? "").split(" ").includes("hover-lift")
+  );
+
   await context.close();
 }
 
@@ -97,6 +119,33 @@ async function createPage({ status, cached = null, theme = "light", viewport = {
     (await link.getAttribute("href")) === "/vote/"
   );
 
+  // ---- Hero call, closed: dimmed and inert, still says what happened ----
+  const heroCta = page.locator(".hero-vote-cta");
+  check("closed: hero vote call is present", (await heroCta.count()) === 1);
+  check(
+    "closed: hero call is a badge, not a link",
+    (await heroCta.locator("a").count()) === 0 &&
+      (await heroCta.locator(".hero-vote-disabled").count()) === 1
+  );
+  check(
+    "closed: hero badge says voting closed",
+    (await heroCta.textContent())?.replace(/\s+/g, " ").trim() ===
+      "Voting closed"
+  );
+  check(
+    "closed: hero badge is inert",
+    (await heroCta.locator(".hero-vote-disabled").getAttribute("aria-disabled")) ===
+      "true"
+  );
+  check(
+    "closed: hero badge is dimmed",
+    Number(
+      await heroCta
+        .locator(".hero-vote-disabled")
+        .evaluate((el) => getComputedStyle(el).opacity)
+    ) < 0.7
+  );
+
   await context.close();
 }
 
@@ -110,6 +159,10 @@ async function createPage({ status, cached = null, theme = "light", viewport = {
     "soon: no band",
     (await page.locator(".home-vote").count()) === 0
   );
+  check(
+    "soon: no hero vote call",
+    (await page.locator(".hero-vote-cta").count()) === 0
+  );
 
   await context.close();
 }
@@ -122,6 +175,10 @@ async function createPage({ status, cached = null, theme = "light", viewport = {
   check(
     "stale cache: final state hides the band",
     (await page.locator(".home-vote").count()) === 0
+  );
+  check(
+    "stale cache: final state hides the hero vote call",
+    (await page.locator(".hero-vote-cta").count()) === 0
   );
   check(
     "stale cache: cache is corrected",
@@ -155,6 +212,29 @@ for (const theme of ["light", "dark"]) {
 }
 await shot("closed", "light", 1440);
 await shot("closed", "light", 390);
+
+// The hero call, in both states and both themes, to check it sits comfortably
+// under the registration call without crowding the headline.
+async function heroShot(status, theme, width) {
+  const { context, page } = await createPage({
+    status,
+    theme,
+    viewport: { width, height: 1000 },
+  });
+  await page.locator(".hero-vote-cta").waitFor({ state: "visible", timeout: 5000 });
+  await page.waitForTimeout(200);
+  await page.locator(".hero").screenshot({
+    path: `${OUT}/hero-${status}-${width}-${theme}.png`,
+  });
+  await context.close();
+}
+
+for (const theme of ["light", "dark"]) {
+  for (const width of [1440, 390]) {
+    await heroShot("open", theme, width);
+    await heroShot("closed", theme, width);
+  }
+}
 
 await browser.close();
 
