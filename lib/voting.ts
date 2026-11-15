@@ -1,0 +1,100 @@
+// Shared, pure logic for the "Best student presentation" vote.
+//
+// Nothing here touches React, Supabase or the DOM. The page and the admin
+// section both use these helpers, and tests/voting.test.ts covers them.
+
+export type VotingStatus = "soon" | "open" | "closed";
+
+export type VoteResultCode =
+  | "ok"
+  | "closed"
+  | "invalid"
+  | "not_registered"
+  | "already_voted";
+
+export const VOTE_STORAGE_KEY = "compass-vote";
+
+/** Cosmetic localStorage marker shape: which candidate this browser picked. */
+export type StoredVote = { candidateId: string };
+
+const VOTE_RESULT_MESSAGES: Record<VoteResultCode, string> = {
+  ok: "Your vote has been recorded. Thank you for taking part.",
+  closed: "Voting is closed.",
+  invalid: "Check the phone number and try again.",
+  not_registered:
+    "We couldn't verify this phone number. Use the number you registered with.",
+  already_voted: "This number has already voted. Thank you.",
+};
+
+/**
+ * Turn the code returned by cast_vote() into a sentence for the dialog.
+ * Unknown codes fall back to a neutral retry message rather than leaking a
+ * database error to the voter.
+ */
+export function mapVoteResult(code: string | null | undefined): string {
+  if (code && Object.prototype.hasOwnProperty.call(VOTE_RESULT_MESSAGES, code)) {
+    return VOTE_RESULT_MESSAGES[code as VoteResultCode];
+  }
+  return "Something went wrong. Please try again.";
+}
+
+export function isVotingStatus(value: unknown): value is VotingStatus {
+  return value === "soon" || value === "open" || value === "closed";
+}
+
+export type VotingTally = {
+  id: string;
+  votes: number;
+};
+
+export type VotingWinner = {
+  /** Candidate ids sharing the highest vote count. Empty when nobody voted. */
+  winners: string[];
+  /** The shared highest vote count. Zero when nobody voted. */
+  votes: number;
+};
+
+/**
+ * Winner or joint winners. Returns no winner when every tally is zero (or the
+ * list is empty), so a closed contest with no votes never shows a trophy.
+ */
+export function getVoteWinners(tallies: readonly VotingTally[]): VotingWinner {
+  let highest = 0;
+  for (const tally of tallies) {
+    if (Number.isFinite(tally.votes) && tally.votes > highest) {
+      highest = tally.votes;
+    }
+  }
+
+  if (highest <= 0) {
+    return { winners: [], votes: 0 };
+  }
+
+  return {
+    winners: tallies
+      .filter((tally) => tally.votes === highest)
+      .map((tally) => tally.id),
+    votes: highest,
+  };
+}
+
+/** Whole-number percentage for result bars. Zero total means zero, not NaN. */
+export function getVotePercentage(votes: number, total: number): number {
+  if (!Number.isFinite(votes) || !Number.isFinite(total) || total <= 0) {
+    return 0;
+  }
+  const percentage = (votes / total) * 100;
+  return Math.max(0, Math.min(100, Math.round(percentage)));
+}
+
+export type VotingCandidateResult = {
+  id: string;
+  votes: number;
+};
+
+export type VotingResults = {
+  status: VotingStatus;
+  live_results: boolean;
+  total: number;
+  candidates: VotingCandidateResult[];
+};

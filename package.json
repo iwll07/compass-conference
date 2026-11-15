@@ -13,6 +13,8 @@
     "test": "tsx --test tests/*.test.ts",
     "test:e2e": "playwright test",
     "process:people": "node scripts/process-people.mjs",
+    "process:voting": "node scripts/process-voting.mjs",
+    "voting:seed": "node --import tsx scripts/voting-seed.mjs",
     "preview": "serve out -l 3000",
     "preview:headers": "wrangler pages dev out",
     "deploy": "wrangler deploy"

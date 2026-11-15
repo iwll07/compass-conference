@@ -1,0 +1,53 @@
+[
+  {
+    "id": "artificial-intelligence-revolution-or-risk",
+    "presenter": "Lobna Ahmed Diab",
+    "coPresenter": "Abdelrahman Eid Abdelfatah",
+    "title": "Artificial intelligence: Revolution or risk",
+    "university": "",
+    "academicYear": "",
+    "photo": "/voting/artificial-intelligence-revolution-or-risk.png",
+    "coPresenterPhoto": "/voting/artificial-intelligence-revolution-or-risk-co.png"
+  },
+  {
+    "id": "base-editing-revolution",
+    "presenter": "Basmala Hassan Mohammed",
+    "title": "From Stop Codon to Start of Life: The Base Editing Revolution",
+    "university": "",
+    "academicYear": "",
+    "photo": "/voting/base-editing-revolution.png"
+  },
+  {
+    "id": "dna-origami-nanorobotics",
+    "presenter": "Nada El-Sayem Shapaan",
+    "title": "DNA Origami & Nanorobotics: Toward the Next Era of Precision Medicine",
+    "university": "",
+    "academicYear": "",
+    "photo": "/voting/dna-origami-nanorobotics.png"
+  },
+  {
+    "id": "digital-phenotyping-mental-health",
+    "presenter": "Malak Ashraf Saad Abdelfatah",
+    "title": "From screen taps to mental health: The power of digital phenotyping",
+    "university": "",
+    "academicYear": "",
+    "photo": "/voting/digital-phenotyping-mental-health.png"
+  },
+  {
+    "id": "preeclampsia-statin-metformin-vitamin-d",
+    "presenter": "Habiba Mohammed Salah",
+    "title": "Comparative Effectiveness of Statins, Metformin, and Vitamin D for Prevention of Preeclampsia: A Systematic Review and Network Meta-Analysis of Randomized Trials",
+    "university": "",
+    "academicYear": "",
+    "photo": "/voting/preeclampsia-statin-metformin-vitamin-d.png"
+  },
+  {
+    "id": "organoids-miniature-organs",
+    "presenter": "Nada Ashraf Nour El Din",
+    "title": "Organoids: Building Miniature Organs in the Lab",
+    "summary": "From stem cells & 3D culture protocols to assembloids, immune co-cultures, disease modeling, and personalized clinical trials.",
+    "university": "",
+    "academicYear": "",
+    "photo": "/voting/organoids-miniature-organs.png"
+  }
+]
