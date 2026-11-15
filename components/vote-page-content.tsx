@@ -6,6 +6,7 @@ import { TrophyIcon, XIcon } from "@phosphor-icons/react";
 import { getInitials } from "@/lib/honorees";
 import { normalizeEgyptianPhone } from "@/lib/registration";
 import { votingCandidates, type VotingCandidate } from "@/lib/voting-candidates";
+import { VoteCompassRose } from "@/components/vote-compass-rose";
 import {
   castVote,
   fetchVotingResults,
@@ -301,6 +302,7 @@ export function VotePageContent() {
                 className={`vote-card${isWinner ? " vote-card--winner" : ""}`}
               >
                 <div className="vote-card-stage">
+                  <VoteCompassRose />
                   {photos.length > 0 ? (
                     <div
                       className={`vote-card-figures${

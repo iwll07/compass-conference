@@ -158,6 +158,22 @@ async function shot(page, name, width, theme) {
   check("soon: six candidate cards", (await page.locator(".vote-card").count()) === 6);
   check("soon: no vote buttons", (await page.locator(".vote-button").count()) === 0);
   check(
+    "soon: every card carries a decorative compass behind the cut-out",
+    (await page.locator(".vote-card .vote-card-stage > .vote-card-compass").count()) === 6
+  );
+  check(
+    "soon: the compass is hidden from assistive tech and has no text",
+    (await page
+      .locator(".vote-card-compass")
+      .first()
+      .evaluate(
+        (el) =>
+          el.getAttribute("aria-hidden") === "true" &&
+          (el.textContent ?? "").trim() === "" &&
+          el.getAttribute("focusable") === "false"
+      )) === true
+  );
+  check(
     "soon: status sentence",
     (await page.locator(".vote-status").innerText()).trim() ===
       "Voting opens during the conference."
