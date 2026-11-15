@@ -205,6 +205,8 @@ export const sponsors: Sponsor[] = [
     // the description area, and clicking it opens a dialog with just the links.
     id: "beni-swef-medical-syndicate",
     name: "Beni-Swef Medical Syndicate",
+    tagline:
+      "Prof. Dr. Emad El-Banna, President of the Beni Suef Medical Syndicate\nMaj. Gen. Dr. Safwat Abdel-Ghaffar, Secretary-General",
     logo: {
       src: "/beni-swef-medical-syndicate.png",
       width: 256,

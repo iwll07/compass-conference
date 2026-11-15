@@ -46,7 +46,10 @@ test("sponsors data: Beni-Swef Medical Syndicate has links but no description", 
   assert.equal(syndicate.logo.src, "/beni-swef-medical-syndicate.png");
   assert.equal(syndicate.logo.alt, "Beni-Swef Medical Syndicate logo");
   assert.equal(syndicate.href, null);
-  assert.equal(syndicate.tagline, undefined);
+  assert.equal(
+    syndicate.tagline,
+    "Prof. Dr. Emad El-Banna, President of the Beni Suef Medical Syndicate\nMaj. Gen. Dr. Safwat Abdel-Ghaffar, Secretary-General"
+  );
   assert.equal(syndicate.summary, undefined);
   assert.equal(syndicate.details, undefined);
   assert.deepEqual(

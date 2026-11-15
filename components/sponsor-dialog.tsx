@@ -169,7 +169,12 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
                 className="sponsor-dialog-logo"
               />
             </div>
-            <span className="sponsor-dialog-name">{sponsor.name}</span>
+            <div className="sponsor-dialog-titles">
+              <span className="sponsor-dialog-name">{sponsor.name}</span>
+              {sponsor.tagline && (
+                <p className="sponsor-dialog-tagline">{sponsor.tagline}</p>
+              )}
+            </div>
           </div>
           <button
             type="button"
