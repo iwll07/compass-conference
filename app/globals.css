@@ -1926,6 +1926,95 @@ button.sponsor-tile {
   }
 }
 @media (min-width: 1400px) { .nav-shell, .hero { padding-left: 70px; padding-right: 70px; } }
+/* ---- Voting (/vote) -------------------------------------------------------- */
+/* Presenters are cut-outs standing on the same brand gradient strip as the
+   patron cards. The 480x480 sources carry 16px of transparent padding at the
+   bottom, so the figure group is pushed down by that same fraction to make the
+   body meet the strip exactly. */
+.vote-heading { grid-template-columns: 1fr; gap: 0; }
+.vote-eyebrow { margin-bottom: 12px; font-family: "Public Sans", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.vote-heading h1 { max-width: 18ch; }
+.vote-content { margin-top: 36px; }
+.vote-status { min-height: 22px; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.vote-total { margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.vote-retry { min-height: 24px; padding: 0; background: none; border: 0; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
+.vote-empty { margin-top: 28px; padding: 48px 32px; background: var(--hero); border: 1px solid var(--line); color: var(--ink); font-family: "Source Serif 4", Georgia, serif; font-size: 24px; }
+
+.vote-grid { list-style: none; display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 26px; padding: 0; }
+.vote-grid-item { display: flex; min-width: 0; }
+.vote-card { display: flex; flex-direction: column; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.vote-card--winner { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+.vote-card-stage { position: relative; aspect-ratio: 1; overflow: hidden; background: var(--hero); }
+.vote-card-figures { position: absolute; left: 0; right: 0; top: 0; bottom: -3.3333%; display: flex; align-items: flex-end; justify-content: center; }
+.vote-card-figure { position: relative; flex: 1 1 0; height: 100%; min-width: 0; }
+/* Two presenters: scale each cut-out up around its bottom centre so the pair
+   reads at a similar size to a single presenter. The transparent outer margins
+   absorb the overflow, so no shoulder is clipped. */
+.vote-card-figures--pair .vote-card-figure { flex: 0 0 50%; }
+.vote-card-figures--pair .vote-card-photo { transform: scale(1.5); transform-origin: bottom center; }
+.vote-card-photo { display: block; width: 100%; height: 100%; object-fit: contain; object-position: bottom center; }
+.vote-card-stage::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: linear-gradient(90deg, #082a4b 0%, #06797f 100%); pointer-events: none; z-index: 3; }
+:root[data-theme="dark"] .vote-card-stage::after { background: linear-gradient(90deg, #23484a 0%, #06797f 55%, #8ae2d6 100%); }
+.vote-card-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding-bottom: 24px; }
+.vote-card-initials-circle { display: flex; align-items: center; justify-content: center; width: 76px; height: 76px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-family: "Source Serif 4", Georgia, serif; font-size: 24px; font-weight: 600; }
+
+.vote-card-body { display: flex; flex-direction: column; gap: 8px; flex: 1; padding: 18px; }
+.vote-card-presenter { font-size: 13px; font-weight: 600; line-height: 1.45; color: var(--ink); }
+.vote-card-meta { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.vote-card-title { font-family: "Source Serif 4", Georgia, serif; font-size: 20px; font-weight: 400; line-height: 1.24; letter-spacing: -.012em; color: var(--ink); }
+.vote-card-summary { font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.vote-card-actions { display: grid; gap: 10px; margin-top: auto; padding-top: 10px; }
+
+.vote-button { width: 100%; justify-content: center; min-height: 44px; }
+.vote-button:disabled { opacity: .5; cursor: default; }
+.vote-card-marker { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+
+.vote-winner { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.vote-result { display: grid; gap: 6px; }
+.vote-result-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.vote-result-row span:last-child { font-weight: 600; color: var(--ink); }
+.vote-bar { height: 6px; overflow: hidden; border-radius: 999px; background: var(--accent-soft); }
+.vote-bar > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #082a4b 0%, #06797f 100%); }
+:root[data-theme="dark"] .vote-bar > span { background: linear-gradient(90deg, #23484a 0%, #06797f 55%, #8ae2d6 100%); }
+
+/* Skeleton: same neutral pulse as the registration form, no status text. */
+.vote-skeleton { margin-top: 36px; }
+.vote-skeleton-status { width: min(300px, 68%); height: 14px; background: color-mix(in srgb, var(--line) 55%, var(--surface)); border-radius: 3px; }
+.vote-skeleton-grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 26px; }
+.vote-skeleton-card { min-height: 380px; background: color-mix(in srgb, var(--line) 18%, var(--surface)); border: 1px solid var(--line); border-radius: 12px; }
+
+/* Dialog */
+.vote-dialog { width: min(440px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); box-shadow: 0 28px 70px var(--shadow); }
+.vote-dialog::backdrop { background: rgba(8, 42, 75, .55); }
+:root[data-theme="dark"] .vote-dialog::backdrop { background: rgba(3, 10, 14, .72); }
+.vote-dialog-inner { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 28px 26px 26px; }
+.vote-dialog-close { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; background: none; border: 0; border-radius: 2px; color: var(--muted); cursor: pointer; }
+.vote-dialog-close:hover { color: var(--ink); }
+.vote-dialog-close:disabled { opacity: .45; cursor: default; }
+.vote-dialog-label { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.vote-dialog-title { padding-right: 34px; font-family: "Source Serif 4", Georgia, serif; font-size: 23px; font-weight: 400; line-height: 1.2; letter-spacing: -.015em; }
+.vote-dialog-presenter { font-size: 13px; line-height: 1.5; color: var(--muted); }
+.vote-dialog-form { display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin-top: 10px; }
+.vote-dialog-form label { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.vote-phone-row { display: flex; width: 100%; }
+.vote-phone-prefix { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; background: var(--surface); color: var(--muted); border: 1px solid var(--line); border-right: 0; border-radius: 2px 0 0 2px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; user-select: none; }
+.vote-phone-row input { flex: 1; min-width: 0; min-height: 48px; padding: 11px 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 0 2px 2px 0; font-size: 16px; font-variant-numeric: tabular-nums; }
+.vote-dialog-note { font-size: 12px; line-height: 1.5; color: var(--muted); }
+.vote-dialog-error { padding: 11px 13px; border: 1px solid var(--line); color: var(--ink); font-size: 13px; line-height: 1.5; }
+.vote-dialog-submit { justify-content: center; width: 100%; margin-top: 6px; }
+.vote-dialog-submit:disabled { opacity: .55; cursor: default; }
+
+@media (min-width: 700px) {
+  .vote-grid, .vote-skeleton-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1100px) {
+  .vote-grid, .vote-skeleton-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 699px) {
+  .vote-skeleton-card:nth-child(3) { display: none; }
+}
+
 @media (max-width: 1399px) { .event-strip, .home-intro, .home-patrons-section, .sponsor-strip, .last-conference, .announcements, .page-shell { margin-left: 5vw; margin-right: 5vw; } }
 @media (max-width: 1100px) { .desktop-nav { gap: 15px; } .nav-shell { gap: 20px; } .nav-actions { gap: 9px; } .nav-register { display: none; } .hero { min-height: 520px; } .hero h1 { font-size: 4rem; } .hero-copy { padding-top: 45px; } .compass-plate { margin-left: 5px; } .home-intro { gap: 50px; } .explore-section { gap: 40px; } .event-strip { flex-wrap: wrap; } .plate-caption { flex-direction: column; gap: 0; } }
 @media (max-width: 767px) {

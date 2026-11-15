@@ -12,10 +12,8 @@ export type VoteResultCode =
   | "not_registered"
   | "already_voted";
 
+/** Cosmetic localStorage marker: the id of the candidate this browser picked. */
 export const VOTE_STORAGE_KEY = "compass-vote";
-
-/** Cosmetic localStorage marker shape: which candidate this browser picked. */
-export type StoredVote = { candidateId: string };
 
 const VOTE_RESULT_MESSAGES: Record<VoteResultCode, string> = {
   ok: "Your vote has been recorded. Thank you for taking part.",
