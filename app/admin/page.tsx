@@ -552,8 +552,10 @@ export default function AdminPage() {
           <AdminRegistrations sessionEmail={sessionEmail} />
 
           {/* Voting controls. Every signed-in admin may run the contest; the
-              database grants UPDATE on voting_settings to authenticated. */}
-          <AdminVoting />
+              database grants UPDATE on voting_settings to authenticated. The
+              vote reset is gated to VOTING_RESET_EMAILS and again in the
+              clear_all_votes() function. */}
+          <AdminVoting sessionEmail={sessionEmail} />
 
           {/* History is rendered only for the privileged account. Hiding it is
               presentation, not security — the RLS policy on announcement_log is

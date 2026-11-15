@@ -2042,6 +2042,22 @@ button.sponsor-tile {
 .vote-admin-note { margin-top: 14px; }
 .vote-admin-note code { padding: 1px 4px; background: var(--accent-soft); border-radius: 2px; font-size: 11px; }
 
+/* Reset danger zone (visible only to VOTING_RESET_EMAILS; the database
+   function is the real gate). Reuses the registration danger-modal classes so
+   the two destructive actions look like siblings. */
+.vote-admin-danger { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+.vote-admin-danger h4 { font-size: 15px; font-family: "Source Serif 4", Georgia, serif; }
+.vote-admin-danger p { margin-top: 4px; max-width: 54ch; font-size: 12px; line-height: 1.55; color: var(--muted); }
+.vote-admin-reset-btn { flex-shrink: 0; }
+.vote-admin-dialog { width: min(440px, calc(100vw - 32px)); padding: 0; border: 0; background: transparent; color: var(--ink); }
+.vote-admin-dialog::backdrop { background: rgba(8, 42, 75, .55); backdrop-filter: blur(2px); }
+.vote-admin-dialog .reg-modal-box { width: 100%; max-width: none; margin: 0; }
+.vote-admin-reset-error { margin-top: 0; font-size: 13px; color: #b91c1c; }
+@media (max-width: 560px) {
+  .vote-admin-danger { flex-direction: column; align-items: flex-start; }
+  .vote-admin-reset-btn { width: 100%; justify-content: center; }
+}
+
 /* Home band: one line, between the announcements and the intro. The status
    decides whether it is a ballot or the published results. */
 .home-vote { display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 1260px; margin: 0 auto; padding: 16px 0; border-bottom: 1px solid var(--line); }

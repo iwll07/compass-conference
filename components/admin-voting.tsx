@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
+import { getSupabase } from "@/lib/supabase";
 import { votingCandidates } from "@/lib/voting-candidates";
 import {
   fetchVotingResults,
@@ -9,6 +10,8 @@ import {
   useVotingSettings,
 } from "@/lib/voting-status";
 import {
+  VOTE_RESET_CONFIRMATION,
+  canResetVotes,
   getVotePercentage,
   type VotingResults,
   type VotingStatus,
@@ -47,8 +50,12 @@ const STATUS_OPTIONS: {
  *
  * The counts table always works for a signed-in session: voting_results()
  * returns tallies to authenticated callers regardless of the public status.
+ *
+ * "Reset all votes" is shown only to the accounts in VOTING_RESET_EMAILS. That
+ * check is presentation only — clear_all_votes() in the database refuses every
+ * other email, so hiding the button is not the gate.
  */
-export function AdminVoting() {
+export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
   const { status, liveResults, loading, refresh } = useVotingSettings();
   const [updating, setUpdating] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -59,6 +66,13 @@ export function AdminVoting() {
     undefined
   );
   const [resultsVersion, setResultsVersion] = useState(0);
+
+  const canReset = canResetVotes(sessionEmail);
+  const resetDialogRef = useRef<HTMLDialogElement>(null);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetWord, setResetWord] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -71,11 +85,24 @@ export function AdminVoting() {
     };
   }, [resultsVersion]);
 
-  const refreshAll = useCallback(() => {
+  // showModal() gives Escape, focus trapping and focus return for free; the
+  // effect only mirrors the React state onto the element.
+  useEffect(() => {
+    const dialog = resetDialogRef.current;
+    if (!dialog) return;
+    if (resetOpen && !dialog.open) dialog.showModal();
+    if (!resetOpen && dialog.open) dialog.close();
+  }, [resetOpen]);
+
+  const refreshResults = useCallback(() => {
     setResults(undefined);
     setResultsVersion((version) => version + 1);
+  }, []);
+
+  const refreshAll = useCallback(() => {
+    refreshResults();
     refresh();
-  }, [refresh]);
+  }, [refresh, refreshResults]);
 
   async function changeStatus(next: VotingStatus): Promise<void> {
     if (next === status || updating) return;
@@ -114,6 +141,40 @@ export function AdminVoting() {
         ? "Live results are now visible while voting is open."
         : "Live results are hidden while voting is open."
     );
+  }
+
+  async function confirmReset(): Promise<void> {
+    if (!canReset || resetting || resetWord !== VOTE_RESET_CONFIRMATION) return;
+    const supabase = getSupabase();
+    if (!supabase) {
+      setResetError("Supabase is not configured.");
+      return;
+    }
+
+    setResetting(true);
+    setResetError(null);
+
+    const { data, error: err } = await supabase.rpc("clear_all_votes");
+
+    setResetting(false);
+
+    if (err) {
+      // The database refuses anyone but the configured account; surface its
+      // message rather than pretending the reset happened.
+      setResetError(err.message);
+      return;
+    }
+
+    const deleted = typeof data === "number" && Number.isFinite(data) ? data : 0;
+    setResetOpen(false);
+    setResetWord("");
+    setNotice(
+      deleted === 1
+        ? "1 vote deleted. You can test again from a clean total."
+        : `${deleted} votes deleted. You can test again from a clean total.`
+    );
+    // Counts change, settings do not; refresh only the table.
+    refreshResults();
   }
 
   const total = results?.total ?? 0;
@@ -292,8 +353,104 @@ export function AdminVoting() {
             To reset test votes, delete rows from the <code>votes</code> table in
             Supabase.
           </p>
+
+          {canReset ? (
+            <div className="vote-admin-danger">
+              <div>
+                <h4>Reset votes</h4>
+                <p>
+                  Delete every vote so you can test again. Presentations, their
+                  order and the contest status are not touched.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="button reg-delete-all-btn vote-admin-reset-btn"
+                onClick={() => {
+                  setResetWord("");
+                  setResetError(null);
+                  setResetOpen(true);
+                }}
+                disabled={resetting}
+              >
+                Reset all votes
+              </button>
+            </div>
+          ) : null}
         </section>
       </div>
+
+      {/* Shown only to VOTING_RESET_EMAILS; clear_all_votes() is the real gate. */}
+      {canReset ? (
+        <dialog
+          ref={resetDialogRef}
+          className="vote-admin-dialog"
+          aria-labelledby="vote-reset-title"
+          onClose={() => {
+            setResetOpen(false);
+            setResetWord("");
+          }}
+        >
+          <div className="reg-modal-box">
+            <h3 id="vote-reset-title" className="reg-modal-title">
+              Delete every vote
+            </h3>
+            <p className="reg-modal-copy">
+              This permanently deletes all <strong>{total}</strong> votes and
+              starts the count from zero. Presentations, their order and the
+              contest status stay exactly as they are.
+            </p>
+            <p className="reg-modal-warn">
+              Deleted votes cannot be recovered, and there is no export.
+            </p>
+
+            <div className="reg-modal-confirm-input-wrap">
+              <label
+                htmlFor="vote-reset-input"
+                className="reg-modal-input-label"
+              >
+                Type <strong>{VOTE_RESET_CONFIRMATION}</strong> (exact,
+                case-sensitive) to confirm:
+              </label>
+              <input
+                id="vote-reset-input"
+                type="text"
+                className="reg-modal-input"
+                value={resetWord}
+                onChange={(event) => setResetWord(event.target.value)}
+                placeholder={VOTE_RESET_CONFIRMATION}
+                autoComplete="off"
+                disabled={resetting}
+              />
+            </div>
+
+            {resetError ? (
+              <p className="admin-error vote-admin-reset-error" role="alert">
+                {resetError}
+              </p>
+            ) : null}
+
+            <div className="reg-modal-actions">
+              <button
+                type="button"
+                className="button button-secondary"
+                onClick={() => setResetOpen(false)}
+                disabled={resetting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="button reg-modal-delete-btn"
+                onClick={confirmReset}
+                disabled={resetting || resetWord !== VOTE_RESET_CONFIRMATION}
+              >
+                {resetting ? "Resetting..." : "Reset all votes"}
+              </button>
+            </div>
+          </div>
+        </dialog>
+      ) : null}
     </details>
   );
 }

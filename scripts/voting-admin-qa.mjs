@@ -35,6 +35,7 @@ const browser = await chromium.launch({ channel: "msedge" });
 async function createAdminPage(config = {}) {
   const {
     signedIn = true,
+    email = "admin@example.com",
     status = "open",
     liveResults = false,
     votes = [10, 4, 3, 2, 1, 0],
@@ -46,6 +47,7 @@ async function createAdminPage(config = {}) {
   const tallies = [...votes];
   const patches = [];
   let resultsCalls = 0;
+  let resetCalls = 0;
 
   const context = await browser.newContext({ viewport });
   await context.addInitScript((theme) => {
@@ -58,7 +60,7 @@ async function createAdminPage(config = {}) {
       contentType: "application/json",
       body: JSON.stringify({
         id: "mock-user-id",
-        email: "admin@example.com",
+        email,
         role: "authenticated",
         app_metadata: {},
         user_metadata: {},
@@ -75,7 +77,7 @@ async function createAdminPage(config = {}) {
         token_type: "bearer",
         expires_in: 3600,
         refresh_token: "mock-refresh",
-        user: { id: "mock-user-id", email: "admin@example.com" },
+        user: { id: "mock-user-id", email },
       }),
     })
   );
@@ -117,6 +119,17 @@ async function createAdminPage(config = {}) {
             votes: tallies[index] ?? 0,
           })),
         }),
+      });
+    }
+
+    if (url.includes("/rest/v1/rpc/clear_all_votes")) {
+      const deleted = tallies.reduce((sum, value) => sum + value, 0);
+      tallies.fill(0);
+      resetCalls += 1;
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(deleted),
       });
     }
 
@@ -165,7 +178,15 @@ async function createAdminPage(config = {}) {
     : "/admin/";
   await page.goto(BASE + hash, { waitUntil: "domcontentloaded" });
 
-  return { context, page, voting, tallies, patches, resultsCalls: () => resultsCalls };
+  return {
+    context,
+    page,
+    voting,
+    tallies,
+    patches,
+    resultsCalls: () => resultsCalls,
+    resetCalls: () => resetCalls,
+  };
 }
 
 // ---- Controls and results ---------------------------------------------------
@@ -259,10 +280,13 @@ async function createAdminPage(config = {}) {
     ) === true
   );
 
-  // Publish live results.
-  await page.locator(".vote-admin-toggle input").check();
+  // Publish live results. The checkbox is controlled, so its checked state only
+  // flips once the PATCH response lands — click and wait, rather than check(),
+  // which asserts on the state change immediately.
+  await page.locator(".vote-admin-toggle input").click();
   await page.waitForFunction(
     () =>
+      (document.querySelector(".vote-admin-toggle input"))?.checked === true &&
       document.querySelector(".admin-notice")?.textContent?.includes(
         "Live results are now visible"
       ),
@@ -306,6 +330,90 @@ async function createAdminPage(config = {}) {
       .nth(2)
       .textContent())?.trim() === "60%"
   );
+  check(
+    "admin: no reset button for a normal admin",
+    (await page.locator(".vote-admin-reset-btn").count()) === 0
+  );
+
+  await context.close();
+}
+
+// ---- Vote reset (fares9005@gmail.com only) ----------------------------------
+
+{
+  const { context, page, tallies, resetCalls } = await createAdminPage({
+    email: "fares9005@gmail.com",
+  });
+
+  await page.waitForSelector(".vote-admin-table tbody tr");
+  const resetBtn = page.locator(".vote-admin-reset-btn");
+  const dialog = page.locator(".vote-admin-dialog");
+
+  check(
+    "reset: button is visible to the authorised account",
+    (await resetBtn.count()) === 1
+  );
+
+  await resetBtn.click();
+  await dialog.waitFor({ state: "visible", timeout: 5000 });
+  check(
+    "reset: dialog opens as a modal",
+    (await dialog.evaluate((el) => el.open)) === true
+  );
+  check(
+    "reset: confirm is disabled until RESET is typed",
+    await page.locator(".reg-modal-delete-btn").isDisabled()
+  );
+
+  // Cancel must not touch the database.
+  await page.locator(".vote-admin-dialog .button-secondary").click();
+  await dialog.waitFor({ state: "hidden", timeout: 5000 });
+  check("reset: cancel closes the dialog", resetCalls() === 0);
+  check("reset: cancel leaves the votes alone", tallies.some((v) => v > 0));
+
+  // Reopen, type the word, confirm.
+  await resetBtn.click();
+  await dialog.waitFor({ state: "visible", timeout: 5000 });
+  await page.locator("#vote-reset-input").fill("RESET");
+  check(
+    "reset: confirm enables once RESET is typed",
+    await page.locator(".reg-modal-delete-btn").isEnabled()
+  );
+  await page.locator(".vote-admin-dialog .reg-modal-delete-btn").click();
+  await page.waitForFunction(
+    () =>
+      document
+        .querySelector(".admin-notice")
+        ?.textContent?.includes("votes deleted"),
+    null,
+    { timeout: 5000 }
+  );
+  await dialog.waitFor({ state: "hidden", timeout: 5000 });
+
+  check("reset: exactly one RPC call", resetCalls() === 1);
+  check(
+    "reset: notice reports the count",
+    (await page.locator(".admin-notice").textContent())?.includes(
+      "20 votes deleted"
+    ) === true
+  );
+  check(
+    "reset: table total returns to zero",
+    (await page.locator(".vote-admin-total").textContent())?.includes(
+      "0 votes cast"
+    ) === true
+  );
+  check(
+    "reset: rows are still listed at zero",
+    (await page.locator(".vote-admin-table tbody tr").count()) === 6
+  );
+  check(
+    "reset: settings are untouched",
+    (await page
+      .locator(".vote-admin-status")
+      .getByRole("radio", { name: /^Open/ })
+      .getAttribute("aria-checked")) === "true"
+  );
 
   await context.close();
 }
@@ -340,6 +448,33 @@ async function shot(theme, width) {
 for (const theme of ["light", "dark"]) {
   for (const width of [1440, 390]) {
     await shot(theme, width);
+  }
+}
+
+// The reset danger zone and its dialog, for the authorised account only.
+async function resetShot(theme, width) {
+  const { context, page } = await createAdminPage({
+    email: "fares9005@gmail.com",
+    theme,
+    viewport: { width, height: width === 390 ? 844 : 1000 },
+  });
+  await page.waitForSelector(".vote-admin-table tbody tr");
+  await page.waitForTimeout(150);
+  await page.locator("#admin-voting").screenshot({
+    path: `${OUT}/reset-zone-${width}-${theme}.png`,
+  });
+  await page.locator(".vote-admin-reset-btn").click();
+  await page.locator(".vote-admin-dialog").waitFor({ state: "visible" });
+  await page.waitForTimeout(150);
+  await page.locator(".vote-admin-dialog").screenshot({
+    path: `${OUT}/reset-dialog-${width}-${theme}.png`,
+  });
+  await context.close();
+}
+
+for (const theme of ["light", "dark"]) {
+  for (const width of [1440, 390]) {
+    await resetShot(theme, width);
   }
 }
 

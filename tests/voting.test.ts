@@ -4,6 +4,9 @@ import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 import {
+  VOTE_RESET_CONFIRMATION,
+  VOTING_RESET_EMAILS,
+  canResetVotes,
   getVotePercentage,
   getVoteWinners,
   isVotingStatus,
@@ -50,6 +53,45 @@ test("isVotingStatus: accepts only the three statuses", () => {
   assert.equal(isVotingStatus(""), false);
   assert.equal(isVotingStatus(null), false);
   assert.equal(isVotingStatus(1), false);
+});
+
+// ---- Vote reset gate --------------------------------------------------------
+
+test("canResetVotes: only the configured account, however it is typed", () => {
+  assert.deepEqual(VOTING_RESET_EMAILS, ["fares9005@gmail.com"]);
+  assert.equal(canResetVotes("fares9005@gmail.com"), true);
+  assert.equal(canResetVotes("  Fares9005@Gmail.com  "), true);
+  assert.equal(canResetVotes("admin@example.com"), false);
+  assert.equal(canResetVotes(""), false);
+  assert.equal(canResetVotes(null), false);
+  assert.equal(canResetVotes(undefined), false);
+});
+
+test("vote reset confirmation word stays RESET", () => {
+  assert.equal(VOTE_RESET_CONFIRMATION, "RESET");
+});
+
+test("clear_all_votes migration matches the reset gate", () => {
+  const sql = fs.readFileSync(
+    path.join(
+      process.cwd(),
+      "supabase",
+      "migrations",
+      "20261115000300_create_clear_all_votes.sql"
+    ),
+    "utf8"
+  );
+  assert.match(sql, /create or replace function public\.clear_all_votes\(\)/);
+  assert.match(sql, /security definer/);
+  assert.match(sql, /set search_path = public/);
+  assert.match(sql, /delete from public\.votes\s+where true/);
+  assert.match(sql, /grant execute on function public\.clear_all_votes\(\) to authenticated/);
+  for (const admin of VOTING_RESET_EMAILS) {
+    assert.ok(
+      sql.includes(admin),
+      `migration must gate on ${admin} (keep VOTING_RESET_EMAILS in sync)`
+    );
+  }
 });
 
 // ---- Winners and percentages ------------------------------------------------

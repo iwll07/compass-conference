@@ -40,6 +40,21 @@ export function isVotingStatus(value: unknown): value is VotingStatus {
   return value === "soon" || value === "open" || value === "closed";
 }
 
+/** Accounts allowed to wipe every vote at once, to clear test votes.
+ *  Mirrors the clear_all_votes() function in
+ *  supabase/migrations/20261115000300_create_clear_all_votes.sql — keep in sync.
+ *  This list only controls UI visibility; the database function is the real gate. */
+export const VOTING_RESET_EMAILS: readonly string[] = ["fares9005@gmail.com"];
+
+/** The word someone must type to confirm a full vote reset. */
+export const VOTE_RESET_CONFIRMATION = "RESET";
+
+export function canResetVotes(email?: string | null): boolean {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  return VOTING_RESET_EMAILS.some((admin) => admin.toLowerCase() === clean);
+}
+
 export type VotingTally = {
   id: string;
   votes: number;
