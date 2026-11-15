@@ -374,6 +374,12 @@ async function createAdminPage(config = {}) {
   const resetBtn = page.locator(".vote-admin-reset-btn");
   const dialog = page.locator(".vote-admin-dialog");
 
+  // Pretend this browser already voted: the marker is what disables the ballot
+  // after a reset, so the reset has to clear it too.
+  await page.evaluate(() =>
+    localStorage.setItem("compass-vote", "digital-phenotyping-mental-health")
+  );
+
   check(
     "reset: button is visible to the authorised account",
     (await resetBtn.count()) === 1
@@ -438,6 +444,10 @@ async function createAdminPage(config = {}) {
       .locator(".vote-admin-status")
       .getByRole("radio", { name: /^Open/ })
       .getAttribute("aria-checked")) === "true"
+  );
+  check(
+    "reset: this browser's vote marker is cleared so you can vote again",
+    (await page.evaluate(() => localStorage.getItem("compass-vote"))) === null
   );
 
   await context.close();

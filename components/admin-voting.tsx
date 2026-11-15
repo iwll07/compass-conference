@@ -11,6 +11,7 @@ import {
 } from "@/lib/voting-status";
 import {
   VOTE_RESET_CONFIRMATION,
+  VOTE_STORAGE_KEY,
   canResetVotes,
   getVotePercentage,
   type VotingResults,
@@ -175,6 +176,15 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
     );
     // Counts change, settings do not; refresh only the table.
     refreshResults();
+
+    // The "Your vote" marker lives in this browser's localStorage, which a
+    // database delete cannot reach. Without this, the tester's own tab still
+    // marks the card as voted and disables every button, so a reset would not
+    // actually let them vote again. Only the reset tester is affected — real
+    // voters never run a reset — so clear it here.
+    try {
+      localStorage.removeItem(VOTE_STORAGE_KEY);
+    } catch {}
   }
 
   const total = results?.total ?? 0;
