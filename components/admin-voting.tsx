@@ -373,11 +373,6 @@ export function AdminVoting({ sessionEmail }: { sessionEmail: string | null }) {
             </div>
           ) : null}
 
-          <p className="admin-hint vote-admin-note">
-            To reset test votes, delete rows from the <code>votes</code> table in
-            Supabase.
-          </p>
-
           {canReset ? (
             <div className="vote-admin-danger">
               <div>

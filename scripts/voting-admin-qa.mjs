@@ -255,11 +255,11 @@ async function createAdminPage(config = {}) {
     ) === true
   );
   check(
-    "admin: reset note is exact",
-    (await page.locator(".vote-admin-note").textContent())
-      ?.replace(/\s+/g, " ")
-      .trim() ===
-      "To reset test votes, delete rows from the votes table in Supabase."
+    "admin: the manual reset note is gone",
+    (await page.locator(".vote-admin-note").count()) === 0 &&
+      (await page.locator("main").textContent())?.includes(
+        "delete rows from"
+      ) === false
   );
 
   const previewBtn = page.locator(".vote-preview-btn");

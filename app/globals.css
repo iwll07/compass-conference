@@ -1943,8 +1943,6 @@ button.sponsor-strip-tile { cursor: pointer; }
 .vote-admin-cand-name { font-weight: 600; color: var(--ink); }
 .vote-admin-cand-title { font-size: 12px; line-height: 1.45; color: var(--muted); }
 .vote-admin-total { display: flex; justify-content: flex-end; padding: 10px 12px; background: var(--hero); border-top: 1px solid var(--line); font-size: 12px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
-.vote-admin-note { margin-top: 14px; }
-.vote-admin-note code { padding: 1px 4px; background: var(--accent-soft); border-radius: 2px; font-size: 11px; }
 
 /* Reset danger zone (visible only to VOTING_RESET_EMAILS; the database
    function is the real gate). The dialog inside reuses the registration
