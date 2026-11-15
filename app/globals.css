@@ -738,47 +738,18 @@ svg { flex-shrink: 0; vertical-align: middle; }
   text-decoration: none;
   font-family: inherit;
   margin: 0;
-  transition: transform 160ms cubic-bezier(.23,1,.32,1), box-shadow 160ms cubic-bezier(.23,1,.32,1);
-}
-button.sponsor-strip-tile { cursor: pointer; }
-
-/* Diamond: small navy tile for white Mood Digital logo */
-.sponsor-strip-tile-diamond {
+  /* One tile for every sponsor: navy, so a white or light logo reads in both
+     themes. There are no tiers any more, so there is no second tile style. */
   background: #192e39;
   border: 1px solid rgba(255, 255, 255, 0.12);
   height: 60px;
   padding: 10px 20px;
+  transition: transform 160ms cubic-bezier(.23,1,.32,1), box-shadow 160ms cubic-bezier(.23,1,.32,1);
 }
-.sponsor-strip-logo-diamond {
+button.sponsor-strip-tile { cursor: pointer; }
+
+.sponsor-strip-logo {
   height: 40px;
-  width: auto;
-  object-fit: contain;
-}
-
-/* Gold: light tile with 2px muted-gold top rule */
-.sponsor-strip-tile-gold {
-  background: #ffffff;
-  border: 0.5px solid #ccd7d4;
-  border-top: 2px solid #b08d57;
-  height: 52px;
-  padding: 8px 16px;
-}
-.sponsor-strip-logo-gold {
-  height: 32px;
-  width: auto;
-  object-fit: contain;
-}
-
-/* Silver: light tile with 1px muted-silver top rule */
-.sponsor-strip-tile-silver {
-  background: #ffffff;
-  border: 0.5px solid #ccd7d4;
-  border-top: 1px solid #aab3b6;
-  height: 44px;
-  padding: 6px 14px;
-}
-.sponsor-strip-logo-silver {
-  height: 26px;
   width: auto;
   object-fit: contain;
 }
@@ -896,13 +867,12 @@ button.sponsor-strip-tile { cursor: pointer; }
   width: auto;
   object-fit: contain;
 }
-.sponsor-dialog-tier {
-  font-size: 11px;
+.sponsor-dialog-name {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 17px;
   font-weight: 600;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--accent);
-  white-space: nowrap;
+  color: #ffffff;
+  line-height: 1.3;
 }
 .sponsor-dialog-close {
   display: inline-flex;
@@ -1043,8 +1013,21 @@ button.sponsor-strip-tile { cursor: pointer; }
   transform: translateY(-2px);
   box-shadow: none !important;
 }
+
+/* Links-only dialog: a sponsor with no description gets a smaller modal that
+   holds just the header and its link buttons. */
+.sponsor-dialog--links-only {
+  width: min(420px, calc(100vw - 32px));
+}
+.sponsor-dialog-footer-links-only {
+  border-top: 0;
+  padding-top: 0;
+}
 @media (max-width: 600px) {
   .sponsor-dialog { width: calc(100vw - 24px); margin: 12px auto; }
+  /* The links-only dialog is short; on a phone pinning it to the top leaves a
+     lot of empty space, so keep this one centred. */
+  .sponsor-dialog--links-only { margin: auto; }
   .sponsor-dialog-header { padding: 14px 18px; }
   .sponsor-dialog-body { padding: 18px 18px 22px; }
   .sponsor-dialog-title { font-size: 19px; }
@@ -1060,34 +1043,22 @@ button.sponsor-strip-tile { cursor: pointer; }
 
 .page-shell { max-width: 1260px; margin: 0 auto; padding: 66px 0 90px; min-height: 65vh; }
 
-/* ---- Sponsors Page & Tier Layouts -------------------------------------- */
+/* ---- Sponsors Page ------------------------------------------------------ */
+/* Every sponsor is equal. One full-width panel per sponsor, in the order they
+   are listed in lib/sponsors.ts. A sponsor with no description renders as the
+   smaller single-row panel (.sponsor-panel-compact) instead. */
 .sponsors-page-body {
   display: flex;
   flex-direction: column;
-  gap: 60px; /* 56-64px between tier sections and below the last one */
+  gap: 60px; /* 56-64px between the sponsor area and the support note */
   padding-top: 45px;
 }
-.sponsor-tier-section {
-  display: flex;
-  flex-direction: column;
-}
-.sponsor-tier-label {
-  font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-  display: block;
-  margin: 0 0 14px 0;
-  line-height: 1.2;
-}
-.sponsor-diamond-stack {
+.sponsor-stack {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-.sponsor-diamond-panel {
+.sponsor-panel {
   background: var(--panel);
   color: var(--panel-ink);
   border-top: 3px solid var(--accent);
@@ -1096,20 +1067,20 @@ button.sponsor-strip-tile { cursor: pointer; }
   display: flex;
   flex-direction: column;
 }
-.sponsor-diamond-header {
+.sponsor-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   width: 100%;
 }
-.sponsor-diamond-brand {
+.sponsor-panel-brand {
   display: flex;
   align-items: center;
   gap: 20px;
   min-width: 0;
 }
-.sponsor-diamond-logo {
+.sponsor-panel-logo {
   height: 72px;
   width: auto;
   max-width: 200px;
@@ -1117,13 +1088,13 @@ button.sponsor-strip-tile { cursor: pointer; }
   object-fit: contain;
   flex-shrink: 0;
 }
-.sponsor-diamond-titles {
+.sponsor-panel-titles {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
 }
-.sponsor-diamond-name {
+.sponsor-panel-name {
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 25px; /* 24-26px, site's heading font */
   font-weight: 600;
@@ -1131,20 +1102,20 @@ button.sponsor-strip-tile { cursor: pointer; }
   color: var(--panel-ink);
   margin: 0;
 }
-.sponsor-diamond-tagline {
+.sponsor-panel-tagline {
   font-family: "Source Serif 4", Georgia, serif;
   font-size: 14px;
   color: color-mix(in srgb, var(--panel-ink) 85%, transparent);
   line-height: 1.45;
   margin: 0;
 }
-.sponsor-diamond-links {
+.sponsor-panel-links {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
-.sponsor-diamond-link {
+.sponsor-panel-link {
   width: 44px;
   height: 44px;
   min-width: 44px;
@@ -1157,30 +1128,30 @@ button.sponsor-strip-tile { cursor: pointer; }
   text-decoration: none;
   transition: transform 160ms cubic-bezier(.23,1,.32,1), color 150ms ease;
 }
-.sponsor-diamond-link svg {
+.sponsor-panel-link svg {
   width: 24px;
   height: 24px;
   color: currentColor;
 }
-.sponsor-diamond-link.hover-lift:hover {
+.sponsor-panel-link.hover-lift:hover {
   box-shadow: none !important;
   color: var(--panel-accent);
 }
-.sponsor-diamond-divider {
+.sponsor-panel-divider {
   height: 1px;
   background: color-mix(in srgb, var(--panel-muted) 25%, transparent);
   border: 0;
   margin: 24px 0;
   width: 100%;
 }
-.sponsor-diamond-summary {
+.sponsor-panel-summary {
   font-size: 14.5px;
   line-height: 1.7;
   color: var(--panel-muted);
   max-width: 66ch;
   margin: 0;
 }
-.sponsor-diamond-btn {
+.sponsor-panel-btn {
   background: var(--panel-ink);
   color: var(--panel);
   border: 1px solid var(--panel-ink);
@@ -1200,149 +1171,70 @@ button.sponsor-strip-tile { cursor: pointer; }
   box-sizing: border-box;
   transition: transform 160ms cubic-bezier(.23,1,.32,1), box-shadow 160ms cubic-bezier(.23,1,.32,1);
 }
-.sponsor-diamond-btn:hover {
+.sponsor-panel-btn:hover {
   background: var(--panel-ink);
   color: var(--panel);
 }
-.sponsor-diamond-btn svg {
+.sponsor-panel-btn svg {
   width: 16px;
   height: 16px;
   color: currentColor;
   transition: transform 160ms cubic-bezier(.23,1,.32,1);
 }
 @media (hover: hover) and (pointer: fine) {
-  .sponsor-diamond-btn:hover svg {
+  .sponsor-panel-btn:hover svg {
     transform: translateX(3px);
   }
 }
 
-/* Gold grid: up to 3 across on desktop */
-.sponsor-grid-gold {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 18px;
-}
-/* Silver grid: up to 4 across */
-.sponsor-grid-silver {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
-}
-
-/* Shared Tile styles (light mode always) */
-.sponsor-tile {
-  --card-bg: #ffffff;
-  --card-ink: #192e39;
-  --card-muted: #526570;
-  --card-line: #ccd7d4;
-  --card-shadow: 0 8px 24px -8px rgba(8, 42, 75, 0.08), 0 2px 6px -1px rgba(8, 42, 75, 0.04);
-  background: var(--card-bg);
-  color: var(--card-ink);
-  border: 0.5px solid var(--card-line);
-  border-radius: 12px;
-  overflow: hidden;
+/* Compact panel: the same full-width panel as the others, minus the divider,
+   summary and button — a sponsor with no description has nothing to put there.
+   Its brand block is a button that opens the links-only dialog. */
+.sponsor-panel-compact-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  text-decoration: none;
+  min-width: 0;
+  background: none;
+  border: 0;
   padding: 0;
   margin: 0;
-  font-family: inherit;
-  position: relative;
-  box-shadow: var(--card-shadow);
-  transition: transform 160ms cubic-bezier(.23,1,.32,1), box-shadow 160ms cubic-bezier(.23,1,.32,1);
-}
-button.sponsor-tile {
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
-  width: 100%;
-}
-.sponsor-tile.hover-lift:hover {
-  box-shadow: 0 12px 28px -6px rgba(8, 42, 75, 0.16);
-}
-
-/* Gold: 2px muted-gold top rule (#b08d57), 76px logo box, 13px name */
-.sponsor-tile-gold {
-  --tier-rule: #b08d57;
-  border-top: 2px solid var(--tier-rule);
-}
-.sponsor-gold-logo-box {
-  height: 76px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 18px 8px;
-}
-.sponsor-gold-name {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--card-ink);
-  text-align: center;
-  padding: 0 14px 16px;
-}
-
-/* Silver: 1px muted-silver top rule (#aab3b6), 50px logo box, 12px name */
-.sponsor-tile-silver {
-  --tier-rule: #aab3b6;
-  border-top: 1px solid var(--tier-rule);
-}
-.sponsor-silver-logo-box {
-  height: 50px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 14px 6px;
-}
-.sponsor-silver-name {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--card-ink);
-  text-align: center;
-  padding: 0 10px 12px;
-}
-
-.sponsor-tile-logo {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
+  border-radius: 8px;
 }
 
 /* Below 700px: the header stacks, logo and name first, icon row beneath left-aligned, button full width */
 @media (max-width: 700px) {
-  .sponsor-diamond-panel {
+  .sponsor-panel {
     padding: 28px 20px;
   }
-  .sponsor-diamond-header {
+  .sponsor-panel-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 18px;
   }
-  .sponsor-diamond-brand {
+  .sponsor-panel-brand {
     display: flex;
     align-items: center;
     gap: 16px;
     width: 100%;
   }
-  .sponsor-diamond-logo {
+  .sponsor-panel-logo {
     height: 64px;
     width: auto;
     max-width: 180px;
   }
-  .sponsor-diamond-links {
+  .sponsor-panel-links {
     width: 100%;
     justify-content: flex-start;
     margin-left: -10px;
   }
-  .sponsor-diamond-summary {
+  .sponsor-panel-summary {
     max-width: 100%;
   }
-  .sponsor-diamond-btn {
+  .sponsor-panel-btn {
     width: 100%;
     align-self: stretch;
     justify-content: center;
@@ -1350,7 +1242,7 @@ button.sponsor-tile {
   }
 }
 
-/* Note below tiers when sponsors exist */
+/* Note below the sponsors when any exist */
 .sponsor-support-section {
   border-top: 1px solid var(--line);
   padding-top: 28px;

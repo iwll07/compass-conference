@@ -185,7 +185,13 @@ for (const route of ["/agenda/", "/speakers/", "/posters/"]) {
 
 await page.goto(BASE + "/sponsors/", { waitUntil: "networkidle" });
 const sponsorsMain = (await page.locator("main").textContent()) ?? "";
-check("/sponsors/ shows Diamond partner Mood Digital", sponsorsMain.includes("Mood Digital") && sponsorsMain.includes("Diamond Partner"));
+check("/sponsors/ shows sponsor Mood Digital", sponsorsMain.includes("Mood Digital"));
+  check(
+    "/sponsors/ shows every sponsor with no tier wording",
+    sponsorsMain.includes("Sim Era") &&
+      sponsorsMain.includes("Beni-Swef Medical Syndicate") &&
+      !/diamond partner|gold sponsor|silver sponsor/i.test(sponsorsMain)
+  );
 check("/sponsors/ removes empty state copy when sponsors exist", !sponsorsMain.includes("Confirmed sponsors and partners will be listed here"));
 
 // 6. Countdown: upcoming state renders (date set: Nov 25 2026 Cairo), no negative numbers

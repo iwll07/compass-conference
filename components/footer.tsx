@@ -107,7 +107,7 @@ export function Footer() {
           <button
             type="button"
             aria-haspopup="dialog"
-            aria-label="About Mood Digital, Diamond partner"
+            aria-label="About Mood Digital"
             className="credit-logo-btn hover-lift"
             onClick={() => setIsOpen(true)}
           >

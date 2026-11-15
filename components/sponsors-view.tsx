@@ -9,16 +9,10 @@ import {
   WhatsappLogo,
   Globe,
   EnvelopeSimple,
+  MapPin,
   ArrowRightIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import {
-  type Sponsor,
-  type SponsorLinkKind,
-  type SponsorTier,
-  SPONSOR_TIERS,
-  SPONSOR_TIER_LABELS,
-  sortSponsors,
-} from "@/lib/sponsors";
+import { type Sponsor, type SponsorLinkKind } from "@/lib/sponsors";
 import { SponsorDialog } from "@/components/sponsor-dialog";
 
 interface SponsorsViewProps {
@@ -31,12 +25,17 @@ const LINK_META: Record<SponsorLinkKind, { icon: typeof FacebookLogo; name: stri
   whatsapp: { icon: WhatsappLogo, name: "WhatsApp" },
   website: { icon: Globe, name: "Website" },
   email: { icon: EnvelopeSimple, name: "Email" },
+  location: { icon: MapPin, name: "Location" },
 };
 
-export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
-  const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
+function linkAriaLabel(sponsor: Sponsor, kind: SponsorLinkKind, name: string): string {
+  if (kind === "website") return `Visit ${sponsor.name} website`;
+  if (kind === "location") return `Location of ${sponsor.name} on Google Maps`;
+  return `${sponsor.name} on ${name}`;
+}
 
-  const sponsors = sortSponsors(rawSponsors);
+export function SponsorsView({ sponsors }: SponsorsViewProps) {
+  const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
 
   if (sponsors.length === 0) {
     return (
@@ -49,116 +48,125 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
     );
   }
 
-  // Only render tiers that actually have sponsors
-  const activeTiers = SPONSOR_TIERS.filter((tier) =>
-    sponsors.some((s) => s.tier === tier)
-  );
-
   return (
     <>
       <div className="sponsors-page-body">
-        {activeTiers.map((tier) => {
-          const tierSponsors = sponsors.filter((s) => s.tier === tier);
-          return (
-            <section
-              key={tier}
-              className="sponsor-tier-section reveal"
-              aria-labelledby={`tier-heading-${tier}`}
-            >
-              <h2 id={`tier-heading-${tier}`} className="sponsor-tier-label">
-                {SPONSOR_TIER_LABELS[tier]}
-              </h2>
+        <section className="sponsor-section reveal" aria-label="Our sponsors">
+          <div className="sponsor-stack">
+            {sponsors.map((sponsor) => {
+              // A sponsor with no description renders as a smaller single-row
+              // panel; everything else uses the full panel with summary + button.
+              const isCompact = !sponsor.summary && !sponsor.details;
+              const sponsorLinks = sponsor.links;
 
-              {tier === "diamond" ? (
-                <div className="sponsor-diamond-stack">
-                  {tierSponsors.map((sponsor) => (
-                    <article key={sponsor.id} className="sponsor-diamond-panel">
-                      {/* Row 1, header: Logo + Name/Tagline on left, icon links on right */}
-                      <div className="sponsor-diamond-header">
-                        <div className="sponsor-diamond-brand">
+              const links = sponsorLinks && sponsorLinks.length > 0 ? (
+                <div className="sponsor-panel-links" aria-label={`${sponsor.name} links`}>
+                  {sponsorLinks.map((link) => {
+                    const isEmail = link.kind === "email";
+                    const { icon: Icon, name } = LINK_META[link.kind];
+                    return (
+                      <a
+                        key={link.kind}
+                        href={link.href}
+                        className="sponsor-panel-link hover-lift"
+                        aria-label={linkAriaLabel(sponsor, link.kind, name)}
+                        {...(!isEmail
+                          ? { target: "_blank", rel: "noopener noreferrer" }
+                          : {})}
+                      >
+                        <Icon size={24} aria-hidden="true" />
+                      </a>
+                    );
+                  })}
+                </div>
+              ) : null;
+
+              if (isCompact) {
+                return (
+                  <article key={sponsor.id} className="sponsor-panel sponsor-panel-compact">
+                    {/* Same header row as a full panel, but with no divider,
+                        summary or button — there is no description to show, so
+                        the brand block itself opens the links-only dialog. */}
+                    <div className="sponsor-panel-header">
+                      <button
+                        type="button"
+                        className="sponsor-panel-compact-btn"
+                        onClick={() => setSelectedSponsor(sponsor)}
+                        aria-haspopup="dialog"
+                        aria-label={`About ${sponsor.name}`}
+                      >
+                        <div className="sponsor-panel-brand">
                           <Image
                             src={sponsor.logo.src}
                             alt={sponsor.logo.alt}
                             width={sponsor.logo.width}
                             height={sponsor.logo.height}
-                            className="sponsor-diamond-logo"
+                            className="sponsor-panel-logo"
                           />
-                          <div className="sponsor-diamond-titles">
-                            <h3 className="sponsor-diamond-name">{sponsor.name}</h3>
-                            <p className="sponsor-diamond-tagline">{sponsor.tagline}</p>
+                          <div className="sponsor-panel-titles">
+                            <h3 className="sponsor-panel-name">{sponsor.name}</h3>
+                            {sponsor.tagline && (
+                              <p className="sponsor-panel-tagline">{sponsor.tagline}</p>
+                            )}
                           </div>
                         </div>
+                      </button>
+                      {links}
+                    </div>
+                  </article>
+                );
+              }
 
-                        {sponsor.links && sponsor.links.length > 0 && (
-                          <div
-                            className="sponsor-diamond-links"
-                            aria-label={`${sponsor.name} links`}
-                          >
-                            {sponsor.links.map((link) => {
-                              const isEmail = link.kind === "email";
-                              const { icon: Icon, name } = LINK_META[link.kind];
-                              const ariaLabel =
-                                link.kind === "website"
-                                  ? `Visit ${sponsor.name} website`
-                                  : `${sponsor.name} on ${name}`;
-                              return (
-                                <a
-                                  key={link.kind}
-                                  href={link.href}
-                                  className="sponsor-diamond-link hover-lift"
-                                  aria-label={ariaLabel}
-                                  {...(!isEmail
-                                    ? { target: "_blank", rel: "noopener noreferrer" }
-                                    : {})}
-                                >
-                                  <Icon size={24} aria-hidden="true" />
-                                </a>
-                              );
-                            })}
-                          </div>
+              return (
+                <article key={sponsor.id} className="sponsor-panel">
+                  {/* Row 1, header: Logo + Name/Tagline on left, icon links on right */}
+                  <div className="sponsor-panel-header">
+                    <div className="sponsor-panel-brand">
+                      <Image
+                        src={sponsor.logo.src}
+                        alt={sponsor.logo.alt}
+                        width={sponsor.logo.width}
+                        height={sponsor.logo.height}
+                        className="sponsor-panel-logo"
+                      />
+                      <div className="sponsor-panel-titles">
+                        <h3 className="sponsor-panel-name">{sponsor.name}</h3>
+                        {sponsor.tagline && (
+                          <p className="sponsor-panel-tagline">{sponsor.tagline}</p>
                         )}
                       </div>
+                    </div>
 
-                      {/* 1px divider */}
-                      <div className="sponsor-diamond-divider" role="separator" />
+                    {links}
+                  </div>
 
-                      {/* Row 2: Summary paragraph */}
-                      {sponsor.summary && (
-                        <p className="sponsor-diamond-summary">{sponsor.summary}</p>
-                      )}
+                  {/* 1px divider */}
+                  <div className="sponsor-panel-divider" role="separator" />
 
-                      {/* Row 3: Learn more button */}
-                      {sponsor.details && (
-                        <button
-                          type="button"
-                          className="button sponsor-diamond-btn hover-lift"
-                          onClick={() => setSelectedSponsor(sponsor)}
-                          aria-haspopup="dialog"
-                        >
-                          <span>Learn more</span>
-                          <ArrowRightIcon size={16} aria-hidden="true" />
-                        </button>
-                      )}
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className={`sponsor-grid sponsor-grid-${tier}`}>
-                  {tierSponsors.map((sponsor) => (
-                    <SponsorTile
-                      key={sponsor.id}
-                      sponsor={sponsor}
-                      tier={tier}
-                      onSelect={setSelectedSponsor}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-          );
-        })}
+                  {/* Row 2: Summary paragraph */}
+                  {sponsor.summary && (
+                    <p className="sponsor-panel-summary">{sponsor.summary}</p>
+                  )}
 
-        {/* Note below all tiers when sponsors exist */}
+                  {/* Row 3: Learn more button */}
+                  {sponsor.details && (
+                    <button
+                      type="button"
+                      className="button sponsor-panel-btn hover-lift"
+                      onClick={() => setSelectedSponsor(sponsor)}
+                      aria-haspopup="dialog"
+                    >
+                      <span>Learn more</span>
+                      <ArrowRightIcon size={16} aria-hidden="true" />
+                    </button>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Note below the sponsors when any exist */}
         <section
           className="sponsor-support-section reveal"
           aria-labelledby="partnership-heading"
@@ -181,78 +189,4 @@ export function SponsorsView({ sponsors: rawSponsors }: SponsorsViewProps) {
       />
     </>
   );
-}
-
-function SponsorTile({
-  sponsor,
-  tier,
-  onSelect,
-}: {
-  sponsor: Sponsor;
-  tier: SponsorTier;
-  onSelect: (sponsor: Sponsor) => void;
-}) {
-  const isGold = tier === "gold";
-  const hasDetails = !!sponsor.details;
-  const hasHref = !!sponsor.href;
-  const isInteractive = hasDetails || hasHref;
-
-  const content = (
-    <>
-      <div
-        className={`sponsor-tile-logo-box ${
-          isGold ? "sponsor-gold-logo-box" : "sponsor-silver-logo-box"
-        }`}
-      >
-        <Image
-          src={sponsor.logo.src}
-          alt={sponsor.logo.alt}
-          width={sponsor.logo.width}
-          height={sponsor.logo.height}
-          className="sponsor-tile-logo"
-        />
-      </div>
-      <span
-        className={`sponsor-tile-name ${
-          isGold ? "sponsor-gold-name" : "sponsor-silver-name"
-        }`}
-      >
-        {sponsor.name}
-      </span>
-    </>
-  );
-
-  const className = `sponsor-tile sponsor-tile-${tier} ${
-    isInteractive ? "hover-lift" : ""
-  }`;
-
-  if (hasDetails) {
-    return (
-      <button
-        type="button"
-        className={className}
-        onClick={() => onSelect(sponsor)}
-        aria-haspopup="dialog"
-        aria-label={`About ${sponsor.name}`}
-      >
-        {content}
-      </button>
-    );
-  }
-
-  if (hasHref && sponsor.href) {
-    return (
-      <a
-        href={sponsor.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-        aria-label={`Visit ${sponsor.name}`}
-      >
-        {content}
-      </a>
-    );
-  }
-
-  return <div className={className}>{content}</div>;
 }

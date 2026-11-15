@@ -2,7 +2,7 @@ import { chromium } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const ARTIFACT_DIR = "C:/Users/fares/.gemini/antigravity/brain/8a930f24-decb-48f1-ae9c-8d53d5d2a297";
 const LOCAL_DIR = ".playwright-cli/qa";
 mkdirSync(LOCAL_DIR, { recursive: true });
@@ -46,7 +46,7 @@ try {
   check("Footer logo button has aria-haspopup='dialog'", (await footerBtn.getAttribute("aria-haspopup")) === "dialog");
   check(
     "Footer logo button has accessible name",
-    (await footerBtn.getAttribute("aria-label")) === "About Mood Digital, Diamond partner"
+    (await footerBtn.getAttribute("aria-label")) === "About Mood Digital"
   );
   check(
     "Old Facebook link 1F8HS7QUMD does not exist in DOM",
@@ -176,8 +176,13 @@ try {
     (await homeStrip.locator('a[href^="/sponsors"]').count()) === 1
   );
 
-  const homeTile = page.locator(".sponsor-strip-tile-diamond");
-  check("Diamond sponsor tiles on home strip exist", (await homeTile.count()) === 2);
+  const homeTile = page.locator(".sponsor-strip-tile");
+  check("Every sponsor has a tile on the home strip", (await homeTile.count()) === 3);
+  check(
+    "Home strip tiles all use the one shared style",
+    (await homeTile
+      .evaluateAll((els) => els.every((el) => el.className.trim() === "sponsor-strip-tile hover-lift")))
+  );
 
   // Home strip screenshot
   const shotHomeStrip = await page.screenshot({ fullPage: false });
@@ -194,22 +199,22 @@ try {
   await page.goto(BASE + "/sponsors/", { waitUntil: "networkidle" });
   await page.waitForTimeout(300);
 
-  const diamondPanels = page.locator(".sponsor-diamond-panel");
-  check("Both diamond panels on /sponsors exist", (await diamondPanels.count()) === 2);
-  // Mood Digital sorts first (M before S) and owns the detailed assertions below.
-  const diamondPanel = diamondPanels.first();
+  const panels = page.locator(".sponsor-panel");
+  check("Three sponsor panels on /sponsors", (await panels.count()) === 3);
+  // Mood Digital is first in declaration order and owns the detailed assertions.
+  const moodPanel = panels.first();
 
   // Logo checks
-  const logoImg = diamondPanel.locator(".sponsor-diamond-logo");
-  check("Diamond logo renders in panel", (await logoImg.count()) === 1);
-  check("Diamond logo uses its data alt", (await logoImg.getAttribute("alt")) === "Mood Digital logo");
+  const logoImg = moodPanel.locator(".sponsor-panel-logo");
+  check("Sponsor logo renders in panel", (await logoImg.count()) === 1);
+  check("Sponsor logo uses its data alt", (await logoImg.getAttribute("alt")) === "Mood Digital logo");
   const logoDims = await logoImg.evaluate((el) => ({ w: el.clientWidth, h: el.clientHeight }));
-  check("Diamond logo renders at 72px height", logoDims.h === 72 && logoDims.w > 0, `${logoDims.w}x${logoDims.h}`);
+  check("Sponsor logo renders at 72px height", logoDims.h === 72 && logoDims.w > 0, `${logoDims.w}x${logoDims.h}`);
 
   // Name & tagline
-  const nameEl = diamondPanel.locator(".sponsor-diamond-name");
+  const nameEl = moodPanel.locator(".sponsor-panel-name");
   check(
-    "Diamond panel has Mood Digital title",
+    "Mood panel has Mood Digital title",
     (await nameEl.textContent())?.trim() === "Mood Digital"
   );
   const nameStyles = await nameEl.evaluate((el) => {
@@ -221,32 +226,32 @@ try {
     };
   });
   check(
-    "Diamond panel name in site's heading font (24-26px)",
+    "Mood panel name in site's heading font (24-26px)",
     nameStyles.fontSize >= 24 && nameStyles.fontSize <= 26 && nameStyles.fontFamily.includes("serif"),
     `${nameStyles.fontSize}px ${nameStyles.fontFamily}`
   );
 
-  const taglineEl = diamondPanel.locator(".sponsor-diamond-tagline");
+  const taglineEl = moodPanel.locator(".sponsor-panel-tagline");
   check(
-    "Diamond panel has correct tagline",
+    "Mood panel has correct tagline",
     (await taglineEl.textContent())?.trim() === "Official Technology Partner of COMPASS 2026"
   );
   const taglineStyles = await taglineEl.evaluate((el) => {
     const cs = getComputedStyle(el);
     return { fontSize: parseFloat(cs.fontSize) };
   });
-  check("Diamond panel tagline is 14px", Math.round(taglineStyles.fontSize) === 14);
+  check("Mood panel tagline is 14px", Math.round(taglineStyles.fontSize) === 14);
 
   // Logo and text aligned vertically
-  const brandAligned = await diamondPanel.locator(".sponsor-diamond-brand").evaluate((el) => {
+  const brandAligned = await moodPanel.locator(".sponsor-panel-brand").evaluate((el) => {
     return getComputedStyle(el).alignItems === "center";
   });
   check("Logo and text aligned vertically in brand container", brandAligned);
 
   // Right: 4 icon links at 24px with 44px hit areas
-  const diamondLinks = diamondPanel.locator(".sponsor-diamond-link");
-  check("Diamond panel has 4 icon links", (await diamondLinks.count()) === 4);
-  const linksValid = await diamondLinks.evaluateAll((els) => {
+  const panelLinks = moodPanel.locator(".sponsor-panel-link");
+  check("Mood panel has 4 icon links", (await panelLinks.count()) === 4);
+  const linksValid = await panelLinks.evaluateAll((els) => {
     return els.every((el) => {
       const rect = el.getBoundingClientRect();
       const svg = el.querySelector("svg");
@@ -257,23 +262,23 @@ try {
   check("Each icon link has >=44px hit area and 24px icon", linksValid);
 
   // Check exact hrefs and rels on panel
-  const panelFb = diamondPanel.locator('.sponsor-diamond-link[aria-label="Mood Digital on Facebook"]');
+  const panelFb = moodPanel.locator('.sponsor-panel-link[aria-label="Mood Digital on Facebook"]');
   check("Panel FB href matches", (await panelFb.getAttribute("href")) === expectedFb);
   check("Panel FB rel contains noopener", (await panelFb.getAttribute("rel"))?.includes("noopener") === true);
 
-  const panelIg = diamondPanel.locator('.sponsor-diamond-link[aria-label="Mood Digital on Instagram"]');
+  const panelIg = moodPanel.locator('.sponsor-panel-link[aria-label="Mood Digital on Instagram"]');
   check("Panel IG href matches", (await panelIg.getAttribute("href")) === expectedIg);
 
-  const panelWa = diamondPanel.locator('.sponsor-diamond-link[aria-label="Mood Digital on WhatsApp"]');
+  const panelWa = moodPanel.locator('.sponsor-panel-link[aria-label="Mood Digital on WhatsApp"]');
   check("Panel WA href matches", (await panelWa.getAttribute("href")) === expectedWhatsapp);
 
-  const panelEmail = diamondPanel.locator('.sponsor-diamond-link[aria-label="Mood Digital on Email"]');
+  const panelEmail = moodPanel.locator('.sponsor-panel-link[aria-label="Mood Digital on Email"]');
   check("Panel Email href matches", (await panelEmail.getAttribute("href")) === expectedEmail);
   check("Panel Email has no target", (await panelEmail.getAttribute("target")) === null);
 
   // Divider
-  const divider = diamondPanel.locator(".sponsor-diamond-divider");
-  check("Diamond panel 1px divider exists", (await divider.count()) === 1);
+  const divider = moodPanel.locator(".sponsor-panel-divider");
+  check("Mood panel 1px divider exists", (await divider.count()) === 1);
   const dividerStyles = await divider.evaluate((el) => {
     const cs = getComputedStyle(el);
     return {
@@ -290,10 +295,10 @@ try {
   // Row 2: summary paragraph at 14.5px, line-height 1.7, max-width ~66ch
   const expectedSummary =
     "Mood Digital is a custom software and digital systems agency specializing in high-performance web applications, automated event & QR check-in ecosystems, clinic management dashboards, and e-learning platforms. Proudly powering the digital experience of COMPASS 2026.";
-  const summaryEl = diamondPanel.locator(".sponsor-diamond-summary");
+  const summaryEl = moodPanel.locator(".sponsor-panel-summary");
   const actualSummary = (await summaryEl.textContent())?.trim();
-  check("Diamond panel summary renders exact copy", actualSummary === expectedSummary);
-  check("Diamond panel summary renders '&' correctly", actualSummary?.includes("event & QR check-in") === true);
+  check("Mood panel summary renders exact copy", actualSummary === expectedSummary);
+  check("Mood panel summary renders '&' correctly", actualSummary?.includes("event & QR check-in") === true);
   const summaryStyles = await summaryEl.evaluate((el) => {
     const cs = getComputedStyle(el);
     return {
@@ -307,8 +312,8 @@ try {
   );
 
   // Row 3: "Learn more" button (inverse button style, min-height 44px, 8px radius, trailing ArrowRight)
-  const learnMoreBtn = diamondPanel.locator("button.sponsor-diamond-btn");
-  check("Diamond panel has 'Learn more' button", (await learnMoreBtn.count()) === 1);
+  const learnMoreBtn = moodPanel.locator("button.sponsor-panel-btn");
+  check("Mood panel has 'Learn more' button", (await learnMoreBtn.count()) === 1);
   check("Learn more button has trailing arrow icon", (await learnMoreBtn.locator("svg").count()) === 1);
   const btnStyles = await learnMoreBtn.evaluate((el) => {
     const cs = getComputedStyle(el);
@@ -322,21 +327,13 @@ try {
     btnStyles.minHeight >= 44 && btnStyles.borderRadius === 8
   );
 
-  // Tier label styling
-  const tierLabel = page.locator(".sponsor-tier-label").first();
-  const labelStyles = await tierLabel.evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return {
-      fontSize: parseFloat(cs.fontSize),
-      fontFamily: cs.fontFamily.toLowerCase(),
-      textTransform: cs.textTransform,
-      letterSpacing: cs.letterSpacing,
-      marginBottom: parseFloat(cs.marginBottom),
-    };
-  });
-  check("Tier label is sans-serif", labelStyles.fontFamily.includes("public sans"));
-  check("Tier label is 11px uppercase", labelStyles.fontSize === 11 && labelStyles.textTransform === "uppercase");
-  check("Tier label has ~14px margin to panel", Math.round(labelStyles.marginBottom) === 14);
+  // Tiers are gone: nothing on the page may say "Diamond", "Gold" or "Silver".
+  const pageText = await page.locator(".sponsors-page-body").innerText();
+  check(
+    "No tier labels or tier wording remain",
+    (await page.locator(".sponsor-tier-label").count()) === 0 &&
+      !/\bdiamond\b|\bgold\b|\bsilver\b/i.test(pageText)
+  );
 
   // Note below tiers
   const supportSection = page.locator(".sponsor-support-section");
@@ -357,39 +354,39 @@ try {
     (await supportSection.locator('a[href^="/about"]').count()) === 1
   );
 
-  // Dialog opens from Diamond panel Learn More button
+  // Dialog opens from the Mood Digital panel's Learn More button
   await learnMoreBtn.click();
   await page.waitForTimeout(200);
   check(
-    "Dialog opens from Diamond panel Learn more button",
+    "Dialog opens from the panel Learn more button",
     (await page.locator("dialog.sponsor-dialog[open]").count()) === 1
   );
   await page.keyboard.press("Escape");
   await page.waitForTimeout(150);
 
-  // Sim Era: second diamond panel
-  const simPanel = diamondPanels.filter({ hasText: "Sim Era" });
-  check("Sim Era diamond panel exists", (await simPanel.count()) === 1);
+  // Sim Era: second full panel
+  const simPanel = panels.filter({ hasText: "Sim Era" });
+  check("Sim Era panel exists", (await simPanel.count()) === 1);
   check(
     "Sim Era panel has correct tagline",
-    (await simPanel.locator(".sponsor-diamond-tagline").textContent())?.trim() ===
+    (await simPanel.locator(".sponsor-panel-tagline").textContent())?.trim() ===
       "Medical Simulation & Education Partner of COMPASS 2026"
   );
   check(
     "Sim Era logo has alt 'Sim Era logo'",
-    (await simPanel.locator(".sponsor-diamond-logo").getAttribute("alt")) === "Sim Era logo"
+    (await simPanel.locator(".sponsor-panel-logo").getAttribute("alt")) === "Sim Era logo"
   );
-  const simLinks = simPanel.locator(".sponsor-diamond-link");
+  const simLinks = simPanel.locator(".sponsor-panel-link");
   check("Sim Era panel has 2 icon links", (await simLinks.count()) === 2);
-  const simWebsite = simPanel.locator('.sponsor-diamond-link[aria-label="Visit Sim Era website"]');
+  const simWebsite = simPanel.locator('.sponsor-panel-link[aria-label="Visit Sim Era website"]');
   check("Sim Era website href matches", (await simWebsite.getAttribute("href")) === "https://www.sim-era.com/");
   check("Sim Era website opens in new tab", (await simWebsite.getAttribute("target")) === "_blank");
-  const simEmail = simPanel.locator('.sponsor-diamond-link[aria-label="Sim Era on Email"]');
+  const simEmail = simPanel.locator('.sponsor-panel-link[aria-label="Sim Era on Email"]');
   check("Sim Era email href matches", (await simEmail.getAttribute("href")) === "mailto:info@sim-era.com");
   check("Sim Era email has no target", (await simEmail.getAttribute("target")) === null);
 
   // Sim Era dialog: EN and AR details render
-  await simPanel.locator("button.sponsor-diamond-btn").click();
+  await simPanel.locator("button.sponsor-panel-btn").click();
   await page.waitForTimeout(200);
   const simDialog = page.locator("dialog.sponsor-dialog[open]");
   check("Sim Era dialog opens", (await simDialog.count()) === 1);
@@ -407,18 +404,109 @@ try {
   await page.keyboard.press("Escape");
   await page.waitForTimeout(150);
 
+  // Beni-Swef Medical Syndicate: no description, so a compact panel and a
+  // links-only dialog (Facebook + Google Maps location).
+  const syndicatePanel = panels.filter({ hasText: "Beni-Swef Medical Syndicate" });
+  check("Syndicate panel exists", (await syndicatePanel.count()) === 1);
+  check(
+    "Syndicate uses the compact panel",
+    (await syndicatePanel.getAttribute("class"))?.includes("sponsor-panel-compact") === true
+  );
+  check(
+    "Compact panel has no summary and no Learn more button",
+    (await syndicatePanel.locator(".sponsor-panel-summary").count()) === 0 &&
+      (await syndicatePanel.locator(".sponsor-panel-btn").count()) === 0
+  );
+  const syndicateLinks = syndicatePanel.locator(".sponsor-panel-link");
+  check("Syndicate panel has 2 icon links", (await syndicateLinks.count()) === 2);
+  const syndicateFb = syndicatePanel.locator(
+    '.sponsor-panel-link[aria-label="Beni-Swef Medical Syndicate on Facebook"]'
+  );
+  check(
+    "Syndicate Facebook href matches",
+    (await syndicateFb.getAttribute("href")) === "https://www.facebook.com/share/1RBzviQhJf/"
+  );
+  const syndicateMap = syndicatePanel.locator(
+    '.sponsor-panel-link[aria-label="Location of Beni-Swef Medical Syndicate on Google Maps"]'
+  );
+  check(
+    "Syndicate location href matches",
+    (await syndicateMap.getAttribute("href")) === "https://maps.app.goo.gl/DY6VGfV7ufUTTQEu7"
+  );
+  check("Syndicate location opens in a new tab", (await syndicateMap.getAttribute("target")) === "_blank");
+
+  const compactBox = await syndicatePanel.boundingBox();
+  const fullBox = await moodPanel.boundingBox();
+  check(
+    "Compact panel is the same width as a full panel",
+    !!compactBox && !!fullBox && Math.abs(compactBox.width - fullBox.width) <= 1,
+    `${Math.round(compactBox?.width ?? 0)}px vs ${Math.round(fullBox?.width ?? 0)}px`
+  );
+  check(
+    "Compact panel has no divider",
+    (await syndicatePanel.locator(".sponsor-panel-divider").count()) === 0
+  );
+
+  // Clicking the compact panel opens the links-only dialog.
+  await syndicatePanel.locator("button.sponsor-panel-compact-btn").click();
+  await page.waitForTimeout(200);
+  const syndicateDialog = page.locator("dialog.sponsor-dialog[open]");
+  check("Syndicate dialog opens", (await syndicateDialog.count()) === 1);
+  check(
+    "Syndicate dialog is the links-only variant",
+    (await syndicateDialog.getAttribute("class"))?.includes("sponsor-dialog--links-only") === true
+  );
+  check(
+    "Syndicate dialog has no language tabs and no body copy",
+    (await syndicateDialog.locator(".sponsor-dialog-tabs").count()) === 0 &&
+      (await syndicateDialog.locator(".sponsor-dialog-title").count()) === 0
+  );
+  check(
+    "Syndicate dialog shows the sponsor name",
+    (await syndicateDialog.locator(".sponsor-dialog-name").textContent())?.trim() ===
+      "Beni-Swef Medical Syndicate"
+  );
+  const syndicateDialogLinks = syndicateDialog.locator(".sponsor-dialog-link");
+  check("Syndicate dialog renders 2 link buttons", (await syndicateDialogLinks.count()) === 2);
+  check(
+    "Syndicate dialog links are Facebook and Location",
+    (await syndicateDialogLinks.locator("span").allTextContents()).join("|") === "Facebook|Location"
+  );
+  check(
+    "Syndicate location link uses the maps icon",
+    (await syndicateDialog
+      .locator('a[aria-label="Location of Beni-Swef Medical Syndicate on Google Maps"] svg')
+      .count()) === 1
+  );
+  const linksOnlyWidth = await syndicateDialog.evaluate((el) =>
+    parseFloat(getComputedStyle(el).width)
+  );
+  check("Links-only dialog is the smaller 420px panel", Math.round(linksOnlyWidth) === 420, `${linksOnlyWidth}px`);
+
+  saveShot("sponsor-links-dialog-1440-light.png", await page.screenshot({ fullPage: false }));
+
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+  check(
+    "Links-only dialog closes on Escape and returns focus",
+    (await page.locator("dialog.sponsor-dialog[open]").count()) === 0 &&
+      (await page.evaluate(
+        () => document.activeElement?.classList.contains("sponsor-panel-compact-btn") === true
+      ))
+  );
+
   // Screenshots at 1440, 1280, 1024, 390 in light and dark
   // 1440 light & dark
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.waitForTimeout(150);
   const shot1440Light = await page.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-1440-light.png", shot1440Light);
+  saveShot("sponsors-1440-light.png", shot1440Light);
   saveShot("sponsors-page-desktop.png", shot1440Light);
 
   await page.click('button[aria-label*="theme"]');
   await page.waitForTimeout(200);
   const shot1440Dark = await page.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-1440-dark.png", shot1440Dark);
+  saveShot("sponsors-1440-dark.png", shot1440Dark);
 
   await page.click('button[aria-label*="theme"]');
   await page.waitForTimeout(150);
@@ -427,12 +515,12 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.waitForTimeout(150);
   const shot1280Light = await page.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-1280-light.png", shot1280Light);
+  saveShot("sponsors-1280-light.png", shot1280Light);
 
   await page.click('button[aria-label*="theme"]');
   await page.waitForTimeout(200);
   const shot1280Dark = await page.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-1280-dark.png", shot1280Dark);
+  saveShot("sponsors-1280-dark.png", shot1280Dark);
 
   await page.click('button[aria-label*="theme"]');
   await page.waitForTimeout(150);
@@ -441,12 +529,12 @@ try {
   await page.setViewportSize({ width: 1024, height: 800 });
   await page.waitForTimeout(150);
   const shot1024Light = await page.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-1024-light.png", shot1024Light);
+  saveShot("sponsors-1024-light.png", shot1024Light);
 
   await page.click('button[aria-label*="theme"]');
   await page.waitForTimeout(200);
   const shot1024Dark = await page.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-1024-dark.png", shot1024Dark);
+  saveShot("sponsors-1024-dark.png", shot1024Dark);
 
   await page.click('button[aria-label*="theme"]');
   await page.waitForTimeout(150);
@@ -469,27 +557,42 @@ try {
   check("No horizontal overflow on /sponsors/ at 390px", noOverflow);
 
   // Check mobile stacked layout below 700px
-  const mobileHeaderStacked = await mobilePage.locator(".sponsor-diamond-header").first().evaluate((el) => {
+  const mobileHeaderStacked = await mobilePage.locator(".sponsor-panel-header").first().evaluate((el) => {
     return getComputedStyle(el).flexDirection === "column";
   });
-  check("Below 700px: Diamond header stacks vertically", mobileHeaderStacked);
+  check("Below 700px: sponsor header stacks vertically", mobileHeaderStacked);
 
-  const mobileBtnFullWidth = await mobilePage.locator("button.sponsor-diamond-btn").first().evaluate((el) => {
+  const mobileBtnFullWidth = await mobilePage.locator("button.sponsor-panel-btn").first().evaluate((el) => {
     const parentPadding = parseFloat(getComputedStyle(el.parentElement).paddingLeft) + parseFloat(getComputedStyle(el.parentElement).paddingRight);
     const parentContentWidth = el.parentElement.clientWidth - parentPadding;
     return Math.abs(el.offsetWidth - parentContentWidth) <= 4;
   });
   check("Below 700px: Learn more button is full width", mobileBtnFullWidth);
 
+  // The compact panel's header stacks like the full panels do.
+  const mobileCompactStacked = await mobilePage
+    .locator(".sponsor-panel-compact .sponsor-panel-header")
+    .evaluate((el) => getComputedStyle(el).flexDirection === "column");
+  check("Below 700px: compact panel header stacks", mobileCompactStacked);
+
   // Screenshots: /sponsors/ mobile light & dark (390)
   const shotSponsors390Light = await mobilePage.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-390-light.png", shotSponsors390Light);
+  saveShot("sponsors-390-light.png", shotSponsors390Light);
   saveShot("sponsors-page-mobile.png", shotSponsors390Light);
 
   await mobilePage.click('button[aria-label*="theme"]');
   await mobilePage.waitForTimeout(200);
   const shotSponsors390Dark = await mobilePage.screenshot({ fullPage: true });
-  saveShot("sponsors-diamond-390-dark.png", shotSponsors390Dark);
+  saveShot("sponsors-390-dark.png", shotSponsors390Dark);
+
+  // Links-only dialog on mobile, light
+  await mobilePage.click('button[aria-label*="theme"]');
+  await mobilePage.waitForTimeout(150);
+  await mobilePage.locator("button.sponsor-panel-compact-btn").click();
+  await mobilePage.waitForTimeout(200);
+  saveShot("sponsor-links-dialog-390-light.png", await mobilePage.screenshot({ fullPage: false }));
+  await mobilePage.keyboard.press("Escape");
+  await mobilePage.waitForTimeout(150);
 
   await mobileContext.close();
 
@@ -502,7 +605,7 @@ try {
   await arPage.goto(BASE + "/sponsors/", { waitUntil: "networkidle" });
   await arPage.waitForTimeout(200);
 
-  await arPage.locator(".sponsor-diamond-panel button:has-text('Learn more')").first().click();
+  await arPage.locator(".sponsor-panel button:has-text('Learn more')").first().click();
   await arPage.waitForTimeout(250);
 
   const arActiveTab = arPage.locator("dialog.sponsor-dialog[open] .sponsor-dialog-tab-active");

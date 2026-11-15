@@ -1,6 +1,12 @@
 # COMPASS working log
 
 ## Current state
+- **Sponsors are tier-free, and the Beni-Swef Medical Syndicate joins (2026-11-15, user request):** all "Diamond Partner" / Gold / Silver wording is gone. Every sponsor is equal and renders in the order listed in `lib/sponsors.ts` (`Mood Digital`, `Sim Era`, `Beni-Swef Medical Syndicate`), so `sortSponsors()`, `SponsorTier`, `SPONSOR_TIERS`, `SPONSOR_TIER_LABELS` and the tier/gold/silver tile CSS were deleted; `tagline` is now optional.
+  - **`/sponsors/`:** one full-width `.sponsor-panel` per sponsor with the same header, 1px divider, summary and "Learn more" button as before, minus the tier label. A sponsor with no description keeps that full-width panel but drops the divider, summary and button (`.sponsor-panel-compact`); its logo/name is a button that opens a links-only dialog (`.sponsor-dialog--links-only`, 420px, no language tabs, no body copy, just the links). The dialog header now shows the sponsor name where the tier pill used to be.
+  - **Home strip and footer:** one navy tile style for all three logos (`.sponsor-strip-tile` / `.sponsor-strip-logo`); the footer credit logo's accessible name is now "About Mood Digital".
+  - **Syndicate data:** Facebook `https://www.facebook.com/share/1RBzviQhJf/` and location `https://maps.app.goo.gl/DY6VGfV7ufUTTQEu7`, no tagline/summary/details. `SponsorLinkKind` gained `"location"`, mapped to Phosphor `MapPin` with labels "Location"/"الموقع" and the accessible name "Location of <name> on Google Maps".
+  - **Logo:** the supplied `public/beni suef Doctors syndicate.jpg` (1080×1080, white background) is cropped to the emblem's circle and saved as `public/beni-swef-medical-syndicate.png` (256×256, transparent outside the badge, ~32KB); the original upload is left untracked, like Sim Era's.
+  - **Verification:** `tests/sponsors.test.ts` (declaration order, no-tier, syndicate data) and `scripts/sponsors-qa.mjs` (three panels, no tier wording, compact panel, links-only dialog at 1440 and 390) updated.
 - **Best student presentation voting (2026-11-15, user request):** a phone-verified vote, one vote per registered attendee, with public results handled by the database rather than by the page.
   - **What was built:**
     - `/vote/` (`app/vote/page.tsx`, `components/vote-page-content.tsx`): one card per presentation with each presenter's cut-out on the brand gradient strip; a neutral skeleton shows first so no status leaks before the settings row loads, then the page resolves to coming soon, open, already-voted or closed. Each card sits in front of a faint compass rose (`components/vote-compass-rose.tsx`) — inline SVG, aria-hidden, tilted so the needle clears a centred portrait. It is decoration only: delete that component, its `<VoteCompassRose />` in `vote-page-content.tsx` and the `.vote-card-compass` rules in `globals.css` to remove it. A cut-out can be nudged left or right with `photoShift` / `coPresenterShift` in `lib/voting-candidates.json` (percent of its own width, positive = right); it is used when a source photo is cropped off-centre inside the file, so the cut can sit on the card border or a co-presenter's shoulder instead of a few pixels inside the frame. Voting opens a native `<dialog>` with a fixed `+20` prefix, the chosen presentation and presenter, "Confirm my vote", and "Votes can't be changed." Escape, backdrop click and the close button all dismiss it and return focus to the button that opened it.
@@ -144,18 +150,13 @@
   - **How to Add a Sponsor:**
     1. Place the sponsor's logo image in `public/` (e.g. `public/sponsors/partner-name.png`).
     2. Add an entry to the `sponsors` array in `lib/sponsors.ts`:
-       - Specify `id`, `name`, `tier` (`"diamond" | "gold" | "silver"`), `logo` (`src`, `width`, `height`, `alt`), `tagline`.
-       - Optional: `href` for website link, `details` (`en` and `ar`) for popup modal, and `links` for social/contact buttons.
-    3. The sorting helper `sortSponsors()` automatically positions the sponsor in correct tier order on `/sponsors` and `/`.
+       - Required: `id`, `name`, `logo` (`src`, `width`, `height`, `alt`), `href` (a website URL, or `null`).
+       - Optional: `tagline`, `summary` (a paragraph on the panel), `details` (`en` and `ar`, which enables the language-tabbed dialog), and `links` (`facebook`, `instagram`, `whatsapp`, `website`, `email`, `location`).
+    3. The array order is the display order on `/sponsors/` and in the home strip: Mood Digital stays first, and a new sponsor is appended at the end, so it appears after the sponsors that are already there. There is no sorting helper and no tier.
+    4. Give a sponsor with no `summary` and no `details` at least one entry in `links`: it keeps the full-width panel but drops the divider, summary and button, and clicking its name opens the links-only dialog.
   - **Logo Requirements:**
     - Format: PNG, SVG, or WebP with a transparent background.
-    - Ink / Coloring:
-      - Diamond logos may use white or light monochrome ink (they sit on navy backgrounds: the dialog header, Diamond panel, and homepage navy tile).
-      - Gold and Silver logos **must use dark or coloured ink** because Gold and Silver tiles are always light (`#ffffff`), even when dark mode is enabled.
-  - **Tier Rules:**
-    - **Diamond:** Headline conference partner. Full-width panel, modal trigger, social icon row, largest logo on homepage strip.
-    - **Gold:** Prominent partners. 3-across grid on desktop, 76px logo container, 2px `#b08d57` top rule.
-    - **Silver:** Supporting partners. 4-across grid on desktop, 50px logo container, 1px `#aab3b6` top rule.
+    - Ink: the dialog header, the sponsor panels and the home tile are navy (`var(--panel)` / `#192e39`), so the logo must read on navy — light or white ink, or dark ink on a white plate. There are no light tiles any more.
 
 - **Attendee card export polish, dual calendar options, and policy cleanup (2026-10-20):**
   - **IMPACT alt text (`app/page.tsx`):**

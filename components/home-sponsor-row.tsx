@@ -2,17 +2,15 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { type Sponsor, sortSponsors } from "@/lib/sponsors";
+import { type Sponsor } from "@/lib/sponsors";
 import { SponsorDialog } from "@/components/sponsor-dialog";
 
 interface HomeSponsorRowProps {
   sponsors: Sponsor[];
 }
 
-export function HomeSponsorRow({ sponsors: rawSponsors }: HomeSponsorRowProps) {
+export function HomeSponsorRow({ sponsors }: HomeSponsorRowProps) {
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
-
-  const sponsors = sortSponsors(rawSponsors);
 
   if (sponsors.length === 0) {
     return null;
@@ -22,13 +20,13 @@ export function HomeSponsorRow({ sponsors: rawSponsors }: HomeSponsorRowProps) {
     <>
       <div className="sponsor-strip-row" aria-label="Conference sponsors">
         {sponsors.map((sponsor) => {
-          const hasDetails = !!sponsor.details;
+          // A tile opens the dialog when there is something to say: the full
+          // description, or just the links (the syndicate has no description).
+          const hasDialog = !!sponsor.details || (sponsor.links?.length ?? 0) > 0;
           const hasHref = !!sponsor.href;
-          const isInteractive = hasDetails || hasHref;
+          const isInteractive = hasDialog || hasHref;
 
-          const tileClass = `sponsor-strip-tile sponsor-strip-tile-${sponsor.tier} ${
-            isInteractive ? "hover-lift" : ""
-          }`;
+          const tileClass = `sponsor-strip-tile ${isInteractive ? "hover-lift" : ""}`;
 
           const content = (
             <Image
@@ -36,11 +34,11 @@ export function HomeSponsorRow({ sponsors: rawSponsors }: HomeSponsorRowProps) {
               alt={sponsor.logo.alt || sponsor.name}
               width={sponsor.logo.width}
               height={sponsor.logo.height}
-              className={`sponsor-strip-logo sponsor-strip-logo-${sponsor.tier}`}
+              className="sponsor-strip-logo"
             />
           );
 
-          if (hasDetails) {
+          if (hasDialog) {
             return (
               <button
                 key={sponsor.id}
@@ -48,7 +46,7 @@ export function HomeSponsorRow({ sponsors: rawSponsors }: HomeSponsorRowProps) {
                 className={tileClass}
                 onClick={() => setSelectedSponsor(sponsor)}
                 aria-haspopup="dialog"
-                aria-label={`About ${sponsor.name}, ${sponsor.tier} partner`}
+                aria-label={`About ${sponsor.name}`}
               >
                 {content}
               </button>

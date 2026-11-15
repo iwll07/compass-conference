@@ -1,12 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sponsors, sortSponsors, Sponsor } from "../lib/sponsors.ts";
+import { sponsors } from "../lib/sponsors.ts";
 
-test("sponsors data: Mood Digital is present as Diamond partner", () => {
+test("sponsors data: Mood Digital is listed", () => {
   const mood = sponsors.find((s) => s.id === "mood-digital");
   assert.ok(mood, "Mood Digital must exist in sponsors list");
   assert.equal(mood.name, "Mood Digital");
-  assert.equal(mood.tier, "diamond");
   assert.equal(mood.tagline, "Official Technology Partner of COMPASS 2026");
   assert.equal(mood.logo.src, "/mood-digital-logo.png");
   assert.equal(mood.logo.width, 487);
@@ -18,11 +17,10 @@ test("sponsors data: Mood Digital is present as Diamond partner", () => {
   );
 });
 
-test("sponsors data: Sim Era is present as a Diamond partner", () => {
+test("sponsors data: Sim Era is listed", () => {
   const sim = sponsors.find((s) => s.id === "sim-era");
   assert.ok(sim, "Sim Era must exist in sponsors list");
   assert.equal(sim.name, "Sim Era");
-  assert.equal(sim.tier, "diamond");
   assert.equal(sim.tagline, "Medical Simulation & Education Partner of COMPASS 2026");
   assert.equal(sim.logo.src, "/sim-era-logo.png");
   assert.equal(sim.logo.width, 549);
@@ -41,68 +39,41 @@ test("sponsors data: Sim Era is present as a Diamond partner", () => {
   assert.equal(sim.links?.[1].href, "mailto:info@sim-era.com");
 });
 
-test("sponsors sorting: diamond -> gold -> silver, then by name", () => {
-  const unsorted: Sponsor[] = [
-    {
-      id: "silver-z",
-      name: "Zeta Silver",
-      tier: "silver",
-      logo: { src: "/test.png", width: 100, height: 100, alt: "Zeta" },
-      href: null,
-      tagline: "Silver sponsor",
-    },
-    {
-      id: "gold-b",
-      name: "Beta Gold",
-      tier: "gold",
-      logo: { src: "/test.png", width: 100, height: 100, alt: "Beta" },
-      href: null,
-      tagline: "Gold sponsor",
-    },
-    {
-      id: "diamond-b",
-      name: "Bravo Diamond",
-      tier: "diamond",
-      logo: { src: "/test.png", width: 100, height: 100, alt: "Bravo" },
-      href: null,
-      tagline: "Diamond sponsor",
-    },
-    {
-      id: "gold-a",
-      name: "Alpha Gold",
-      tier: "gold",
-      logo: { src: "/test.png", width: 100, height: 100, alt: "Alpha" },
-      href: null,
-      tagline: "Gold sponsor",
-    },
-    {
-      id: "silver-a",
-      name: "Alpha Silver",
-      tier: "silver",
-      logo: { src: "/test.png", width: 100, height: 100, alt: "Alpha Silver" },
-      href: null,
-      tagline: "Silver sponsor",
-    },
-    {
-      id: "diamond-a",
-      name: "Alpha Diamond",
-      tier: "diamond",
-      logo: { src: "/test.png", width: 100, height: 100, alt: "Alpha Diamond" },
-      href: null,
-      tagline: "Diamond sponsor",
-    },
-  ];
+test("sponsors data: Beni-Swef Medical Syndicate has links but no description", () => {
+  const syndicate = sponsors.find((s) => s.id === "beni-swef-medical-syndicate");
+  assert.ok(syndicate, "the syndicate must exist in sponsors list");
+  assert.equal(syndicate.name, "Beni-Swef Medical Syndicate");
+  assert.equal(syndicate.logo.src, "/beni-swef-medical-syndicate.png");
+  assert.equal(syndicate.logo.alt, "Beni-Swef Medical Syndicate logo");
+  assert.equal(syndicate.href, null);
+  assert.equal(syndicate.tagline, undefined);
+  assert.equal(syndicate.summary, undefined);
+  assert.equal(syndicate.details, undefined);
+  assert.deepEqual(
+    syndicate.links?.map((link) => link.kind),
+    ["facebook", "location"]
+  );
+  assert.equal(
+    syndicate.links?.[0].href,
+    "https://www.facebook.com/share/1RBzviQhJf/"
+  );
+  assert.equal(
+    syndicate.links?.[1].href,
+    "https://maps.app.goo.gl/DY6VGfV7ufUTTQEu7"
+  );
+});
 
-  const sorted = sortSponsors(unsorted);
-  const ids = sorted.map((s) => s.id);
-  assert.deepEqual(ids, [
-    "diamond-a",
-    "diamond-b",
-    "gold-a",
-    "gold-b",
-    "silver-a",
-    "silver-z",
-  ]);
+test("sponsors order: declaration order is the display order", () => {
+  assert.deepEqual(
+    sponsors.map((sponsor) => sponsor.id),
+    ["mood-digital", "sim-era", "beni-swef-medical-syndicate"]
+  );
+});
+
+test("sponsors have no tiers any more", () => {
+  for (const sponsor of sponsors) {
+    assert.ok(!("tier" in sponsor), `${sponsor.name} must not carry a tier`);
+  }
 });
 
 test("sponsors details: every sponsor with details has both en and ar locales", () => {
@@ -156,21 +127,21 @@ test("sponsors text: zero-width characters do not exist in any sponsor text", ()
 
   for (const sponsor of sponsors) {
     assert.ok(!zeroWidthRegex.test(sponsor.name), `${sponsor.name} name has zero-width char`);
-    assert.ok(!zeroWidthRegex.test(sponsor.tagline), `${sponsor.name} tagline has zero-width char`);
+    assert.ok(!zeroWidthRegex.test(sponsor.tagline ?? ""), `${sponsor.name} tagline has zero-width char`);
 
     if (sponsor.details) {
       assert.ok(!zeroWidthRegex.test(sponsor.details.en.title), "en title has zero-width char");
       assert.ok(!zeroWidthRegex.test(sponsor.details.en.intro), "en intro has zero-width char");
       for (const item of sponsor.details.en.items) {
         assert.ok(!zeroWidthRegex.test(item.lead), `en item lead '${item.lead}' has zero-width char`);
-        assert.ok(!zeroWidthRegex.test(item.text), `en item text has zero-width char`);
+        assert.ok(!zeroWidthRegex.test(item.text), "en item text has zero-width char");
       }
 
       assert.ok(!zeroWidthRegex.test(sponsor.details.ar.title), "ar title has zero-width char");
       assert.ok(!zeroWidthRegex.test(sponsor.details.ar.intro), "ar intro has zero-width char");
       for (const item of sponsor.details.ar.items) {
         assert.ok(!zeroWidthRegex.test(item.lead), `ar item lead '${item.lead}' has zero-width char`);
-        assert.ok(!zeroWidthRegex.test(item.text), `ar item text has zero-width char`);
+        assert.ok(!zeroWidthRegex.test(item.text), "ar item text has zero-width char");
       }
     }
   }

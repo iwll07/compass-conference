@@ -46,7 +46,7 @@ async function creditShot(tag, width) {
   check(`${tag} ${width}: strongs`, JSON.stringify(bar.strongs) === JSON.stringify(["Mood Digital", "Mahmoud Ahmed Abdallah"]), JSON.stringify(bar.strongs));
   check(`${tag} ${width}: mailto`, bar.emailHref === "mailto:MoodITBusiness@gmail.com" && bar.emailText === "MoodITBusiness@gmail.com", bar.emailHref);
   check(`${tag} ${width}: no old fb link`, !bar.hasOldFb);
-  check(`${tag} ${width}: logo is dialog button`, bar.isButton && bar.buttonType === "button" && bar.hasPopup === "dialog" && bar.buttonLabel === "About Mood Digital, Diamond partner", `${bar.isButton} ${bar.hasPopup} ${bar.buttonLabel}`);
+  check(`${tag} ${width}: logo is dialog button`, bar.isButton && bar.buttonType === "button" && bar.hasPopup === "dialog" && bar.buttonLabel === "About Mood Digital", `${bar.isButton} ${bar.hasPopup} ${bar.buttonLabel}`);
   check(`${tag} ${width}: logo 54px`, bar.logoW === 54 && bar.logoH === 54 && bar.logoNatural === 487, `${bar.logoW}x${bar.logoH} natural ${bar.logoNatural}`);
   check(`${tag} ${width}: footer-bottom removed, rest intact`, bar.footerBottomGone && bar.footerMainIntact && bar.sealsIntact === 2, `gone ${bar.footerBottomGone}, seals ${bar.sealsIntact}`);
   // Overlap check: credit text and logo boxes must not intersect

@@ -8,6 +8,7 @@ import {
   WhatsappLogo,
   Globe,
   EnvelopeSimple,
+  MapPin,
 } from "@phosphor-icons/react/dist/ssr";
 import { Sponsor, SponsorLinkKind } from "@/lib/sponsors";
 
@@ -20,8 +21,9 @@ const LINK_LABELS: Record<SponsorLinkKind, { en: string; ar: string; platform: s
   facebook: { en: "Facebook", ar: "فيسبوك", platform: "Facebook" },
   instagram: { en: "Instagram", ar: "إنستغرام", platform: "Instagram" },
   whatsapp: { en: "WhatsApp", ar: "واتساب", platform: "WhatsApp" },
-  website: { en: "Website", ar: "الموقع", platform: "Website" },
+  website: { en: "Website", ar: "الموقع الإلكتروني", platform: "Website" },
   email: { en: "Email", ar: "البريد", platform: "Email" },
+  location: { en: "Location", ar: "الموقع", platform: "Google Maps" },
 };
 
 function renderLinkIcon(kind: SponsorLinkKind) {
@@ -37,6 +39,8 @@ function renderLinkIcon(kind: SponsorLinkKind) {
       return <Globe size={size} aria-hidden="true" />;
     case "email":
       return <EnvelopeSimple size={size} aria-hidden="true" />;
+    case "location":
+      return <MapPin size={size} aria-hidden="true" />;
   }
 }
 
@@ -121,7 +125,7 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
     }
   };
 
-  if (!sponsor || !sponsor.details) {
+  if (!sponsor) {
     return (
       <dialog
         ref={dialogRef}
@@ -134,15 +138,18 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
     );
   }
 
-  const localeDetails = sponsor.details[activeTab];
+  // A sponsor without a description (the syndicate) opens a smaller dialog
+  // that shows only its links — no language tabs, no body copy.
+  const localeDetails = sponsor.details ? sponsor.details[activeTab] : null;
   const isRtl = activeTab === "ar";
-  const tierLabel = `${sponsor.tier.toUpperCase()} PARTNER`;
 
   return (
     <dialog
       ref={dialogRef}
-      className="sponsor-dialog"
-      aria-labelledby="sponsor-dialog-title"
+      className={`sponsor-dialog ${localeDetails ? "" : "sponsor-dialog--links-only"}`}
+      {...(localeDetails
+        ? { "aria-labelledby": "sponsor-dialog-title" }
+        : { "aria-label": sponsor.name })}
       onClick={handleBackdropClick}
       onCancel={(e) => {
         e.preventDefault();
@@ -150,7 +157,7 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
       }}
     >
       <div className="sponsor-dialog-inner">
-        {/* Header band: constant navy with logo, tier label, close button */}
+        {/* Header band: constant navy with the logo and the sponsor name */}
         <header className="sponsor-dialog-header">
           <div className="sponsor-dialog-brand">
             <div className="sponsor-dialog-logo-box">
@@ -162,7 +169,7 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
                 className="sponsor-dialog-logo"
               />
             </div>
-            <span className="sponsor-dialog-tier">{tierLabel}</span>
+            <span className="sponsor-dialog-name">{sponsor.name}</span>
           </div>
           <button
             type="button"
@@ -189,71 +196,77 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
 
         {/* Dialog body: follows light/dark theme tokens */}
         <div className="sponsor-dialog-body">
-          {/* Language tabs: underlined text, never pills */}
-          <div
-            className="sponsor-dialog-tabs"
-            role="tablist"
-            aria-label="Language selection"
-          >
-            <button
-              id="sponsor-tab-en"
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "en"}
-              aria-controls="sponsor-tabpanel"
-              tabIndex={activeTab === "en" ? 0 : -1}
-              className={`sponsor-dialog-tab ${activeTab === "en" ? "sponsor-dialog-tab-active" : ""}`}
-              onClick={() => setActiveTab("en")}
-              onKeyDown={(e) => handleKeyDownTab(e, "en")}
-            >
-              English
-            </button>
-            <button
-              id="sponsor-tab-ar"
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "ar"}
-              aria-controls="sponsor-tabpanel"
-              tabIndex={activeTab === "ar" ? 0 : -1}
-              className={`sponsor-dialog-tab ${activeTab === "ar" ? "sponsor-dialog-tab-active" : ""}`}
-              onClick={() => setActiveTab("ar")}
-              onKeyDown={(e) => handleKeyDownTab(e, "ar")}
-            >
-              العربية
-            </button>
-          </div>
+          {localeDetails && (
+            <>
+              {/* Language tabs: underlined text, never pills */}
+              <div
+                className="sponsor-dialog-tabs"
+                role="tablist"
+                aria-label="Language selection"
+              >
+                <button
+                  id="sponsor-tab-en"
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "en"}
+                  aria-controls="sponsor-tabpanel"
+                  tabIndex={activeTab === "en" ? 0 : -1}
+                  className={`sponsor-dialog-tab ${activeTab === "en" ? "sponsor-dialog-tab-active" : ""}`}
+                  onClick={() => setActiveTab("en")}
+                  onKeyDown={(e) => handleKeyDownTab(e, "en")}
+                >
+                  English
+                </button>
+                <button
+                  id="sponsor-tab-ar"
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "ar"}
+                  aria-controls="sponsor-tabpanel"
+                  tabIndex={activeTab === "ar" ? 0 : -1}
+                  className={`sponsor-dialog-tab ${activeTab === "ar" ? "sponsor-dialog-tab-active" : ""}`}
+                  onClick={() => setActiveTab("ar")}
+                  onKeyDown={(e) => handleKeyDownTab(e, "ar")}
+                >
+                  العربية
+                </button>
+              </div>
 
-          {/* Tabpanel content */}
-          <div
-            id="sponsor-tabpanel"
-            role="tabpanel"
-            aria-labelledby={activeTab === "en" ? "sponsor-tab-en" : "sponsor-tab-ar"}
-            dir={isRtl ? "rtl" : "ltr"}
-            lang={activeTab}
-            className="sponsor-dialog-panel"
-          >
-            <h2 id="sponsor-dialog-title" className="sponsor-dialog-title">
-              {localeDetails.title}
-            </h2>
-            <p className="sponsor-dialog-intro">{localeDetails.intro}</p>
+              {/* Tabpanel content */}
+              <div
+                id="sponsor-tabpanel"
+                role="tabpanel"
+                aria-labelledby={activeTab === "en" ? "sponsor-tab-en" : "sponsor-tab-ar"}
+                dir={isRtl ? "rtl" : "ltr"}
+                lang={activeTab}
+                className="sponsor-dialog-panel"
+              >
+                <h2 id="sponsor-dialog-title" className="sponsor-dialog-title">
+                  {localeDetails.title}
+                </h2>
+                <p className="sponsor-dialog-intro">{localeDetails.intro}</p>
 
-            <ul className="sponsor-dialog-items">
-              {localeDetails.items.map((item, idx) => (
-                <li key={idx} className="sponsor-dialog-item">
-                  <span className="sponsor-dialog-dot" aria-hidden="true" />
-                  <div className="sponsor-dialog-item-text">
-                    <strong className="sponsor-dialog-lead">{item.lead}</strong>{" "}
-                    <span className="sponsor-dialog-desc">{item.text}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+                <ul className="sponsor-dialog-items">
+                  {localeDetails.items.map((item, idx) => (
+                    <li key={idx} className="sponsor-dialog-item">
+                      <span className="sponsor-dialog-dot" aria-hidden="true" />
+                      <div className="sponsor-dialog-item-text">
+                        <strong className="sponsor-dialog-lead">{item.lead}</strong>{" "}
+                        <span className="sponsor-dialog-desc">{item.text}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
 
           {/* Footer row: icon links with visible labels */}
           {sponsor.links && sponsor.links.length > 0 ? (
             <footer
-              className="sponsor-dialog-footer"
+              className={`sponsor-dialog-footer ${
+                localeDetails ? "" : "sponsor-dialog-footer-links-only"
+              }`}
               dir={isRtl ? "rtl" : "ltr"}
               lang={activeTab}
             >
@@ -263,7 +276,9 @@ export function SponsorDialog({ sponsor, onClose }: SponsorDialogProps) {
                 const ariaLabel =
                   link.kind === "website"
                     ? `Visit ${sponsor.name} website`
-                    : `${sponsor.name} on ${labelObj.platform}`;
+                    : link.kind === "location"
+                      ? `Location of ${sponsor.name} on Google Maps`
+                      : `${sponsor.name} on ${labelObj.platform}`;
                 const isExternal = link.kind !== "email";
 
                 return (

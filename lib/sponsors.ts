@@ -1,6 +1,10 @@
-export type SponsorTier = "diamond" | "gold" | "silver";
-
-export type SponsorLinkKind = "facebook" | "instagram" | "whatsapp" | "website" | "email";
+export type SponsorLinkKind =
+  | "facebook"
+  | "instagram"
+  | "whatsapp"
+  | "website"
+  | "email"
+  | "location";
 
 export interface SponsorLink {
   kind: SponsorLinkKind;
@@ -30,45 +34,24 @@ export interface SponsorLogo {
   alt: string;
 }
 
+// Sponsors are all equal: there are no tiers any more. The order below is the
+// order they render in, everywhere they appear, so keep Mood Digital first and
+// append a new sponsor at the end of the list.
 export interface Sponsor {
   id: string;
   name: string;
-  tier: SponsorTier;
   logo: SponsorLogo;
   href: string | null;
-  tagline: string;
+  tagline?: string;
   summary?: string;
   details?: SponsorDetails;
   links?: SponsorLink[];
-}
-
-export const SPONSOR_TIERS: readonly SponsorTier[] = ["diamond", "gold", "silver"] as const;
-
-export const SPONSOR_TIER_LABELS: Record<SponsorTier, string> = {
-  diamond: "Diamond Partner",
-  gold: "Gold Sponsors",
-  silver: "Silver Sponsors",
-};
-
-const TIER_ORDER: Record<SponsorTier, number> = {
-  diamond: 0,
-  gold: 1,
-  silver: 2,
-};
-
-export function sortSponsors(list: readonly Sponsor[]): Sponsor[] {
-  return [...list].sort((a, b) => {
-    const tierDiff = TIER_ORDER[a.tier] - TIER_ORDER[b.tier];
-    if (tierDiff !== 0) return tierDiff;
-    return a.name.localeCompare(b.name, "en", { sensitivity: "base" });
-  });
 }
 
 export const sponsors: Sponsor[] = [
   {
     id: "mood-digital",
     name: "Mood Digital",
-    tier: "diamond",
     logo: {
       src: "/mood-digital-logo.png",
       width: 487,
@@ -147,7 +130,6 @@ export const sponsors: Sponsor[] = [
   {
     id: "sim-era",
     name: "Sim Era",
-    tier: "diamond",
     logo: {
       src: "/sim-era-logo.png",
       width: 549,
@@ -216,5 +198,29 @@ export const sponsors: Sponsor[] = [
         ],
       },
     },
+  },
+  {
+    // No description yet: only Facebook and a location on Google Maps. On the
+    // sponsors page it keeps the same full-width panel as the others but drops
+    // the description area, and clicking it opens a dialog with just the links.
+    id: "beni-swef-medical-syndicate",
+    name: "Beni-Swef Medical Syndicate",
+    logo: {
+      src: "/beni-swef-medical-syndicate.png",
+      width: 256,
+      height: 256,
+      alt: "Beni-Swef Medical Syndicate logo",
+    },
+    href: null,
+    links: [
+      {
+        kind: "facebook",
+        href: "https://www.facebook.com/share/1RBzviQhJf/",
+      },
+      {
+        kind: "location",
+        href: "https://maps.app.goo.gl/DY6VGfV7ufUTTQEu7",
+      },
+    ],
   },
 ];
