@@ -148,7 +148,7 @@ check("CSP keeps inline hashes working (script-src marker intact)", /script-src 
 check("BSNU placeholder slot", await page.locator(".institution-slot", { hasText: "Beni Suef" }).count() >= 1);
 check("Faculty placeholder slot", await page.locator(".institution-slot", { hasText: "Faculty of Medicine" }).count() >= 1);
 
-// 3b. Institutional social links: correct hrefs/targets/labels + "Business contact:" label
+// 3b. Institutional social links: correct hrefs/targets/labels + "Contact us:" label
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 const socialSpecs = [
   ["Beni Suef National University on Facebook", "https://www.facebook.com/share/1CLMS28whQ/"],
@@ -164,8 +164,29 @@ for (const [label, href] of socialSpecs) {
   check(`social link "${label}" renders an svg icon`, await link.locator("svg").count() === 1);
 }
 const business = (await page.locator(".credit-contact").textContent()) ?? "";
-check("business contact label before email", business.includes("Business contact:") && business.includes("MoodITBusiness@gmail.com"), business.slice(0, 80));
-check("email link itself unchanged", await page.locator(".credit-contact a.credit-email").getAttribute("href") === "mailto:MoodITBusiness@gmail.com");
+check("contact label still shown", business.trim().startsWith("Contact us:"), business.trim());
+const creditLinks = page.locator(".credit-contact a.credit-contact-link");
+check("business contact shows Mood's contact icons", (await creditLinks.count()) === 4, String(await creditLinks.count()));
+const creditSpecs = [
+  ["Mood Digital on Facebook", "https://www.facebook.com/share/1CUacfNyqD/"],
+  ["Mood Digital on Instagram", "https://www.instagram.com/moodxdigital"],
+  ["Mood Digital on WhatsApp", "https://wa.me/201503330110"],
+  ["Mood Digital on Email", "mailto:MoodITBusiness@gmail.com"],
+];
+for (const [label, prefix] of creditSpecs) {
+  const link = page.locator(`.credit-contact a[aria-label="${label}"]`);
+  check(`business contact "${label}" exists`, (await link.count()) === 1);
+  check(`business contact "${label}" href`, ((await link.getAttribute("href")) ?? "").startsWith(prefix), await link.getAttribute("href"));
+  check(`business contact "${label}" renders an svg icon`, (await link.locator("svg").count()) === 1);
+  const external = label !== "Mood Digital on Email";
+  check(
+    `business contact "${label}" ${external ? "opens" : "does not open"} in a new tab`,
+    external
+      ? (await link.getAttribute("target")) === "_blank"
+      : (await link.getAttribute("target")) === null
+  );
+}
+check("business contact label does not repeat the address", business.includes("MoodITBusiness@gmail.com") === false, business.trim());
 
 
 // 4. Registration page: open form with controls, no call links

@@ -5,6 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { FacebookLogo, TiktokLogo } from "@phosphor-icons/react/dist/ssr";
 import { sponsors } from "@/lib/sponsors";
+import {
+  SPONSOR_LINK_META,
+  isSponsorLinkExternal,
+  sponsorLinkAriaLabel,
+} from "@/lib/sponsor-links";
 import { SponsorDialog } from "@/components/sponsor-dialog";
 
 export function Footer() {
@@ -98,10 +103,28 @@ export function Footer() {
               Medicine, Beni Suef National University · All rights reserved.
             </p>
             <span className="credit-contact">
-              Business contact:{" "}
-              <a href="mailto:MoodITBusiness@gmail.com" className="credit-email">
-                MoodITBusiness@gmail.com
-              </a>
+              Contact us:{" "}
+              {moodDigital?.links?.length ? (
+                <span className="credit-contact-links">
+                  {moodDigital.links.map((link) => {
+                    const isExternal = isSponsorLinkExternal(link.kind);
+                    const { icon: Icon, name } = SPONSOR_LINK_META[link.kind];
+                    return (
+                      <a
+                        key={link.kind}
+                        href={link.href}
+                        className="credit-contact-link hover-lift"
+                        aria-label={sponsorLinkAriaLabel(moodDigital, link.kind, name)}
+                        {...(isExternal
+                          ? { target: "_blank", rel: "noopener noreferrer" }
+                          : {})}
+                      >
+                        <Icon size={17} aria-hidden="true" />
+                      </a>
+                    );
+                  })}
+                </span>
+              ) : null}
             </span>
           </div>
           <button

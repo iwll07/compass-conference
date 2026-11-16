@@ -1,6 +1,6 @@
 import { chromium } from "@playwright/test";
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const browser = await chromium.launch({ channel: "msedge" });
 const results = [];
 function check(name, pass, detail = "") { results.push({ name, pass: !!pass, detail }); }
@@ -18,7 +18,12 @@ async function creditShot(tag, width) {
     const cs = getComputedStyle(el);
     const logo = el.querySelector(".credit-logo");
     const lr = logo.getBoundingClientRect();
-    const email = el.querySelector(".credit-email");
+    const links = [...el.querySelectorAll(".credit-contact a.credit-contact-link")].map((a) => ({
+      label: a.getAttribute("aria-label"),
+      href: a.getAttribute("href"),
+      target: a.getAttribute("target"),
+      icons: a.querySelectorAll("svg").length,
+    }));
     const btn = el.querySelector(".credit-logo-btn");
     const oldFbPattern = ["1F8", "HS7", "QUMD"].join("");
     const hasOldFb = !!document.querySelector(`a[href*="${oldFbPattern}"]`);
@@ -27,8 +32,7 @@ async function creditShot(tag, width) {
       bg: cs.backgroundColor,
       text: el.querySelector("p").textContent.slice(0, 60),
       strongs,
-      emailHref: email.getAttribute("href"),
-      emailText: email.textContent,
+      links,
       isButton: btn?.tagName.toLowerCase() === "button",
       buttonType: btn?.getAttribute("type"),
       hasPopup: btn?.getAttribute("aria-haspopup"),
@@ -44,7 +48,10 @@ async function creditShot(tag, width) {
   });
   check(`${tag} ${width}: credit text present`, bar.text.includes("Website developed by"));
   check(`${tag} ${width}: strongs`, JSON.stringify(bar.strongs) === JSON.stringify(["Mood Digital", "Mahmoud Ahmed Abdallah"]), JSON.stringify(bar.strongs));
-  check(`${tag} ${width}: mailto`, bar.emailHref === "mailto:MoodITBusiness@gmail.com" && bar.emailText === "MoodITBusiness@gmail.com", bar.emailHref);
+  check(`${tag} ${width}: mailto`, bar.links.some((l) => l.label === "Mood Digital on Email" && l.href === "mailto:MoodITBusiness@gmail.com"), JSON.stringify(bar.links));
+  const creditLabel = ((await page.locator(".credit-contact").textContent()) ?? "").trim();
+  check(`${tag} ${width}: contact label`, creditLabel.startsWith("Contact us:"), creditLabel);
+  check(`${tag} ${width}: 4 contact icons, each one svg`, bar.links.length === 4 && bar.links.every((l) => l.icons === 1), JSON.stringify(bar.links.map((l) => [l.label, l.icons])));
   check(`${tag} ${width}: no old fb link`, !bar.hasOldFb);
   check(`${tag} ${width}: logo is dialog button`, bar.isButton && bar.buttonType === "button" && bar.hasPopup === "dialog" && bar.buttonLabel === "About Mood Digital", `${bar.isButton} ${bar.hasPopup} ${bar.buttonLabel}`);
   check(`${tag} ${width}: logo 54px`, bar.logoW === 54 && bar.logoH === 54 && bar.logoNatural === 487, `${bar.logoW}x${bar.logoH} natural ${bar.logoNatural}`);

@@ -804,9 +804,12 @@ button.sponsor-strip-tile { cursor: pointer; }
 .credit-inner { max-width: 1260px; margin: 0 auto; padding: 22px max(5vw, calc((100vw - 1260px)/2)); display: flex; align-items: center; justify-content: space-between; gap: 28px; }
 .credit-text p { font-size: 11px; line-height: 1.7; color: var(--panel-muted); max-width: 90ch; }
 .credit-text p strong { color: var(--panel-ink); }
-.credit-contact { display: block; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--panel-muted); }
-.credit-email { display: inline-block; margin-left: 6px; font-size: 12px; font-weight: 600; color: var(--panel-accent); text-decoration: none; }
-.credit-email:hover { text-decoration: underline; }
+.credit-contact { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--panel-muted); }
+.credit-contact-links { display: inline-flex; align-items: center; gap: 6px; }
+.credit-contact-link { display: inline-flex; align-items: center; justify-content: center; color: var(--panel-muted); }
+/* Same as the BSNU/Faculty icons: the -3px lift only, with no rectangular
+   box-shadow or plate behind the glyph. */
+.credit-contact-link:hover { box-shadow: none; }
 .credit-logo { width: 54px; height: 54px; object-fit: contain; flex-shrink: 0; }
 .credit-logo-btn { background: transparent; border: none; padding: 0; margin: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .credit-logo-btn.hover-lift:hover { box-shadow: none; }

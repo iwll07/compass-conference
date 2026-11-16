@@ -4,36 +4,18 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  FacebookLogo,
-  InstagramLogo,
-  TiktokLogo,
-  WhatsappLogo,
-  Globe,
-  EnvelopeSimple,
-  MapPin,
   ArrowRightIcon,
 } from "@phosphor-icons/react/dist/ssr";
-import { type Sponsor, type SponsorLinkKind } from "@/lib/sponsors";
+import { type Sponsor } from "@/lib/sponsors";
+import {
+  SPONSOR_LINK_META,
+  isSponsorLinkExternal,
+  sponsorLinkAriaLabel,
+} from "@/lib/sponsor-links";
 import { SponsorDialog } from "@/components/sponsor-dialog";
 
 interface SponsorsViewProps {
   sponsors: Sponsor[];
-}
-
-const LINK_META: Record<SponsorLinkKind, { icon: typeof FacebookLogo; name: string }> = {
-  facebook: { icon: FacebookLogo, name: "Facebook" },
-  instagram: { icon: InstagramLogo, name: "Instagram" },
-  tiktok: { icon: TiktokLogo, name: "TikTok" },
-  whatsapp: { icon: WhatsappLogo, name: "WhatsApp" },
-  website: { icon: Globe, name: "Website" },
-  email: { icon: EnvelopeSimple, name: "Email" },
-  location: { icon: MapPin, name: "Location" },
-};
-
-function linkAriaLabel(sponsor: Sponsor, kind: SponsorLinkKind, name: string): string {
-  if (kind === "website") return `Visit ${sponsor.name} website`;
-  if (kind === "location") return `Location of ${sponsor.name} on Google Maps`;
-  return `${sponsor.name} on ${name}`;
 }
 
 export function SponsorsView({ sponsors }: SponsorsViewProps) {
@@ -64,16 +46,14 @@ export function SponsorsView({ sponsors }: SponsorsViewProps) {
               const links = sponsorLinks && sponsorLinks.length > 0 ? (
                 <div className="sponsor-panel-links" aria-label={`${sponsor.name} links`}>
                   {sponsorLinks.map((link) => {
-                    // mailto: stays in the current context; everything else
-                    // opens in a new tab.
-                    const isExternal = link.kind !== "email";
-                    const { icon: Icon, name } = LINK_META[link.kind];
+                    const isExternal = isSponsorLinkExternal(link.kind);
+                    const { icon: Icon, name } = SPONSOR_LINK_META[link.kind];
                     return (
                       <a
                         key={link.kind}
                         href={link.href}
                         className="sponsor-panel-link hover-lift"
-                        aria-label={linkAriaLabel(sponsor, link.kind, name)}
+                        aria-label={sponsorLinkAriaLabel(sponsor, link.kind, name)}
                         {...(isExternal
                           ? { target: "_blank", rel: "noopener noreferrer" }
                           : {})}
