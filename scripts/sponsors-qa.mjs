@@ -177,7 +177,7 @@ try {
   );
 
   const homeTile = page.locator(".sponsor-strip-tile");
-  check("Every sponsor has a tile on the home strip", (await homeTile.count()) === 5);
+  check("Every sponsor has a tile on the home strip", (await homeTile.count()) === 6);
   check(
     "Home strip tiles all use the one shared style",
     (await homeTile
@@ -200,7 +200,7 @@ try {
   await page.waitForTimeout(300);
 
   const panels = page.locator(".sponsor-panel");
-  check("Five sponsor panels on /sponsors", (await panels.count()) === 5);
+  check("Six sponsor panels on /sponsors", (await panels.count()) === 6);
   // Mood Digital is first in declaration order and owns the detailed assertions.
   const moodPanel = panels.first();
 
@@ -375,6 +375,15 @@ try {
   check(
     "Sim Era logo has alt 'Sim Era logo'",
     (await simPanel.locator(".sponsor-panel-logo").getAttribute("alt")) === "Sim Era logo"
+  );
+  const simLogoDims = await simPanel.locator(".sponsor-panel-logo").evaluate((el) => ({
+    w: el.naturalWidth,
+    h: el.naturalHeight,
+  }));
+  check(
+    "Sim Era logo is a square badge (circular like C4 and Thrills)",
+    simLogoDims.w === 320 && simLogoDims.h === 320,
+    `${simLogoDims.w}x${simLogoDims.h}`
   );
   const simLinks = simPanel.locator(".sponsor-panel-link");
   check("Sim Era panel has 2 icon links", (await simLinks.count()) === 2);
@@ -590,6 +599,63 @@ try {
     "C4 dialog WhatsApp href matches and opens in a new tab",
     (await c4DialogWa.getAttribute("href")) === "https://wa.me/201007007257" &&
       (await c4DialogWa.getAttribute("target")) === "_blank"
+  );
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+
+  // Scrubbie: links only, no description — compact panel and links-only
+  // dialog, with the circular badge trimmed from the uploaded banner.
+  const scrubbiePanel = panels.filter({ hasText: "Scrubbie" });
+  check("Scrubbie panel exists", (await scrubbiePanel.count()) === 1);
+  check(
+    "Scrubbie uses the compact panel",
+    (await scrubbiePanel.getAttribute("class"))?.includes("sponsor-panel-compact") === true
+  );
+  const scrubbieLogoDims = await scrubbiePanel.locator(".sponsor-panel-logo").evaluate((el) => ({
+    w: el.naturalWidth,
+    h: el.naturalHeight,
+  }));
+  check(
+    "Scrubbie logo is a square badge (circular like C4 and Thrills)",
+    scrubbieLogoDims.w === 320 && scrubbieLogoDims.h === 320,
+    `${scrubbieLogoDims.w}x${scrubbieLogoDims.h}`
+  );
+  const scrubbieLinks = scrubbiePanel.locator(".sponsor-panel-link");
+  check("Scrubbie panel has 4 icon links", (await scrubbieLinks.count()) === 4);
+  const scrubbieLinkSpecs = [
+    ["Scrubbie on Facebook", "https://www.facebook.com/share/19eiru5qts/", true],
+    ["Scrubbie on Instagram", "https://www.instagram.com/scrubbie6r?obrf=cjE4Nmw2dXd1MHN2", true],
+    ["Scrubbie on TikTok", "https://www.tiktok.com/@scrubbie6?_r=1&_t=ZS-9BSOfSvPXPQ", true],
+    ["Scrubbie on Email", "mailto:hanarawan2005@icloud.com", false],
+  ];
+  for (const [label, href, external] of scrubbieLinkSpecs) {
+    const link = scrubbiePanel.locator(`.sponsor-panel-link[aria-label="${label}"]`);
+    check(`Scrubbie "${label}" href matches`, (await link.getAttribute("href")) === href);
+    check(
+      `Scrubbie "${label}" ${external ? "opens" : "does not open"} in a new tab`,
+      external
+        ? (await link.getAttribute("target")) === "_blank"
+        : (await link.getAttribute("target")) === null
+    );
+  }
+
+  await scrubbiePanel.locator("button.sponsor-panel-compact-btn").click();
+  await page.waitForTimeout(200);
+  const scrubbieDialog = page.locator("dialog.sponsor-dialog[open]");
+  check("Scrubbie dialog opens", (await scrubbieDialog.count()) === 1);
+  check(
+    "Scrubbie dialog shows the sponsor name",
+    (await scrubbieDialog.locator(".sponsor-dialog-name").textContent())?.trim() === "Scrubbie"
+  );
+  check(
+    "Scrubbie dialog links are Facebook, Instagram, TikTok and Email",
+    (await scrubbieDialog.locator(".sponsor-dialog-link span").allTextContents()).join("|") ===
+      "Facebook|Instagram|TikTok|Email"
+  );
+  check(
+    "Scrubbie dialog email href matches",
+    (await scrubbieDialog.locator('a[aria-label="Scrubbie on Email"]').getAttribute("href")) ===
+      "mailto:hanarawan2005@icloud.com"
   );
   await page.keyboard.press("Escape");
   await page.waitForTimeout(150);

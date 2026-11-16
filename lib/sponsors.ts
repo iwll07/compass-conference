@@ -133,8 +133,8 @@ export const sponsors: Sponsor[] = [
     name: "Sim Era",
     logo: {
       src: "/sim-era-logo.png",
-      width: 549,
-      height: 402,
+      width: 320,
+      height: 320,
       alt: "Sim Era logo",
     },
     href: null,
@@ -280,6 +280,37 @@ export const sponsors: Sponsor[] = [
       {
         kind: "whatsapp",
         href: "https://wa.me/201007007257",
+      },
+    ],
+  },
+  {
+    // No description yet: Facebook, Instagram, TikTok and email. The uploaded
+    // banner is trimmed to the mark and masked into a circular badge.
+    id: "scrubbie",
+    name: "Scrubbie",
+    logo: {
+      src: "/scrubbie-logo.png",
+      width: 320,
+      height: 320,
+      alt: "Scrubbie logo",
+    },
+    href: null,
+    links: [
+      {
+        kind: "facebook",
+        href: "https://www.facebook.com/share/19eiru5qts/",
+      },
+      {
+        kind: "instagram",
+        href: "https://www.instagram.com/scrubbie6r?obrf=cjE4Nmw2dXd1MHN2",
+      },
+      {
+        kind: "tiktok",
+        href: "https://www.tiktok.com/@scrubbie6?_r=1&_t=ZS-9BSOfSvPXPQ",
+      },
+      {
+        kind: "email",
+        href: "mailto:hanarawan2005@icloud.com",
       },
     ],
   },

@@ -23,8 +23,8 @@ test("sponsors data: Sim Era is listed", () => {
   assert.equal(sim.name, "Sim Era");
   assert.equal(sim.tagline, "Medical Simulation & Education Partner of COMPASS 2026");
   assert.equal(sim.logo.src, "/sim-era-logo.png");
-  assert.equal(sim.logo.width, 549);
-  assert.equal(sim.logo.height, 402);
+  assert.equal(sim.logo.width, 320);
+  assert.equal(sim.logo.height, 320);
   assert.equal(sim.logo.alt, "Sim Era logo");
   assert.ok(sim.details, "Sim Era must have details");
   assert.equal(
@@ -69,7 +69,7 @@ test("sponsors data: Beni-Swef Medical Syndicate has links but no description", 
 test("sponsors order: declaration order is the display order", () => {
   assert.deepEqual(
     sponsors.map((sponsor) => sponsor.id),
-    ["mood-digital", "sim-era", "beni-swef-medical-syndicate", "thrills", "c4-gym"]
+    ["mood-digital", "sim-era", "beni-swef-medical-syndicate", "thrills", "c4-gym", "scrubbie"]
   );
 });
 
@@ -121,6 +121,33 @@ test("sponsors data: C4 Gym & Fitness has links but no description", () => {
   assert.equal(c4.links?.[0].href, "https://www.facebook.com/share/1CMA7kgRVE/");
   assert.equal(c4.links?.[1].href, "https://maps.app.goo.gl/YX4dhLVywhDSrb2YA");
   assert.equal(c4.links?.[2].href, "https://wa.me/201007007257");
+});
+
+test("sponsors data: Scrubbie has links but no description", () => {
+  const scrubbie = sponsors.find((s) => s.id === "scrubbie");
+  assert.ok(scrubbie, "Scrubbie must exist in the sponsors list");
+  assert.equal(scrubbie.name, "Scrubbie");
+  assert.equal(scrubbie.logo.src, "/scrubbie-logo.png");
+  assert.equal(scrubbie.logo.width, 320);
+  assert.equal(scrubbie.logo.height, 320);
+  assert.equal(scrubbie.logo.alt, "Scrubbie logo");
+  assert.equal(scrubbie.href, null);
+  assert.equal(scrubbie.summary, undefined);
+  assert.equal(scrubbie.details, undefined);
+  assert.deepEqual(
+    scrubbie.links?.map((link) => link.kind),
+    ["facebook", "instagram", "tiktok", "email"]
+  );
+  assert.equal(scrubbie.links?.[0].href, "https://www.facebook.com/share/19eiru5qts/");
+  assert.equal(
+    scrubbie.links?.[1].href,
+    "https://www.instagram.com/scrubbie6r?obrf=cjE4Nmw2dXd1MHN2"
+  );
+  assert.equal(
+    scrubbie.links?.[2].href,
+    "https://www.tiktok.com/@scrubbie6?_r=1&_t=ZS-9BSOfSvPXPQ"
+  );
+  assert.equal(scrubbie.links?.[3].href, "mailto:hanarawan2005@icloud.com");
 });
 
 test("sponsors have no tiers any more", () => {

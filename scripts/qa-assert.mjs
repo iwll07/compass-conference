@@ -213,6 +213,7 @@ check("/sponsors/ shows sponsor Mood Digital", sponsorsMain.includes("Mood Digit
       sponsorsMain.includes("Beni-Swef Medical Syndicate") &&
       sponsorsMain.includes("Thrills") &&
       sponsorsMain.includes("C4 Gym & Fitness") &&
+      sponsorsMain.includes("Scrubbie") &&
       !/diamond partner|gold sponsor|silver sponsor/i.test(sponsorsMain)
   );
 check("/sponsors/ removes empty state copy when sponsors exist", !sponsorsMain.includes("Confirmed sponsors and partners will be listed here"));
