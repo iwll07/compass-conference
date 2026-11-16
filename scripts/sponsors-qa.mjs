@@ -177,7 +177,7 @@ try {
   );
 
   const homeTile = page.locator(".sponsor-strip-tile");
-  check("Every sponsor has a tile on the home strip", (await homeTile.count()) === 3);
+  check("Every sponsor has a tile on the home strip", (await homeTile.count()) === 5);
   check(
     "Home strip tiles all use the one shared style",
     (await homeTile
@@ -200,7 +200,7 @@ try {
   await page.waitForTimeout(300);
 
   const panels = page.locator(".sponsor-panel");
-  check("Three sponsor panels on /sponsors", (await panels.count()) === 3);
+  check("Five sponsor panels on /sponsors", (await panels.count()) === 5);
   // Mood Digital is first in declaration order and owns the detailed assertions.
   const moodPanel = panels.first();
 
@@ -495,6 +495,105 @@ try {
       ))
   );
 
+  // Thrills: links only, no description — compact panel and links-only dialog,
+  // with the new TikTok kind alongside the usual ones.
+  const thrillsPanel = panels.filter({ hasText: "Thrills" });
+  check("Thrills panel exists", (await thrillsPanel.count()) === 1);
+  check(
+    "Thrills uses the compact panel",
+    (await thrillsPanel.getAttribute("class"))?.includes("sponsor-panel-compact") === true
+  );
+  const thrillsLogoDims = await thrillsPanel.locator(".sponsor-panel-logo").evaluate((el) => ({
+    w: el.naturalWidth,
+    h: el.naturalHeight,
+  }));
+  check(
+    "Thrills logo is a square badge (circular like C4)",
+    thrillsLogoDims.w === 320 && thrillsLogoDims.h === 320,
+    `${thrillsLogoDims.w}x${thrillsLogoDims.h}`
+  );
+  const thrillsLinks = thrillsPanel.locator(".sponsor-panel-link");
+  check("Thrills panel has 4 icon links", (await thrillsLinks.count()) === 4);
+  const thrillsTiktok = thrillsPanel.locator(
+    '.sponsor-panel-link[aria-label="Thrills on TikTok"]'
+  );
+  check(
+    "Thrills TikTok href matches",
+    (await thrillsTiktok.getAttribute("href")) ===
+      "https://www.tiktok.com/@thrills.eg?_r=1&_t=ZS-9BS7IHRsHej"
+  );
+  check(
+    "Thrills TikTok opens in a new tab",
+    (await thrillsTiktok.getAttribute("target")) === "_blank"
+  );
+  const thrillsEmail = thrillsPanel.locator(
+    '.sponsor-panel-link[aria-label="Thrills on Email"]'
+  );
+  check(
+    "Thrills email href matches",
+    (await thrillsEmail.getAttribute("href")) === "mailto:mythrills.eg@gmail.com"
+  );
+  check("Thrills email has no target", (await thrillsEmail.getAttribute("target")) === null);
+
+  await thrillsPanel.locator("button.sponsor-panel-compact-btn").click();
+  await page.waitForTimeout(200);
+  const thrillsDialog = page.locator("dialog.sponsor-dialog[open]");
+  check("Thrills dialog opens", (await thrillsDialog.count()) === 1);
+  check(
+    "Thrills dialog shows the sponsor name",
+    (await thrillsDialog.locator(".sponsor-dialog-name").textContent())?.trim() === "Thrills"
+  );
+  check(
+    "Thrills dialog links are Facebook, Instagram, TikTok and Email",
+    (await thrillsDialog.locator(".sponsor-dialog-link span").allTextContents()).join("|") ===
+      "Facebook|Instagram|TikTok|Email"
+  );
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+
+  // C4 Gym & Fitness: links only, including WhatsApp. The number is a
+  // WhatsApp contact, not a plain phone link.
+  const c4Panel = panels.filter({ hasText: "C4 Gym & Fitness" });
+  check("C4 panel exists", (await c4Panel.count()) === 1);
+  check(
+    "C4 uses the compact panel",
+    (await c4Panel.getAttribute("class"))?.includes("sponsor-panel-compact") === true
+  );
+  const c4Links = c4Panel.locator(".sponsor-panel-link");
+  check("C4 panel has 3 icon links", (await c4Links.count()) === 3);
+  const c4Map = c4Panel.locator(
+    '.sponsor-panel-link[aria-label="Location of C4 Gym & Fitness on Google Maps"]'
+  );
+  check(
+    "C4 location href matches",
+    (await c4Map.getAttribute("href")) === "https://maps.app.goo.gl/YX4dhLVywhDSrb2YA"
+  );
+  const c4Wa = c4Panel.locator(
+    '.sponsor-panel-link[aria-label="C4 Gym & Fitness on WhatsApp"]'
+  );
+  check("C4 WhatsApp href matches", (await c4Wa.getAttribute("href")) === "https://wa.me/201007007257");
+  check("C4 WhatsApp opens in a new tab", (await c4Wa.getAttribute("target")) === "_blank");
+
+  await c4Panel.locator("button.sponsor-panel-compact-btn").click();
+  await page.waitForTimeout(200);
+  const c4Dialog = page.locator("dialog.sponsor-dialog[open]");
+  check("C4 dialog opens", (await c4Dialog.count()) === 1);
+  check(
+    "C4 dialog links are Facebook, Location and WhatsApp",
+    (await c4Dialog.locator(".sponsor-dialog-link span").allTextContents()).join("|") ===
+      "Facebook|Location|WhatsApp"
+  );
+  const c4DialogWa = c4Dialog.locator(
+    'a[aria-label="C4 Gym & Fitness on WhatsApp"]'
+  );
+  check(
+    "C4 dialog WhatsApp href matches and opens in a new tab",
+    (await c4DialogWa.getAttribute("href")) === "https://wa.me/201007007257" &&
+      (await c4DialogWa.getAttribute("target")) === "_blank"
+  );
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+
   // Screenshots at 1440, 1280, 1024, 390 in light and dark
   // 1440 light & dark
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -572,6 +671,7 @@ try {
   // The compact panel's header stacks like the full panels do.
   const mobileCompactStacked = await mobilePage
     .locator(".sponsor-panel-compact .sponsor-panel-header")
+    .first()
     .evaluate((el) => getComputedStyle(el).flexDirection === "column");
   check("Below 700px: compact panel header stacks", mobileCompactStacked);
 
@@ -588,7 +688,7 @@ try {
   // Links-only dialog on mobile, light
   await mobilePage.click('button[aria-label*="theme"]');
   await mobilePage.waitForTimeout(150);
-  await mobilePage.locator("button.sponsor-panel-compact-btn").click();
+  await mobilePage.locator("button.sponsor-panel-compact-btn").first().click();
   await mobilePage.waitForTimeout(200);
   saveShot("sponsor-links-dialog-390-light.png", await mobilePage.screenshot({ fullPage: false }));
   await mobilePage.keyboard.press("Escape");

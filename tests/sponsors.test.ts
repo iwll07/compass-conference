@@ -69,8 +69,58 @@ test("sponsors data: Beni-Swef Medical Syndicate has links but no description", 
 test("sponsors order: declaration order is the display order", () => {
   assert.deepEqual(
     sponsors.map((sponsor) => sponsor.id),
-    ["mood-digital", "sim-era", "beni-swef-medical-syndicate"]
+    ["mood-digital", "sim-era", "beni-swef-medical-syndicate", "thrills", "c4-gym"]
   );
+});
+
+test("sponsors data: Thrills has links but no description", () => {
+  const thrills = sponsors.find((s) => s.id === "thrills");
+  assert.ok(thrills, "Thrills must exist in the sponsors list");
+  assert.equal(thrills.name, "Thrills");
+  assert.equal(thrills.logo.src, "/thrills-logo.png");
+  assert.equal(thrills.logo.width, 320);
+  assert.equal(thrills.logo.height, 320);
+  assert.equal(thrills.logo.alt, "Thrills logo");
+  assert.equal(thrills.href, null);
+  assert.equal(thrills.summary, undefined);
+  assert.equal(thrills.details, undefined);
+  assert.deepEqual(
+    thrills.links?.map((link) => link.kind),
+    ["facebook", "instagram", "tiktok", "email"]
+  );
+  assert.equal(
+    thrills.links?.[0].href,
+    "https://www.facebook.com/share/19ya4d4bCD/"
+  );
+  assert.equal(
+    thrills.links?.[1].href,
+    "https://www.instagram.com/thrills.eg?cplk=MWxldmNqeG8xNjQyeg=="
+  );
+  assert.equal(
+    thrills.links?.[2].href,
+    "https://www.tiktok.com/@thrills.eg?_r=1&_t=ZS-9BS7IHRsHej"
+  );
+  assert.equal(thrills.links?.[3].href, "mailto:mythrills.eg@gmail.com");
+});
+
+test("sponsors data: C4 Gym & Fitness has links but no description", () => {
+  const c4 = sponsors.find((s) => s.id === "c4-gym");
+  assert.ok(c4, "C4 Gym & Fitness must exist in the sponsors list");
+  assert.equal(c4.name, "C4 Gym & Fitness");
+  assert.equal(c4.logo.src, "/c4-gym-logo.png");
+  assert.equal(c4.logo.width, 320);
+  assert.equal(c4.logo.height, 320);
+  assert.equal(c4.logo.alt, "C4 Gym & Fitness logo");
+  assert.equal(c4.href, null);
+  assert.equal(c4.summary, undefined);
+  assert.equal(c4.details, undefined);
+  assert.deepEqual(
+    c4.links?.map((link) => link.kind),
+    ["facebook", "location", "whatsapp"]
+  );
+  assert.equal(c4.links?.[0].href, "https://www.facebook.com/share/1CMA7kgRVE/");
+  assert.equal(c4.links?.[1].href, "https://maps.app.goo.gl/YX4dhLVywhDSrb2YA");
+  assert.equal(c4.links?.[2].href, "https://wa.me/201007007257");
 });
 
 test("sponsors have no tiers any more", () => {

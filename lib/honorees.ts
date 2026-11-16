@@ -87,6 +87,12 @@ export const honoreeGroups: HonoreeGroup[] = [
         title: "Managing Director, Medicine and Surgery Program",
         photo: makePhoto("doaa-hamdy"),
       },
+      {
+        id: "ahmed-mohamed-gaber",
+        name: "Ahmed Mohamed Gaber",
+        title: "President of the Student Union, Medical Sector",
+        photo: makePhoto("ahmed-mohamed-gaber"),
+      },
     ],
   },
   {

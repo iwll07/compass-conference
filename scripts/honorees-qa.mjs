@@ -26,17 +26,59 @@ async function run() {
   assert.equal(cards.length, totalPeople, `Expected ${totalPeople} cards on about page, got ${cards.length}`);
   console.log(`[PASS] About page renders ${cards.length} cards matching data count`);
 
-  // Check all cards have the same bounding height at 1440px
-  const heights = [];
-  for (const card of cards) {
-    const box = await card.boundingBox();
-    assert.ok(box, "card should have a bounding box");
-    heights.push(Math.round(box.height));
+  // Cards align within their group. Patronage is deliberately taller
+  // (250px vs 200px) than the guest list, so compare per grid, not globally.
+  const groupHeights = await page.$$eval(".patrons-grid", (grids) =>
+    grids.map((grid) => ({
+      count: grid.querySelectorAll(".patron-card").length,
+      heights: [...grid.querySelectorAll(".patron-card")].map((card) =>
+        Math.round(card.getBoundingClientRect().height)
+      ),
+    }))
+  );
+  for (const group of groupHeights) {
+    const firstH = group.heights[0];
+    const allEqual = group.heights.every((h) => Math.abs(h - firstH) <= 1);
+    assert.ok(
+      allEqual,
+      `Cards must have equal height within a group. Heights: ${group.heights.join(", ")}`
+    );
+    console.log(
+      `[PASS] All ${group.count} cards in a group share the same height (~${firstH}px) at 1440px`
+    );
   }
-  const firstH = heights[0];
-  const allEqual = heights.every((h) => Math.abs(h - firstH) <= 1);
-  assert.ok(allEqual, `Cards must have equal height at 1440px. Heights: ${heights.join(", ")}`);
-  console.log(`[PASS] All ${cards.length} cards have equal height (~${firstH}px) at 1440px`);
+
+  // Five patrons: the fifth (Ahmed Mohamed Gaber) sits alone on the last row,
+  // horizontally centred under the 2x2 block, at the same card width.
+  const patronage = await page.evaluate(() => {
+    const grid = document.querySelector(".patrons-grid--patronage");
+    if (!grid) return null;
+    const cards = [...grid.querySelectorAll(".patron-card")];
+    const last = cards[cards.length - 1].getBoundingClientRect();
+    const g = grid.getBoundingClientRect();
+    return {
+      count: cards.length,
+      lastName: cards[cards.length - 1].textContent?.includes("Ahmed Mohamed Gaber") ?? false,
+      leftGap: last.left - g.left,
+      rightGap: g.right - last.right,
+      cardWidth: last.width,
+      gridWidth: g.width,
+    };
+  });
+  assert.ok(patronage, "Patronage grid must exist");
+  assert.equal(patronage.count, 5, "Patronage must now hold five people");
+  assert.ok(patronage.lastName, "Ahmed Mohamed Gaber must be the fifth patron");
+  assert.ok(
+    Math.abs(patronage.leftGap - patronage.rightGap) <= 1,
+    `Fifth patron must be centred (gaps ${patronage.leftGap} vs ${patronage.rightGap})`
+  );
+  assert.ok(
+    Math.abs(patronage.cardWidth - (patronage.gridWidth - 16) / 2) <= 1,
+    `Fifth patron must keep a half-row card width (${patronage.cardWidth} vs ${(patronage.gridWidth - 16) / 2})`
+  );
+  console.log(
+    `[PASS] Fifth patron is centred under the 2x2 block at ${Math.round(patronage.cardWidth)}px wide (gaps ${Math.round(patronage.leftGap)}/${Math.round(patronage.rightGap)}px)`
+  );
 
   // Screenshot light desktop
   const patronsSection = page.locator("#patrons");
@@ -63,59 +105,50 @@ async function run() {
   console.log("[PASS] Saved about-patrons-390-dark.png");
   await mobileAbout.close();
 
-  console.log("--- 2. Testing Home Page Row ---");
+  console.log("--- 2. Patrons render only on /about ---");
   const home = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   await home.goto(`${BASE}/`, { waitUntil: "networkidle" });
 
-  const homeSection = home.locator(".home-patrons-section");
-  await homeSection.scrollIntoViewIfNeeded();
-
-  // Check link to /about#patrons
-  const meetLink = await home.$(".home-patrons-header a[href*='/about']");
-  assert.ok(meetLink, "Link to /about#patrons should exist");
-  const href = await meetLink.getAttribute("href");
-  assert.ok(href?.includes("/about#patrons") || href?.includes("/about/#patrons"));
-  console.log("[PASS] Home patrons link to /about#patrons verified");
-
-  // Check count of people items
-  const homeItems = await home.$$(".home-patrons-item");
-  assert.equal(homeItems.length, totalPeople, `Expected ${totalPeople} items in home row, got ${homeItems.length}`);
-  console.log(`[PASS] Home row renders ${homeItems.length} people across stacked groups`);
-
-  // Check grouped layout
-  const groupHeaders = await home.$$(".home-patrons-group-header");
-  assert.equal(groupHeaders.length, honoreeGroups.length, `Expected ${honoreeGroups.length} groups`);
-  console.log(`[PASS] ${groupHeaders.length} groups rendered side by side in a single row at 1440px`);
-
-  // Screenshot home light desktop
-  await home.screenshot({ path: path.join(ARTIFACT_DIR, "home-patrons-1440-light.png") });
-  console.log("[PASS] Saved home-patrons-1440-light.png");
-
-  // Screenshot home dark desktop
-  await home.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
-  await home.screenshot({ path: path.join(ARTIFACT_DIR, "home-patrons-1440-dark.png") });
-  console.log("[PASS] Saved home-patrons-1440-dark.png");
+  // The home page no longer carries a patrons row; /about#patrons is the only
+  // surface, and the hero links there.
+  assert.equal(
+    await home.$(".home-patrons-section"),
+    null,
+    "The home page must not render the patrons row"
+  );
+  assert.equal(
+    await home.$(".home-patrons-item"),
+    null,
+    "The home page must not render individual patron items"
+  );
+  console.log("[PASS] Home page does not duplicate the patrons row");
   await home.close();
 
-  // Mobile Home Page (390px)
+  // Mobile /about must not scroll horizontally with the extra guest card.
   const mobileHome = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await mobileHome.goto(`${BASE}/`, { waitUntil: "networkidle" });
-  const mobileRow = mobileHome.locator(".home-patrons-section");
-  await mobileRow.scrollIntoViewIfNeeded();
+  await mobileHome.goto(`${BASE}/about/`, { waitUntil: "networkidle" });
+  await mobileHome.locator("#patrons").scrollIntoViewIfNeeded();
 
-  // Check no horizontal scroll on mobile (Option A natural wrap)
   const mobileHasOverflow = await mobileHome.evaluate(() => {
     return document.documentElement.scrollWidth > document.documentElement.clientWidth;
   });
-  assert.equal(mobileHasOverflow, false, "Mobile page must not have horizontal scroll");
-  console.log("[PASS] Home patrons wrap naturally on mobile with zero overflow");
+  assert.equal(mobileHasOverflow, false, "Mobile /about must not have horizontal scroll");
+  console.log("[PASS] About patrons wrap naturally on mobile with zero overflow");
 
-  await mobileHome.screenshot({ path: path.join(ARTIFACT_DIR, "home-patrons-390-light.png") });
-  console.log("[PASS] Saved home-patrons-390-light.png");
-
-  await mobileHome.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
-  await mobileHome.screenshot({ path: path.join(ARTIFACT_DIR, "home-patrons-390-dark.png") });
-  console.log("[PASS] Saved home-patrons-390-dark.png");
+  const mobileLastPatron = await mobileHome.evaluate(() => {
+    const grid = document.querySelector(".patrons-grid--patronage");
+    if (!grid) return null;
+    const cards = [...grid.querySelectorAll(".patron-card")];
+    const last = cards[cards.length - 1].getBoundingClientRect();
+    const g = grid.getBoundingClientRect();
+    return { width: last.width, gridWidth: g.width };
+  });
+  assert.ok(mobileLastPatron, "Patronage grid must exist on mobile");
+  assert.ok(
+    Math.abs(mobileLastPatron.width - mobileLastPatron.gridWidth) <= 1,
+    `On one column the fifth patron must be full width (${mobileLastPatron.width} vs ${mobileLastPatron.gridWidth})`
+  );
+  console.log("[PASS] Fifth patron is full width in the single-column mobile layout");
   await mobileHome.close();
 
   console.log("--- 3. Testing Missing Photo Initials Fallback ---");

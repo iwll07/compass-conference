@@ -190,6 +190,8 @@ check("/sponsors/ shows sponsor Mood Digital", sponsorsMain.includes("Mood Digit
     "/sponsors/ shows every sponsor with no tier wording",
     sponsorsMain.includes("Sim Era") &&
       sponsorsMain.includes("Beni-Swef Medical Syndicate") &&
+      sponsorsMain.includes("Thrills") &&
+      sponsorsMain.includes("C4 Gym & Fitness") &&
       !/diamond partner|gold sponsor|silver sponsor/i.test(sponsorsMain)
   );
 check("/sponsors/ removes empty state copy when sponsors exist", !sponsorsMain.includes("Confirmed sponsors and partners will be listed here"));

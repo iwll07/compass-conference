@@ -1475,6 +1475,13 @@ button.sponsor-strip-tile { cursor: pointer; }
 .patrons-grid--patronage .patron-card-title {
   font-size: 12.5px;
 }
+/* Five patrons: the last card centres under the 2×2 block instead of leaving
+   an orphan on the left. If a sixth patron is ever added, delete this rule. */
+.patrons-grid--patronage .patron-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc((100% - 16px) / 2);
+}
 @media (max-width: 1099px) {
   .patrons-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1517,6 +1524,10 @@ button.sponsor-strip-tile { cursor: pointer; }
     flex-basis: 36%;
     width: 36%;
     min-width: 92px;
+  }
+  /* One column: the centred fifth patron takes the full width again. */
+  .patrons-grid--patronage .patron-card:last-child:nth-child(odd) {
+    width: 100%;
   }
   .patron-card-content,
   .patrons-grid--patronage .patron-card-content {

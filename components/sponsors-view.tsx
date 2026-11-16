@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   FacebookLogo,
   InstagramLogo,
+  TiktokLogo,
   WhatsappLogo,
   Globe,
   EnvelopeSimple,
@@ -22,6 +23,7 @@ interface SponsorsViewProps {
 const LINK_META: Record<SponsorLinkKind, { icon: typeof FacebookLogo; name: string }> = {
   facebook: { icon: FacebookLogo, name: "Facebook" },
   instagram: { icon: InstagramLogo, name: "Instagram" },
+  tiktok: { icon: TiktokLogo, name: "TikTok" },
   whatsapp: { icon: WhatsappLogo, name: "WhatsApp" },
   website: { icon: Globe, name: "Website" },
   email: { icon: EnvelopeSimple, name: "Email" },
@@ -62,7 +64,9 @@ export function SponsorsView({ sponsors }: SponsorsViewProps) {
               const links = sponsorLinks && sponsorLinks.length > 0 ? (
                 <div className="sponsor-panel-links" aria-label={`${sponsor.name} links`}>
                   {sponsorLinks.map((link) => {
-                    const isEmail = link.kind === "email";
+                    // mailto: stays in the current context; everything else
+                    // opens in a new tab.
+                    const isExternal = link.kind !== "email";
                     const { icon: Icon, name } = LINK_META[link.kind];
                     return (
                       <a
@@ -70,7 +74,7 @@ export function SponsorsView({ sponsors }: SponsorsViewProps) {
                         href={link.href}
                         className="sponsor-panel-link hover-lift"
                         aria-label={linkAriaLabel(sponsor, link.kind, name)}
-                        {...(!isEmail
+                        {...(isExternal
                           ? { target: "_blank", rel: "noopener noreferrer" }
                           : {})}
                       >

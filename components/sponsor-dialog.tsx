@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   FacebookLogo,
   InstagramLogo,
+  TiktokLogo,
   WhatsappLogo,
   Globe,
   EnvelopeSimple,
@@ -20,6 +21,7 @@ interface SponsorDialogProps {
 const LINK_LABELS: Record<SponsorLinkKind, { en: string; ar: string; platform: string }> = {
   facebook: { en: "Facebook", ar: "فيسبوك", platform: "Facebook" },
   instagram: { en: "Instagram", ar: "إنستغرام", platform: "Instagram" },
+  tiktok: { en: "TikTok", ar: "تيك توك", platform: "TikTok" },
   whatsapp: { en: "WhatsApp", ar: "واتساب", platform: "WhatsApp" },
   website: { en: "Website", ar: "الموقع الإلكتروني", platform: "Website" },
   email: { en: "Email", ar: "البريد", platform: "Email" },
@@ -33,6 +35,8 @@ function renderLinkIcon(kind: SponsorLinkKind) {
       return <FacebookLogo size={size} aria-hidden="true" />;
     case "instagram":
       return <InstagramLogo size={size} aria-hidden="true" />;
+    case "tiktok":
+      return <TiktokLogo size={size} aria-hidden="true" />;
     case "whatsapp":
       return <WhatsappLogo size={size} aria-hidden="true" />;
     case "website":

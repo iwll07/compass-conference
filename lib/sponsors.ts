@@ -1,6 +1,7 @@
 export type SponsorLinkKind =
   | "facebook"
   | "instagram"
+  | "tiktok"
   | "whatsapp"
   | "website"
   | "email"
@@ -222,6 +223,63 @@ export const sponsors: Sponsor[] = [
       {
         kind: "location",
         href: "https://maps.app.goo.gl/DY6VGfV7ufUTTQEu7",
+      },
+    ],
+  },
+  {
+    // No description yet: only links, so it uses the same compact panel and
+    // links-only dialog as the syndicate above.
+    id: "thrills",
+    name: "Thrills",
+    logo: {
+      src: "/thrills-logo.png",
+      width: 320,
+      height: 320,
+      alt: "Thrills logo",
+    },
+    href: null,
+    links: [
+      {
+        kind: "facebook",
+        href: "https://www.facebook.com/share/19ya4d4bCD/",
+      },
+      {
+        kind: "instagram",
+        href: "https://www.instagram.com/thrills.eg?cplk=MWxldmNqeG8xNjQyeg==",
+      },
+      {
+        kind: "tiktok",
+        href: "https://www.tiktok.com/@thrills.eg?_r=1&_t=ZS-9BS7IHRsHej",
+      },
+      {
+        kind: "email",
+        href: "mailto:mythrills.eg@gmail.com",
+      },
+    ],
+  },
+  {
+    // No description yet: Facebook, a Google Maps location and WhatsApp.
+    id: "c4-gym",
+    name: "C4 Gym & Fitness",
+    logo: {
+      src: "/c4-gym-logo.png",
+      width: 320,
+      height: 320,
+      alt: "C4 Gym & Fitness logo",
+    },
+    href: null,
+    links: [
+      {
+        kind: "facebook",
+        href: "https://www.facebook.com/share/1CMA7kgRVE/",
+      },
+      {
+        kind: "location",
+        href: "https://maps.app.goo.gl/YX4dhLVywhDSrb2YA",
+      },
+      {
+        kind: "whatsapp",
+        href: "https://wa.me/201007007257",
       },
     ],
   },
