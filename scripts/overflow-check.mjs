@@ -28,11 +28,11 @@ for (const [label, viewport] of viewports) {
       const bad = [];
       document.querySelectorAll("body *").forEach((el) => {
         // Elements inside an intentional scroll container (overflow-x: auto/scroll)
-        // legitimately extend beyond the viewport horizontally. The vote card
-        // stage is in the list because the two-presenter cut-outs are scaled up
-        // and deliberately clipped by its overflow: hidden — the page itself
-        // still has no horizontal scroll (checked below).
-        if (el.closest(".home-patrons-scroll, .vote-card-stage")) return;
+        // legitimately extend beyond the viewport horizontally. The vote and
+        // speaker card stages are in the list because their decorative rose is
+        // deliberately larger than the plate and clipped by its overflow: hidden
+        // — the page itself still has no horizontal scroll (checked below).
+        if (el.closest(".home-patrons-scroll, .vote-card-stage, .speaker-card-stage")) return;
         const r = el.getBoundingClientRect();
         if (r.right > vw + 1 || r.left < -1) {
           bad.push(`${el.tagName}.${String(el.className).split(" ")[0]} right=${Math.round(r.right)} left=${Math.round(r.left)}`);

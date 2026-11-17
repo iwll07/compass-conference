@@ -120,6 +120,7 @@ export function Footer() {
                           : {})}
                       >
                         <Icon size={17} aria-hidden="true" />
+                        <span className="credit-contact-label">{name}</span>
                       </a>
                     );
                   })}

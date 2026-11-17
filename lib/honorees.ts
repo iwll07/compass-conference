@@ -213,6 +213,24 @@ export const honoreeGroups: HonoreeGroup[] = [
         title: "Director of Beni Suef Specialized Hospital",
         photo: makePhoto("ali-mohamed-hassan"),
       },
+      {
+        id: "wael-el-shaer",
+        name: "Prof. Dr. Wael El-Shaer",
+        title: "Head of the Department of Plastic Surgery, Beni Suef University",
+        photo: makePhoto("wael-el-shaer"),
+      },
+      {
+        id: "wael-sakr",
+        name: "Prof. Dr. Wael Sakr",
+        title: "Professor of Plastic Surgery and Former Dean of the Faculty of Medicine, Beni Suef University",
+        photo: makePhoto("wael-sakr"),
+      },
+      {
+        id: "abdel-nasser-el-naggar",
+        name: "Prof. Dr. Abdel-Nasser El-Naggar",
+        title: "Professor of Plastic Surgery, Beni Suef University",
+        photo: makePhoto("abdel-nasser-el-naggar"),
+      },
     ],
   },
 ];

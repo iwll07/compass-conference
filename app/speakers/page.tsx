@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { speakers } from "@/lib/content";
 import { CallDeadlines } from "@/components/call-deadlines";
+import { SpeakerCard } from "@/components/speaker-card";
 
 export const metadata: Metadata = {
   title: "Speakers | COMPASS",
   description:
-    "Speaker announcements, full biographies, and session abstracts for COMPASS, the student-led medical conference at the Faculty of Medicine, BSNU.",
+    "Meet the confirmed speakers at COMPASS, the student-led medical conference at the Faculty of Medicine, Beni Suef National University (BSNU).",
 };
 
 export default function SpeakersPage() {
+  const grandSpeakers = speakers.filter((speaker) => speaker.group === "grand");
+  const studentSpeakers = speakers.filter((speaker) => speaker.group === "student");
+
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
@@ -19,48 +22,59 @@ export default function SpeakersPage() {
       </header>
 
       {speakers.length > 0 ? (
-        <div className="page-body">
-          {speakers.map((speaker) => (
-            <article key={speaker.id} id={speaker.id} className="speaker-entry">
-              {speaker.photoUrl && (
-                <Image src={speaker.photoUrl} alt={speaker.name} width={320} height={400} />
-              )}
-              <h2>
-                {speaker.name}{speaker.credentials ? `, ${speaker.credentials}` : ""}
-              </h2>
-              {(speaker.role || speaker.affiliation) && (
-                <p className="status-line">{[speaker.role, speaker.affiliation].filter(Boolean).join(", ")}</p>
-              )}
-              <section className="prose" aria-labelledby={`bio-${speaker.id}`}>
-                <h3 id={`bio-${speaker.id}`} className="section-heading">Biography</h3>
-                {speaker.bio ? speaker.bio.split(/\n\s*\n/).map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                )) : <p className="inline-notice">Biography coming soon.</p>}
-              </section>
-              <section className="prose" aria-labelledby={`abstract-${speaker.id}`}>
-                <h3 id={`abstract-${speaker.id}`} className="section-heading">
-                  {speaker.sessionTitle ?? "Session details coming soon"}
-                </h3>
-                {speaker.sessionAbstract ? (
-                  <>
-                    <h4>Session abstract</h4>
-                    {speaker.sessionAbstract.split(/\n\s*\n/).map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
-                  </>
-                ) : <p className="inline-notice">Abstract coming soon.</p>}
-              </section>
-              {speaker.links.length > 0 && (
-                <ul>
-                  {speaker.links.map((link) => (
-                    <li key={link.href}>
-                      <a className="text-link" href={link.href} {...(link.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{link.label}</a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </article>
-          ))}
+        <div className="speakers-body">
+          <section className="speakers-lineup" aria-labelledby="speakers-grand-heading">
+            <div className="speakers-lineup-header reveal">
+              <h2 id="speakers-grand-heading">Grand Speakers</h2>
+              <p>
+                Session titles and abstracts will be published here as the programme is confirmed.
+              </p>
+            </div>
+
+            <div className="speakers-grid">
+              {grandSpeakers.map((speaker, index) => (
+                <SpeakerCard key={speaker.id} speaker={speaker} index={index} />
+              ))}
+            </div>
+          </section>
+
+          <section className="speakers-lineup speakers-lineup--students" aria-labelledby="speakers-student-heading">
+            <div className="speakers-lineup-header reveal">
+              <h2 id="speakers-student-heading">Student Speakers</h2>
+              <p>
+                Meet the students presenting at COMPASS. More details will be shared as the
+                programme takes shape.
+              </p>
+            </div>
+
+            <div className="speakers-grid speakers-grid--students">
+              {studentSpeakers.map((speaker, index) => (
+                <SpeakerCard key={speaker.id} speaker={speaker} index={index} />
+              ))}
+            </div>
+          </section>
+
+          <p className="speakers-guests-note reveal">
+            Patrons and distinguished guests are introduced on the{" "}
+            <Link href="/about#patrons">About page</Link>.
+          </p>
+
+          <div className="speakers-notes">
+            <aside className="margin-note reveal" aria-labelledby="speakers-program">
+              <h2 id="speakers-program" className="section-heading">From the person to the session</h2>
+              <p>Once published, the agenda will help you place each talk in the program.</p>
+              <Link href="/agenda" className="text-link">Explore the agenda</Link>
+            </aside>
+            <aside className="margin-note reveal" aria-labelledby="speakers-call" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>
+              <h2 id="speakers-call" className="section-heading">Want to speak at COMPASS?</h2>
+              <p>
+                Speaker proposals are now closed. The submission deadline passed on 11 October 2026, and
+                proposals received are currently under review — thank you to everyone who put one forward.
+              </p>
+              <CallDeadlines />
+              <p>Selected speakers will be announced here, with session details as the programme takes shape.</p>
+            </aside>
+          </div>
         </div>
       ) : (
         <div className="page-body">

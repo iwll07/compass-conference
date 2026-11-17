@@ -197,8 +197,8 @@ const regText = (await page.locator("main").textContent()) ?? "";
 check("registration heading exists", regText.includes("Your place at COMPASS starts here."));
 check("registration has no external Tally links", await page.locator('main a[href*="tally.so"]').count() === 0);
 
-// 5. Empty states are intentional on agenda/speakers/posters/sponsors
-for (const route of ["/agenda/", "/speakers/", "/posters/"]) {
+// 5. Empty states are intentional on agenda/posters (speakers are announced)
+for (const route of ["/agenda/", "/posters/"]) {
   await page.goto(BASE + route, { waitUntil: "networkidle" });
   const main = (await page.locator("main").textContent())?.toLowerCase() ?? "";
   check(`${route} has intentional empty state`, main.includes("coming soon") || main.includes("to be announced"), main.slice(0, 80));
@@ -268,6 +268,70 @@ for (const [route, noteId] of [["/speakers/", "speakers-call"], ["/posters/", "p
   }
   check(`${route} no longer promises future deadlines`, noteText.includes("once they are confirmed") === false);
 }
+
+// 6c. Speakers: five confirmed cards, all photographed, in two titled groups,
+// with the call note still on the page and no leftover empty state.
+await page.goto(BASE + "/speakers/", { waitUntil: "networkidle" });
+const speakerCards = page.locator(".speaker-card");
+const speakersMain = (await page.locator("main").textContent()) ?? "";
+check("/speakers/ renders five speaker cards", (await speakerCards.count()) === 5, `${await speakerCards.count()}`);
+check(
+  "/speakers/ names all five confirmed speakers",
+  ["Prof. Dr. Wael El-Shaer", "Prof. Dr. Wael Sakr", "Prof. Dr. Osama Abdelhay", "Malak Ashraf", "Nada El Sayem"].every(
+    (name) => speakersMain.includes(name)
+  )
+);
+check(
+  "/speakers/ shows the grand and student roles",
+  speakersMain.includes("Head of the Department of Plastic Surgery") &&
+    speakersMain.includes("President of the Egyptian Medical Syndicate") &&
+    speakersMain.includes("4th year medical student") &&
+    speakersMain.includes("1st year medical student")
+);
+check(
+  "/speakers/ uses the two requested section titles",
+  speakersMain.includes("Grand Speakers") && speakersMain.includes("Student Speakers")
+);
+const speakerPhotos = await page.$$eval(".speaker-card-photo", (imgs) =>
+  imgs.map((img) => ({ complete: img.complete, w: img.naturalWidth, h: img.naturalHeight, alt: img.alt }))
+);
+check(
+  "/speakers/ all five portraits load at 560x720 with names as alt text",
+  speakerPhotos.length === 5 &&
+    speakerPhotos.every((p) => p.complete && p.w === 560 && p.h === 720 && p.alt.length > 2),
+  JSON.stringify(speakerPhotos)
+);
+check(
+  "/speakers/ three grand cards and two student cards",
+  (await page.locator(".speakers-grid:not(.speakers-grid--students) .speaker-card").count()) === 3 &&
+    (await page.locator(".speakers-grid--students .speaker-card").count()) === 2
+);
+check(
+  "/speakers/ no longer shows the empty state",
+  speakersMain.includes("Introductions are coming soon.") === false
+);
+check(
+  "/speakers/ keeps the call note",
+  (await page.locator('[aria-labelledby="speakers-call"]').count()) === 1
+);
+check(
+  "/speakers/ points to the patrons and guests",
+  (await page.locator('.speakers-guests-note a[href="/about/#patrons"]').count()) === 1
+);
+check(
+  "/speakers/ cards carry no fake link",
+  (await speakerCards.locator("a").count()) === 0
+);
+
+// The three plastic-surgery guests join the special-guests list on /about.
+await page.goto(BASE + "/about/", { waitUntil: "networkidle" });
+const aboutMain = (await page.locator("main").textContent()) ?? "";
+check(
+  "/about/ lists the three plastic-surgery guests",
+  aboutMain.includes("Prof. Dr. Wael El-Shaer") &&
+    aboutMain.includes("Prof. Dr. Wael Sakr") &&
+    aboutMain.includes("Prof. Dr. Abdel-Nasser El-Naggar")
+);
 
 
 // 7. Agenda print stylesheet: in print media, header/footer/nav hidden, print-only visible

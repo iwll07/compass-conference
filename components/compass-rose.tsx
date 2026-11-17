@@ -1,12 +1,11 @@
 /**
- * Decorative compass rose that sits behind a presenter's cut-out on the vote
- * cards: two rings, 32 ticks and a slim north/south needle, drawn as inline SVG
- * so it stays crisp at any card size and inherits the accent colour in both
- * themes.
+ * Decorative compass rose that sits behind a portrait cut-out: two rings, 32
+ * ticks and a slim north/south needle, drawn as inline SVG so it stays crisp at
+ * any card size and inherits the accent colour in both themes.
  *
- * Purely ornamental — aria-hidden, no text, no interaction. Remove this file,
- * the <VoteCompassRose /> in vote-page-content.tsx and the .vote-card-compass
- * rules in globals.css to take it away again.
+ * Purely ornamental — aria-hidden, no text, no interaction. It is used behind
+ * the voting cards (`components/vote-page-content.tsx`) and the speaker cards
+ * (`components/speaker-card.tsx`); each passes its own positioning class.
  */
 const TICKS = Array.from({ length: 32 }, (_, index) => {
   const angle = index * 11.25;
@@ -16,10 +15,10 @@ const TICKS = Array.from({ length: 32 }, (_, index) => {
   return { angle, length };
 });
 
-export function VoteCompassRose() {
+export function CompassRose({ className = "vote-card-compass" }: { className?: string }) {
   return (
     <svg
-      className="vote-card-compass"
+      className={className}
       viewBox="0 0 200 200"
       aria-hidden="true"
       focusable="false"
@@ -54,7 +53,7 @@ export function VoteCompassRose() {
       </g>
 
       {/* Needle: solid north, outlined south, so it reads as a compass even at
-          the low opacity the card uses. */}
+          the low opacity the cards use. */}
       <path d="M100 26 L105.5 100 L94.5 100 Z" fill="currentColor" />
       <path
         d="M100 174 L105.5 100 L94.5 100 Z"

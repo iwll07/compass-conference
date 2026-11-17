@@ -805,11 +805,32 @@ button.sponsor-strip-tile { cursor: pointer; }
 .credit-text p { font-size: 11px; line-height: 1.7; color: var(--panel-muted); max-width: 90ch; }
 .credit-text p strong { color: var(--panel-ink); }
 .credit-contact { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--panel-muted); }
-.credit-contact-links { display: inline-flex; align-items: center; gap: 6px; }
-.credit-contact-link { display: inline-flex; align-items: center; justify-content: center; color: var(--panel-muted); }
-/* Same as the BSNU/Faculty icons: the -3px lift only, with no rectangular
-   box-shadow or plate behind the glyph. */
-.credit-contact-link:hover { box-shadow: none; }
+.credit-contact-links { display: inline-flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+/* Icon + name on a darkened plate: on a phone a bare glyph reads as decoration,
+   so each contact gets a name and a button-shaped background. */
+.credit-contact-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 5px 9px;
+  background: color-mix(in srgb, #000 28%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--panel-muted) 22%, transparent);
+  border-radius: 6px;
+  color: var(--panel-muted);
+  text-decoration: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.credit-contact-label { line-height: 1; }
+/* The shared -3px lift is the hover feedback; the plate lightens with it. */
+.credit-contact-link:hover {
+  box-shadow: none;
+  background: color-mix(in srgb, #000 16%, var(--panel));
+  color: var(--panel-ink);
+}
 .credit-logo { width: 54px; height: 54px; object-fit: contain; flex-shrink: 0; }
 .credit-logo-btn { background: transparent; border: none; padding: 0; margin: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .credit-logo-btn.hover-lift:hover { box-shadow: none; }
@@ -1557,6 +1578,157 @@ button.sponsor-strip-tile { cursor: pointer; }
   }
 }
 
+/* ---- Speakers Page ------------------------------------------------------ */
+/* The lineup is portrait-led: two large plates carry the speakers, then the
+   programme and call notes sit below a hairline. Cards are not links, so they
+   deliberately have no hover-lift — nothing to click. */
+.speakers-body { padding-top: 45px; }
+.speakers-lineup-header { display: grid; grid-template-columns: 1.1fr 1fr; gap: 65px; align-items: end; }
+.speakers-lineup-header h2 { font-size: clamp(1.8rem, 2.4vw, 2.25rem); max-width: 20ch; }
+.speakers-lineup-header p { color: var(--muted); font-size: 14px; line-height: 1.65; max-width: 54ch; }
+/* Three plates in a row: small enough to read as a lineup, with no empty band
+   above any portrait. */
+.speakers-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 30px; }
+/* Two student plates keep the exact width of two grand plates. */
+.speakers-grid--students { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: calc((100% - 40px) / 3 * 2 + 20px); }
+.speakers-lineup--students { margin-top: 52px; }
+/* A larger take on the patron card: a portrait plate sits above the name, so
+   the photograph reads at full width and the card never crops a shoulder. */
+.speaker-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+/* Same 6px brand baseline as the patron cards, so the two people surfaces
+   read as one system rather than two treatments. */
+.speaker-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #082a4b 0%, #06797f 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+:root[data-theme="dark"] .speaker-card::after {
+  background: linear-gradient(90deg, #23484a 0%, #06797f 55%, #8ae2d6 100%);
+}
+/* A quiet plate behind the cut-out, fading with the person from the top of the
+   card to its base. */
+/* The plate is slightly wider than tall: enough for the cut-out, without the
+   band of empty sky the old square left above every head. */
+.speaker-card-stage {
+  position: relative;
+  aspect-ratio: 1 / 0.95;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--hero) 0%, var(--accent-soft) 100%);
+}
+/* Decorative compass rose behind the cut-out (components/compass-rose.tsx).
+   Faint on purpose: it should read as an engraved plate the speaker stands in
+   front of, not as a competing graphic. */
+.speaker-card-compass {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 88%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) rotate(-50deg);
+  color: var(--accent);
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+}
+:root[data-theme="dark"] .speaker-card-compass { opacity: 0.15; }
+/* The portrait assets are 560x720 with the cut-out planted on the bottom edge,
+   so `cover` from the bottom trims only the transparent top — never a shoulder
+   or the top of a head — and the person always ends on the card base. */
+.speaker-card-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  z-index: 1;
+}
+.speaker-card-fallback {
+  width: 96px;
+  height: 96px;
+  margin: auto;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 30px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.speaker-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  padding: 26px 28px 30px;
+}
+.speaker-card-name { font-size: 30px; line-height: 1.12; letter-spacing: -.025em; text-wrap: balance; }
+.speaker-card-meta { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.speaker-card-role { font-size: 13.5px; line-height: 1.55; color: var(--muted); max-width: 42ch; }
+.speaker-card-affiliation {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.speakers-guests-note { margin-top: 18px; color: var(--muted); font-size: 12px; }
+.speakers-guests-note a { color: var(--accent); font-weight: 600; }
+@media (hover: hover) and (pointer: fine) { .speakers-guests-note a:hover { text-decoration: underline; } }
+.speakers-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 60px;
+  margin-top: 64px;
+  padding-top: 40px;
+  border-top: 1px solid var(--line);
+}
+.speakers-notes .margin-note { padding-top: 0; }
+.speakers-notes .section-heading { margin-top: 0; }
+@media (max-width: 999px) {
+  .speakers-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .speakers-grid--students { max-width: none; }
+}
+@media (max-width: 1099px) {
+  .speakers-lineup-header { gap: 40px; }
+  .speaker-card-body { padding: 24px 22px 26px; }
+  .speaker-card-name { font-size: 26px; }
+}
+@media (max-width: 800px) {
+  /* One column is where the portrait column stays wide enough to read. */
+  .speakers-grid,
+  .speakers-grid--students { grid-template-columns: 1fr; gap: 18px; }
+}
+@media (max-width: 699px) {
+  .speakers-body { padding-top: 30px; }
+  .speakers-lineup-header { grid-template-columns: 1fr; gap: 14px; }
+  .speakers-lineup-header h2 { font-size: 28px; }
+  .speakers-grid { margin-top: 24px; }
+  .speaker-card-body { padding: 20px 18px 22px; gap: 10px; }
+  .speaker-card-name { font-size: 21px; }
+  .speaker-card-role { font-size: 12px; }
+  .speaker-card-affiliation { font-size: 9.5px; }
+  .speakers-notes { grid-template-columns: 1fr; gap: 34px; margin-top: 46px; padding-top: 32px; }
+}
+
 /* ---- Patrons Home Section ------------------------------------------------ */
 .home-patrons-section {
   max-width: 1400px;
@@ -2074,6 +2246,11 @@ button.sponsor-strip-tile { cursor: pointer; }
   .institution-slot { font-size: 9px; }
   .institution-slot small { max-width: 14ch; }
   .credit-inner { flex-direction: column; align-items: center; text-align: center; gap: 16px; padding: 20px; }
+  .credit-contact { flex-direction: column; gap: 10px; }
+  /* Two even columns, so four platforms read as a block instead of wrapping
+     three-and-one. */
+  .credit-contact-links { display: grid; grid-template-columns: repeat(2, auto); justify-content: center; justify-items: start; gap: 6px 26px; }
+  .credit-contact-link { min-height: 36px; padding: 7px 10px; }
   .page-shell { padding-top: 35px; padding-bottom: 55px; }
   .page-heading { grid-template-columns: 1fr; gap: 25px; padding-bottom: 32px; }
   .page-heading h1 { font-size: 48px; }
