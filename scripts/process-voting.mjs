@@ -24,7 +24,7 @@ const SOURCES = [
   { out: "artificial-intelligence-revolution-or-risk", file: "Lobna_Ahmed_Diab-removebg-preview.png" },
   { out: "artificial-intelligence-revolution-or-risk-co", file: "Abdelrahman_Eid_Abdelfatah-removebg-preview.png" },
   { out: "base-editing-revolution", file: "Basmala_Hassan_Mohammed-removebg-preview.png" },
-  { out: "dna-origami-nanorobotics", file: "Nada_El-Sayem_Shapaan-removebg-preview.png" },
+  { out: "dna-origami-nanorobotics", file: "Nada_El-Sayem png.png" },
   { out: "digital-phenotyping-mental-health", file: "Malak_Ashraf_Saad_Abdelfatah-removebg-preview.png" },
   { out: "preeclampsia-statin-metformin-vitamin-d", file: "Habiba_Mohammed_Salah-removebg-preview.png" },
   { out: "organoids-miniature-organs", file: "Nada_Ashraf_Nour_El_Din-removebg-preview.png" },
@@ -99,12 +99,17 @@ async function processOne({ out, file }) {
   return { out, bytes: composed.length, width, height, keep };
 }
 
+// With no argument, every source is rebuilt. Pass one output name (e.g.
+// `node scripts/process-voting.mjs dna-origami-nanorobotics`) to touch only it.
+const ONLY = process.argv[2] ?? null;
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const results = [];
 for (const source of SOURCES) {
+  if (ONLY && source.out !== ONLY) continue;
   results.push(await processOne(source));
 }
+if (!results.length) throw new Error(`No source found for: ${ONLY}`);
 
 for (const result of results) {
   console.log(
