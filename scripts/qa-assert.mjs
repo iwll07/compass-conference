@@ -332,6 +332,14 @@ check(
     aboutMain.includes("Prof. Dr. Wael Sakr") &&
     aboutMain.includes("Prof. Dr. Abdel-Nasser El-Naggar")
 );
+const guestGroup = page.locator(".patrons-group").nth(1);
+const guestNames = await guestGroup.locator(".patron-card-name").allTextContents();
+check(
+  "/about/ the three speakers lead the special guests",
+  guestNames.slice(0, 3).map((name) => name.trim()).join("|") ===
+    "Prof. Dr. Wael El-Shaer|Prof. Dr. Wael Sakr|Prof. Dr. Osama Abdelhay",
+  JSON.stringify(guestNames.slice(0, 3))
+);
 
 
 // 7. Agenda print stylesheet: in print media, header/footer/nav hidden, print-only visible

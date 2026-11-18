@@ -100,6 +100,24 @@ export const honoreeGroups: HonoreeGroup[] = [
     label: "Special guests",
     people: [
       {
+        id: "wael-el-shaer",
+        name: "Prof. Dr. Wael El-Shaer",
+        title: "Head of the Department of Plastic Surgery, Beni Suef University",
+        photo: makePhoto("wael-el-shaer"),
+      },
+      {
+        id: "wael-sakr",
+        name: "Prof. Dr. Wael Sakr",
+        title: "Professor of Plastic Surgery and Former Dean of the Faculty of Medicine, Beni Suef University",
+        photo: makePhoto("wael-sakr"),
+      },
+      {
+        id: "osama-abdelhay",
+        name: "Prof. Dr. Osama Abdelhay",
+        title: "President of the Egyptian Medical Syndicate",
+        photo: makePhoto("osama-abdelhay"),
+      },
+      {
         id: "mamdouh-moawad-ali",
         name: "Prof. Dr. Mamdouh Moawad Ali",
         title: "President of the National Research Centre (NRC)",
@@ -172,12 +190,6 @@ export const honoreeGroups: HonoreeGroup[] = [
         photo: makePhoto("emad-el-banna"),
       },
       {
-        id: "osama-abdelhay",
-        name: "Prof. Dr. Osama Abdelhay",
-        title: "President of the Egyptian Medical Syndicate",
-        photo: makePhoto("osama-abdelhay"),
-      },
-      {
         id: "sherine-ghaleb",
         name: "Prof. Dr. Sherine Ghaleb",
         title: "President of the Cairo Medical Syndicate",
@@ -212,18 +224,6 @@ export const honoreeGroups: HonoreeGroup[] = [
         name: "Dr. Ali Mohamed Hassan",
         title: "Director of Beni Suef Specialized Hospital",
         photo: makePhoto("ali-mohamed-hassan"),
-      },
-      {
-        id: "wael-el-shaer",
-        name: "Prof. Dr. Wael El-Shaer",
-        title: "Head of the Department of Plastic Surgery, Beni Suef University",
-        photo: makePhoto("wael-el-shaer"),
-      },
-      {
-        id: "wael-sakr",
-        name: "Prof. Dr. Wael Sakr",
-        title: "Professor of Plastic Surgery and Former Dean of the Faculty of Medicine, Beni Suef University",
-        photo: makePhoto("wael-sakr"),
       },
       {
         id: "abdel-nasser-el-naggar",
