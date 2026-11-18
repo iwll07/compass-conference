@@ -6,13 +6,21 @@ import sharp from "sharp";
 import { speakers } from "../lib/content";
 import { honoreeGroups } from "../lib/honorees";
 
-test("speakers data: the five confirmed speakers are listed in order", () => {
+test("speakers data: the seven confirmed speakers are listed in order", () => {
   assert.deepEqual(
     speakers.map((speaker) => speaker.id),
-    ["wael-el-shaer", "wael-sakr", "osama-abdelhay", "malak", "nada-el-sayem"]
+    [
+      "wael-el-shaer",
+      "wael-sakr",
+      "osama-abdelhay",
+      "abdel-nasser-el-naggar",
+      "emad-el-banna",
+      "malak",
+      "nada-el-sayem",
+    ]
   );
 
-  const [elshaer, sakr, osama, malak, nada] = speakers;
+  const [elshaer, sakr, osama, naggar, emad, malak, nada] = speakers;
   assert.equal(elshaer.group, "grand");
   assert.equal(elshaer.name, "Prof. Dr. Wael El-Shaer");
   assert.equal(elshaer.role, "Head of the Department of Plastic Surgery");
@@ -28,6 +36,17 @@ test("speakers data: the five confirmed speakers are listed in order", () => {
   assert.equal(osama.name, "Prof. Dr. Osama Abdelhay");
   assert.equal(osama.role, "President of the Egyptian Medical Syndicate");
   assert.equal(osama.affiliation, null);
+  assert.equal(naggar.group, "grand");
+  assert.equal(naggar.name, "Prof. Dr. Abdel-Nasser El-Naggar");
+  assert.equal(naggar.role, "Professor of Plastic Surgery");
+  assert.equal(naggar.affiliation, "Beni Suef University");
+  assert.equal(emad.group, "grand");
+  assert.equal(emad.name, "Prof. Dr. Emad El-Banna");
+  assert.equal(
+    emad.role,
+    "President of the Beni Suef Medical Syndicate and Director of University Hospitals"
+  );
+  assert.equal(emad.affiliation, null);
   assert.equal(malak.group, "student");
   assert.equal(malak.name, "Malak Ashraf");
   assert.equal(malak.role, "4th year medical student");
@@ -67,7 +86,7 @@ test("speakers photos: portrait variants exist, are 560x720, and stay under 70KB
   }
 });
 
-test("speakers data: the three grand speakers are also special guests", () => {
+test("speakers data: the five grand speakers are also special guests", () => {
   const guests = honoreeGroups.find((group) => group.id === "special-guests");
   assert.ok(guests, "special-guests group must exist");
   const guestIds = new Set(guests.people.map((person) => person.id));
@@ -89,7 +108,7 @@ test("speakers data: the plastic-surgery guests lead the special-guests list on 
   );
 });
 
-test("honorees data: the three plastic-surgery guests carry their supplied titles", () => {
+test("honorees data: the four plastic-surgery guests carry their supplied titles", () => {
   const guests = honoreeGroups.find((group) => group.id === "special-guests");
   assert.ok(guests, "special-guests group must exist");
 
@@ -109,5 +128,9 @@ test("honorees data: the three plastic-surgery guests carry their supplied title
   assert.equal(
     byId.get("osama-abdelhay")?.title,
     "President of the Egyptian Medical Syndicate"
+  );
+  assert.equal(
+    byId.get("emad-el-banna")?.title,
+    "President of the Beni Suef Medical Syndicate and Director of University Hospitals"
   );
 });
