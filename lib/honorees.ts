@@ -118,6 +118,12 @@ export const honoreeGroups: HonoreeGroup[] = [
         photo: makePhoto("osama-abdelhay"),
       },
       {
+        id: "abdel-nasser-el-naggar",
+        name: "Prof. Dr. Abdel-Nasser El-Naggar",
+        title: "Professor of Plastic Surgery, Beni Suef University",
+        photo: makePhoto("abdel-nasser-el-naggar"),
+      },
+      {
         id: "mamdouh-moawad-ali",
         name: "Prof. Dr. Mamdouh Moawad Ali",
         title: "President of the National Research Centre (NRC)",
@@ -224,12 +230,6 @@ export const honoreeGroups: HonoreeGroup[] = [
         name: "Dr. Ali Mohamed Hassan",
         title: "Director of Beni Suef Specialized Hospital",
         photo: makePhoto("ali-mohamed-hassan"),
-      },
-      {
-        id: "abdel-nasser-el-naggar",
-        name: "Prof. Dr. Abdel-Nasser El-Naggar",
-        title: "Professor of Plastic Surgery, Beni Suef University",
-        photo: makePhoto("abdel-nasser-el-naggar"),
       },
     ],
   },

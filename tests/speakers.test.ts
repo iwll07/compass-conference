@@ -80,12 +80,12 @@ test("speakers data: the three grand speakers are also special guests", () => {
   assert.equal(guestIds.has("nada-el-sayem"), false);
 });
 
-test("speakers data: speaker guests lead the special-guests list on /about", () => {
+test("speakers data: the plastic-surgery guests lead the special-guests list on /about", () => {
   const guests = honoreeGroups.find((group) => group.id === "special-guests");
   assert.ok(guests, "special-guests group must exist");
   assert.deepEqual(
-    guests.people.slice(0, 3).map((person) => person.id),
-    ["wael-el-shaer", "wael-sakr", "osama-abdelhay"]
+    guests.people.slice(0, 4).map((person) => person.id),
+    ["wael-el-shaer", "wael-sakr", "osama-abdelhay", "abdel-nasser-el-naggar"]
   );
 });
 
