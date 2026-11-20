@@ -6,7 +6,7 @@ import sharp from "sharp";
 import { speakers } from "../lib/content";
 import { honoreeGroups } from "../lib/honorees";
 
-test("speakers data: the seven confirmed speakers are listed in order", () => {
+test("speakers data: the twelve confirmed speaker cards are listed in order", () => {
   assert.deepEqual(
     speakers.map((speaker) => speaker.id),
     [
@@ -17,10 +17,15 @@ test("speakers data: the seven confirmed speakers are listed in order", () => {
       "emad-el-banna",
       "malak",
       "nada-el-sayem",
+      "ebrahim",
+      "habiba",
+      "basmala",
+      "lobna",
+      "nada-ashraf",
     ]
   );
 
-  const [elshaer, sakr, osama, naggar, emad, malak, nada] = speakers;
+  const [elshaer, sakr, osama, naggar, emad] = speakers;
   assert.equal(elshaer.group, "grand");
   assert.equal(elshaer.name, "Prof. Dr. Wael El-Shaer");
   assert.equal(elshaer.role, "Head of the Department of Plastic Surgery");
@@ -47,14 +52,50 @@ test("speakers data: the seven confirmed speakers are listed in order", () => {
     "President of the Beni Suef Medical Syndicate and Director of University Hospitals"
   );
   assert.equal(emad.affiliation, null);
-  assert.equal(malak.group, "student");
-  assert.equal(malak.name, "Malak Ashraf");
-  assert.equal(malak.role, "4th year medical student");
-  assert.equal(malak.affiliation, "Beni Suef National University");
-  assert.equal(nada.group, "student");
-  assert.equal(nada.name, "Nada El Sayem");
-  assert.equal(nada.role, "1st year medical student");
-  assert.equal(nada.affiliation, "Nile Valley University");
+
+  // Student presenters: the user asked for the plain "Medical student" line
+  // with no year, and for the short name forms they supplied.
+  const students = speakers.filter((speaker) => speaker.group === "student");
+  assert.equal(students.length, 7);
+  assert.deepEqual(
+    students.map((speaker) => speaker.name),
+    [
+      "Malak Ashraf",
+      "Nada El Sayem",
+      "Ebrahim Ragab",
+      "Habiba Mohamed",
+      "Basmala Hassan",
+      "Lobna Ahmed",
+      "Nada Ashraf",
+    ]
+  );
+  for (const student of students) {
+    assert.equal(student.group, "student");
+    assert.equal(student.role, "Medical student", `${student.id} role`);
+    assert.ok(student.affiliation, `${student.id} affiliation`);
+  }
+  // Lobna and Abdelrahman share one card, as they do on the ballot.
+  assert.deepEqual(
+    students.map((speaker) => speaker.coName ?? null),
+    [null, null, null, null, null, "Abdelrahman Eid", null]
+  );
+  assert.deepEqual(
+    students.map((speaker) => speaker.coPhotoUrl ?? null),
+    [null, null, null, null, null, "/people/abdelrahman-portrait.webp", null]
+  );
+  // Everyone but Nada El Sayem reads as Beni Suef National University.
+  assert.deepEqual(
+    students.map((speaker) => speaker.affiliation),
+    [
+      "Beni Suef National University",
+      "Nile Valley University",
+      "Beni Suef National University",
+      "Beni Suef National University",
+      "Beni Suef National University",
+      "Beni Suef National University",
+      "Beni Suef National University",
+    ]
+  );
 });
 
 test("speakers data: no invented biography, session or link copy", () => {
@@ -69,20 +110,24 @@ test("speakers data: no invented biography, session or link copy", () => {
 
 test("speakers photos: portrait variants exist, are 560x720, and stay under 70KB", async () => {
   for (const speaker of speakers) {
-    assert.ok(speaker.photoUrl, `${speaker.id} must have a photo`);
-    assert.ok(!speaker.photoUrl.includes(" "), `${speaker.id} photo path has spaces`);
-    assert.ok(speaker.photoUrl.endsWith("-portrait.webp"), `${speaker.id} uses the speaker portrait crop`);
-
-    const diskPath = path.join(process.cwd(), "public", speaker.photoUrl.replace(/^\//, ""));
-    assert.ok(fs.existsSync(diskPath), `${speaker.id} photo is missing: ${diskPath}`);
-    assert.ok(
-      fs.statSync(diskPath).size <= 70 * 1024,
-      `${speaker.id} photo exceeds 70KB: ${fs.statSync(diskPath).size} bytes`
+    const photos = [speaker.photoUrl, speaker.coPhotoUrl].filter(
+      (url): url is string => Boolean(url)
     );
+    for (const url of photos) {
+      assert.ok(!url.includes(" "), `${speaker.id} photo path has spaces: ${url}`);
+      assert.ok(url.endsWith("-portrait.webp"), `${speaker.id} uses the speaker portrait crop: ${url}`);
 
-    const meta = await sharp(diskPath).metadata();
-    assert.equal(meta.width, 560, `${speaker.id} portrait width`);
-    assert.equal(meta.height, 720, `${speaker.id} portrait height`);
+      const diskPath = path.join(process.cwd(), "public", url.replace(/^\//, ""));
+      assert.ok(fs.existsSync(diskPath), `${speaker.id} photo is missing: ${diskPath}`);
+      assert.ok(
+        fs.statSync(diskPath).size <= 70 * 1024,
+        `${speaker.id} photo exceeds 70KB: ${fs.statSync(diskPath).size} bytes`
+      );
+
+      const meta = await sharp(diskPath).metadata();
+      assert.equal(meta.width, 560, `${speaker.id} portrait width: ${url}`);
+      assert.equal(meta.height, 720, `${speaker.id} portrait height: ${url}`);
+    }
   }
 });
 

@@ -17,6 +17,9 @@ export type Speaker = {
   affiliation: string | null;
   role: string | null;
   photoUrl: string | null;
+  /** A second presenter on the same card, as on the /vote/ pair card. */
+  coName?: string | null;
+  coPhotoUrl?: string | null;
   bio: string | null;
   sessionTitle: string | null;
   sessionAbstract: string | null;
@@ -109,12 +112,18 @@ export const speakers: Speaker[] = [
     sessionAbstract: null,
     links: [],
   },
+  // Student presenters in the order requested for /speakers/. This lineup order
+  // is independent of the ballot order on /vote/. Every role is the plain
+  // "Medical student" the user asked for — no invented year, credentials or
+  // session copy. Nada El Sayem is the one exception: she is the only student
+  // not at Beni Suef National University. Lobna and Abdelrahman share one card,
+  // as they do on the ballot.
   {
     id: "malak",
     group: "student",
     name: "Malak Ashraf",
     credentials: null,
-    role: "4th year medical student",
+    role: "Medical student",
     affiliation: "Beni Suef National University",
     photoUrl: "/people/malak-portrait.webp",
     bio: null,
@@ -127,9 +136,76 @@ export const speakers: Speaker[] = [
     group: "student",
     name: "Nada El Sayem",
     credentials: null,
-    role: "1st year medical student",
+    role: "Medical student",
     affiliation: "Nile Valley University",
     photoUrl: "/people/nada-el-sayem-portrait.webp",
+    bio: null,
+    sessionTitle: null,
+    sessionAbstract: null,
+    links: [],
+  },
+  {
+    id: "ebrahim",
+    group: "student",
+    name: "Ebrahim Ragab",
+    credentials: null,
+    role: "Medical student",
+    affiliation: "Beni Suef National University",
+    photoUrl: "/people/ebrahim-portrait.webp",
+    bio: null,
+    sessionTitle: null,
+    sessionAbstract: null,
+    links: [],
+  },
+  {
+    id: "habiba",
+    group: "student",
+    name: "Habiba Mohamed",
+    credentials: null,
+    role: "Medical student",
+    affiliation: "Beni Suef National University",
+    photoUrl: "/people/habiba-portrait.webp",
+    bio: null,
+    sessionTitle: null,
+    sessionAbstract: null,
+    links: [],
+  },
+  {
+    id: "basmala",
+    group: "student",
+    name: "Basmala Hassan",
+    credentials: null,
+    role: "Medical student",
+    affiliation: "Beni Suef National University",
+    photoUrl: "/people/basmala-portrait.webp",
+    bio: null,
+    sessionTitle: null,
+    sessionAbstract: null,
+    links: [],
+  },
+  {
+    id: "lobna",
+    group: "student",
+    name: "Lobna Ahmed",
+    coName: "Abdelrahman Eid",
+    credentials: null,
+    role: "Medical student",
+    affiliation: "Beni Suef National University",
+    photoUrl: "/people/lobna-portrait.webp",
+    coPhotoUrl: "/people/abdelrahman-portrait.webp",
+    bio: null,
+    sessionTitle: null,
+    sessionAbstract: null,
+    links: [],
+  },
+  {
+    id: "nada-ashraf",
+    group: "student",
+    name: "Nada Ashraf",
+    credentials: null,
+    role: "Medical student",
+    affiliation: "Beni Suef National University",
+    photoUrl: "/people/nada-ashraf-portrait.webp",
     bio: null,
     sessionTitle: null,
     sessionAbstract: null,

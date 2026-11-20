@@ -23,6 +23,7 @@ const CANDIDATE_IDS = [
   "dna-origami-nanorobotics",
   "preeclampsia-statin-metformin-vitamin-d",
   "organoids-miniature-organs",
+  "the-plastic-human",
 ];
 
 const browser = await chromium.launch({ channel: "msedge" });
@@ -230,8 +231,8 @@ async function createAdminPage(config = {}) {
 
   await page.waitForSelector(".vote-admin-table tbody tr");
   check(
-    "admin: six candidate rows",
-    (await page.locator(".vote-admin-table tbody tr").count()) === 6
+    "admin: seven candidate rows",
+    (await page.locator(".vote-admin-table tbody tr").count()) === 7
   );
 
   const firstRow = page.locator(".vote-admin-table tbody tr").first();
@@ -436,7 +437,7 @@ async function createAdminPage(config = {}) {
   );
   check(
     "reset: rows are still listed at zero",
-    (await page.locator(".vote-admin-table tbody tr").count()) === 6
+    (await page.locator(".vote-admin-table tbody tr").count()) === 7
   );
   check(
     "reset: settings are untouched",
@@ -496,7 +497,7 @@ async function createAdminPage(config = {}) {
   }
   check(
     "preview: the ballot is shown despite the soon status",
-    (await page.locator(".vote-button").count()) === 6
+    (await page.locator(".vote-button").count()) === 7
   );
   check(
     "preview: first card is Malak",

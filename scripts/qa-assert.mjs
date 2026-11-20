@@ -269,49 +269,94 @@ for (const [route, noteId] of [["/speakers/", "speakers-call"], ["/posters/", "p
   check(`${route} no longer promises future deadlines`, noteText.includes("once they are confirmed") === false);
 }
 
-// 6c. Speakers: seven confirmed cards, all photographed, in two titled groups,
-// with the call note still on the page and no leftover empty state.
+// 6c. Speakers: twelve cards (one is a pair), all photographed, in two titled
+// groups, with the call note still on the page and no leftover empty state.
 await page.goto(BASE + "/speakers/", { waitUntil: "networkidle" });
 const speakerCards = page.locator(".speaker-card");
 const speakersMain = (await page.locator("main").textContent()) ?? "";
-check("/speakers/ renders seven speaker cards", (await speakerCards.count()) === 7, `${await speakerCards.count()}`);
+check("/speakers/ renders twelve speaker cards", (await speakerCards.count()) === 12, `${await speakerCards.count()}`);
 check(
-  "/speakers/ names all seven confirmed speakers",
+  "/speakers/ names all thirteen confirmed speakers",
   [
     "Prof. Dr. Wael El-Shaer",
     "Prof. Dr. Wael Sakr",
     "Prof. Dr. Osama Abdelhay",
     "Prof. Dr. Abdel-Nasser El-Naggar",
     "Prof. Dr. Emad El-Banna",
-    "Malak Ashraf",
     "Nada El Sayem",
+    "Malak Ashraf",
+    "Ebrahim Ragab",
+    "Habiba Mohamed",
+    "Basmala Hassan",
+    "Abdelrahman Eid",
+    "Lobna Ahmed",
+    "Nada Ashraf",
   ].every((name) => speakersMain.includes(name))
 );
 check(
-  "/speakers/ shows the grand and student roles",
+  "/speakers/ shows the grand roles and the plain student line",
   speakersMain.includes("Head of the Department of Plastic Surgery") &&
     speakersMain.includes("President of the Egyptian Medical Syndicate") &&
     speakersMain.includes("President of the Beni Suef Medical Syndicate") &&
-    speakersMain.includes("4th year medical student") &&
-    speakersMain.includes("1st year medical student")
+    speakersMain.includes("Medical student") &&
+    speakersMain.includes("Beni Suef National University") &&
+    speakersMain.includes("4th year medical student") === false
 );
 check(
   "/speakers/ uses the two requested section titles",
   speakersMain.includes("Grand Speakers") && speakersMain.includes("Student Speakers")
 );
+// Thirteen lazy-loaded portraits only decode as they near the viewport, so walk
+// the page down and wait for every one before judging completeness.
+await page.evaluate(async () => {
+  const step = Math.max(200, Math.floor(window.innerHeight * 0.8));
+  for (let y = 0; y <= document.body.scrollHeight; y += step) {
+    window.scrollTo(0, y);
+    await new Promise((resolve) => setTimeout(resolve, 80));
+  }
+});
+await page.waitForFunction(
+  () => {
+    const imgs = [...document.querySelectorAll(".speaker-card-photo")];
+    return imgs.length === 13 && imgs.every((img) => img.complete && img.naturalWidth > 0);
+  },
+  { timeout: 15000 }
+);
 const speakerPhotos = await page.$$eval(".speaker-card-photo", (imgs) =>
   imgs.map((img) => ({ complete: img.complete, w: img.naturalWidth, h: img.naturalHeight, alt: img.alt }))
 );
 check(
-  "/speakers/ all seven portraits load at 560x720 with names as alt text",
-  speakerPhotos.length === 7 &&
+  "/speakers/ all thirteen portraits load at 560x720 with names as alt text",
+  speakerPhotos.length === 13 &&
     speakerPhotos.every((p) => p.complete && p.w === 560 && p.h === 720 && p.alt.length > 2),
   JSON.stringify(speakerPhotos)
 );
 check(
-  "/speakers/ five grand cards and two student cards",
+  "/speakers/ five grand cards and seven student cards",
   (await page.locator(".speakers-grid:not(.speakers-grid--students) .speaker-card").count()) === 5 &&
-    (await page.locator(".speakers-grid--students .speaker-card").count()) === 2
+    (await page.locator(".speakers-grid--students .speaker-card").count()) === 7
+);
+const studentNames = await page
+  .locator(".speakers-grid--students .speaker-card-name")
+  .allTextContents();
+check(
+  "/speakers/ student cards follow the requested order",
+  studentNames.map((name) => name.trim()).join("|") ===
+    "Malak Ashraf|Nada El Sayem|Ebrahim Ragab|Habiba Mohamed|Basmala Hassan|Lobna Ahmed & Abdelrahman Eid|Nada Ashraf",
+  JSON.stringify(studentNames)
+);
+check(
+  "/speakers/ Lobna and Abdelrahman share one card with two portraits",
+  (await page.locator(".speakers-grid--students .speaker-card-figures--pair").count()) === 1 &&
+    (await page.locator(".speakers-grid--students .speaker-card-figures--pair .speaker-card-photo").count()) === 2
+);
+const gridTracks = await page.$$eval(".speakers-grid", (grids) =>
+  grids.map((grid) => getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length)
+);
+check(
+  "/speakers/ both lineups use three full-width columns",
+  gridTracks.length === 2 && gridTracks.every((tracks) => tracks === 3),
+  JSON.stringify(gridTracks)
 );
 check(
   "/speakers/ no longer shows the empty state",

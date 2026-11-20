@@ -22,6 +22,7 @@ const CANDIDATE_IDS = [
   "dna-origami-nanorobotics",
   "preeclampsia-statin-metformin-vitamin-d",
   "organoids-miniature-organs",
+  "the-plastic-human",
 ];
 
 function resultsPayload(votes, total) {
@@ -150,16 +151,16 @@ async function shot(page, name, width, theme) {
   await context.close();
 }
 
-// Soon: six cards, no vote buttons.
+// Soon: seven cards, no vote buttons.
 {
   const { context, page } = await createPage({ status: "soon" });
   await gotoVote(page);
   await page.waitForSelector(".vote-status");
-  check("soon: six candidate cards", (await page.locator(".vote-card").count()) === 6);
+  check("soon: seven candidate cards", (await page.locator(".vote-card").count()) === 7);
   check("soon: no vote buttons", (await page.locator(".vote-button").count()) === 0);
   check(
     "soon: every card carries a decorative compass behind the cut-out",
-    (await page.locator(".vote-card .vote-card-stage > .vote-card-compass").count()) === 6
+    (await page.locator(".vote-card .vote-card-stage > .vote-card-compass").count()) === 7
   );
   check(
     "soon: the compass is hidden from assistive tech and has no text",
@@ -189,7 +190,7 @@ async function shot(page, name, width, theme) {
   await page.waitForSelector(".vote-button");
 
   const buttons = page.locator(".vote-button");
-  check("open: six vote buttons", (await buttons.count()) === 6);
+  check("open: seven vote buttons", (await buttons.count()) === 7);
   check(
     "open: accessible name includes title and presenter",
     (await buttons.first().getAttribute("aria-label")).includes(
@@ -284,7 +285,7 @@ async function shot(page, name, width, theme) {
   );
   check(
     "ok: other vote buttons disabled",
-    (await page.locator(".vote-button:disabled").count()) === 5
+    (await page.locator(".vote-button:disabled").count()) === 6
   );
   check(
     "ok: status explains results timing",
@@ -348,7 +349,7 @@ async function shot(page, name, width, theme) {
   );
   check(
     "voted: other buttons disabled",
-    (await page.locator(".vote-button:disabled").count()) === 5
+    (await page.locator(".vote-button:disabled").count()) === 6
   );
   check(
     "voted: no enabled vote buttons",
@@ -371,11 +372,11 @@ async function shot(page, name, width, theme) {
   });
   await gotoVote(page);
   await page.waitForSelector(".vote-bar");
-  check("open live: bars shown", (await page.locator(".vote-bar").count()) === 6);
+  check("open live: bars shown", (await page.locator(".vote-bar").count()) === 7);
   check("open live: no winner label", (await page.locator(".vote-winner").count()) === 0);
   check(
     "open live: voting still available",
-    (await page.locator(".vote-button").count()) === 6
+    (await page.locator(".vote-button").count()) === 7
   );
   check(
     "open live: total shown",
@@ -392,7 +393,7 @@ async function shot(page, name, width, theme) {
   });
   await gotoVote(page);
   await page.waitForSelector(".vote-bar");
-  check("closed: bars shown", (await page.locator(".vote-bar").count()) === 6);
+  check("closed: bars shown", (await page.locator(".vote-bar").count()) === 7);
   check("closed: one winner", (await page.locator(".vote-winner").count()) === 1);
   check(
     "closed: winner is the top card",

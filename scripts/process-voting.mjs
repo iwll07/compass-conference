@@ -28,6 +28,7 @@ const SOURCES = [
   { out: "digital-phenotyping-mental-health", file: "Malak_Ashraf_Saad_Abdelfatah-removebg-preview.png" },
   { out: "preeclampsia-statin-metformin-vitamin-d", file: "Habiba_Mohammed_Salah-removebg-preview.png" },
   { out: "organoids-miniature-organs", file: "Nada_Ashraf_Nour_El_Din-removebg-preview.png" },
+  { out: "the-plastic-human", file: "Ebrahim Ragab.png" },
 ];
 
 const MAX_BYTES = 120 * 1024;
