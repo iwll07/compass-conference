@@ -18,12 +18,12 @@ function check(name, pass, detail = "") {
 
 const CANDIDATE_IDS = [
   "digital-phenotyping-mental-health",
-  "artificial-intelligence-revolution-or-risk",
-  "base-editing-revolution",
   "dna-origami-nanorobotics",
-  "preeclampsia-statin-metformin-vitamin-d",
-  "organoids-miniature-organs",
   "the-plastic-human",
+  "preeclampsia-statin-metformin-vitamin-d",
+  "base-editing-revolution",
+  "artificial-intelligence-revolution-or-risk",
+  "organoids-miniature-organs",
 ];
 
 const browser = await chromium.launch({ channel: "msedge" });

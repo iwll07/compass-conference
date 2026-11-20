@@ -17,12 +17,12 @@ function check(name, pass, detail = "") {
 
 const CANDIDATE_IDS = [
   "digital-phenotyping-mental-health",
-  "artificial-intelligence-revolution-or-risk",
-  "base-editing-revolution",
   "dna-origami-nanorobotics",
-  "preeclampsia-statin-metformin-vitamin-d",
-  "organoids-miniature-organs",
   "the-plastic-human",
+  "preeclampsia-statin-metformin-vitamin-d",
+  "base-editing-revolution",
+  "artificial-intelligence-revolution-or-risk",
+  "organoids-miniature-organs",
 ];
 
 function resultsPayload(votes, total) {
@@ -157,6 +157,15 @@ async function shot(page, name, width, theme) {
   await gotoVote(page);
   await page.waitForSelector(".vote-status");
   check("soon: seven candidate cards", (await page.locator(".vote-card").count()) === 7);
+  const votePresenters = await page
+    .locator(".vote-card-presenter")
+    .allTextContents();
+  check(
+    "soon: ballot order matches the speakers lineup",
+    votePresenters.map((name) => name.trim()).join("|") ===
+      "Malak Ashraf Saad Abdelfatah|Nada El-Sayem Shapaan|Ebrahim Ragab|Habiba Mohammed Salah|Basmala Hassan Mohammed|Lobna Ahmed Diab & Abdelrahman Eid Abdelfatah|Nada Ashraf Nour El Din",
+    JSON.stringify(votePresenters)
+  );
   check("soon: no vote buttons", (await page.locator(".vote-button").count()) === 0);
   check(
     "soon: every card carries a decorative compass behind the cut-out",

@@ -8,6 +8,22 @@
     "photo": "/voting/digital-phenotyping-mental-health.png"
   },
   {
+    "id": "dna-origami-nanorobotics",
+    "presenter": "Nada El-Sayem Shapaan",
+    "title": "DNA Origami & Nanorobotics: Toward the Next Era of Precision Medicine",
+    "university": "",
+    "academicYear": "",
+    "photo": "/voting/dna-origami-nanorobotics.png"
+  },
+  {
+    "id": "the-plastic-human",
+    "presenter": "Ebrahim Ragab",
+    "title": "The Plastic Human, is your water bottle killing your brain?",
+    "university": "",
+    "academicYear": "",
+    "photo": "/voting/the-plastic-human.png"
+  },
+  {
     "id": "preeclampsia-statin-metformin-vitamin-d",
     "presenter": "Habiba Mohammed Salah",
     "title": "Comparative Effectiveness of Statins, Metformin, and Vitamin D for Prevention of Preeclampsia: A Systematic Review and Network Meta-Analysis of Randomized Trials",
@@ -16,21 +32,12 @@
     "photo": "/voting/preeclampsia-statin-metformin-vitamin-d.png"
   },
   {
-    "id": "organoids-miniature-organs",
-    "presenter": "Nada Ashraf Nour El Din",
-    "title": "Organoids: Building Miniature Organs in the Lab",
-    "summary": "From stem cells & 3D culture protocols to assembloids, immune co-cultures, disease modeling, and personalized clinical trials.",
+    "id": "base-editing-revolution",
+    "presenter": "Basmala Hassan Mohammed",
+    "title": "From Stop Codon to Start of Life: The Base Editing Revolution",
     "university": "",
     "academicYear": "",
-    "photo": "/voting/organoids-miniature-organs.png"
-  },
-  {
-    "id": "dna-origami-nanorobotics",
-    "presenter": "Nada El-Sayem Shapaan",
-    "title": "DNA Origami & Nanorobotics: Toward the Next Era of Precision Medicine",
-    "university": "",
-    "academicYear": "",
-    "photo": "/voting/dna-origami-nanorobotics.png"
+    "photo": "/voting/base-editing-revolution.png"
   },
   {
     "id": "artificial-intelligence-revolution-or-risk",
@@ -44,19 +51,12 @@
     "photoShift": 14
   },
   {
-    "id": "base-editing-revolution",
-    "presenter": "Basmala Hassan Mohammed",
-    "title": "From Stop Codon to Start of Life: The Base Editing Revolution",
+    "id": "organoids-miniature-organs",
+    "presenter": "Nada Ashraf Nour El Din",
+    "title": "Organoids: Building Miniature Organs in the Lab",
+    "summary": "From stem cells & 3D culture protocols to assembloids, immune co-cultures, disease modeling, and personalized clinical trials.",
     "university": "",
     "academicYear": "",
-    "photo": "/voting/base-editing-revolution.png"
-  },
-  {
-    "id": "the-plastic-human",
-    "presenter": "Ebrahim Ragab",
-    "title": "The Plastic Human, is your water bottle killing your brain?",
-    "university": "",
-    "academicYear": "",
-    "photo": "/voting/the-plastic-human.png"
+    "photo": "/voting/organoids-miniature-organs.png"
   }
 ]

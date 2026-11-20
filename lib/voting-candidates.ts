@@ -1,9 +1,9 @@
 // Presentation data for the "Best student presentation" contest.
 //
 // The JSON file is the source of truth because scripts/voting-seed.mjs reads it
-// too (via Node, without a TypeScript step). Keep it in presentation order: the
-// array order becomes the seed position, and position drives display order in
-// voting_results().
+// too (via Node, without a TypeScript step). Keep it in display order — the
+// same order as the Student Speakers on /speakers/. The array order becomes the
+// seed position, and position drives display order in voting_results().
 //
 // To add a presentation:
 //   1. add an entry here (kebab-case id, no spaces),
