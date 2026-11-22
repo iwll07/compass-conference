@@ -145,23 +145,36 @@ function SessionCard({
         )}
       </div>
       {people.length > 3 ? (
+        // Panels show every speaker, not just the first three.
         <div className="agenda-portraits" aria-hidden="true">
-          {people.slice(0, 3).map((person) => (
+          {people.map((person) => (
             <SpeakerPhoto key={person.id} speaker={person} className="agenda-portrait" />
           ))}
-          <span className="agenda-portrait-more">+{people.length - 3}</span>
         </div>
       ) : people.length > 1 ? (
-        // Up to three presenters get the same slanted photos as single talks;
-        // the strip is wider and the cut-outs overlap slightly at the shoulders.
-        <div className="agenda-photos" aria-hidden="true">
-          {people.map((person) => (
-            <SpeakerPhoto
-              key={person.id}
-              speaker={person}
-              className="agenda-photo agenda-photo--pair"
-            />
-          ))}
+        // Two or three presenters share ONE wider slanted strip.
+        <div className="agenda-photo agenda-photo--group" aria-hidden="true">
+          {people.map((person) => {
+            const photo = photoFor(person);
+            return (
+              <span key={person.id} className="agenda-group-person">
+                {photo ? (
+                  <Image
+                    src={photo}
+                    alt=""
+                    width={480}
+                    height={480}
+                    sizes="132px"
+                    className="agenda-group-img"
+                  />
+                ) : (
+                  <span className="agenda-initials">
+                    {getSpeakerInitials(person.name)}
+                  </span>
+                )}
+              </span>
+            );
+          })}
         </div>
       ) : people[0] ? (
         <SpeakerPhoto speaker={people[0]} className="agenda-photo" />

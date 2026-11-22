@@ -2314,11 +2314,13 @@ button.sponsor-strip-tile { cursor: pointer; }
    spill past the plate (an arm, a shoulder) instead of being sliced off. */
 .agenda-photo::before { content: ""; position: absolute; inset: 0; clip-path: polygon(26% 0, 100% 0, 100% 100%, 0 100%); background: linear-gradient(160deg, var(--panel-accent), var(--panel)); }
 .agenda-card--keynote .agenda-photo { flex-basis: 150px; width: 150px; height: 140px; }
-.agenda-photos { display: flex; flex: 0 0 auto; align-items: center; }
-.agenda-photo--pair { flex-basis: 78px; width: 78px; height: 96px; }
-.agenda-photo--pair:first-child::before { clip-path: polygon(0 0, 74% 0, 100% 100%, 0 100%); }
-.agenda-photo--pair:last-child { margin-left: -20px; }
-.agenda-photo--pair:last-child::before { clip-path: polygon(0 0, 100% 0, 100% 100%, 26% 100%); }
+/* Two or three presenters share one wider slanted strip. */
+.agenda-photo--group { flex-basis: 132px; width: 132px; }
+.agenda-group-person { position: absolute; top: 0; width: 64%; height: 100%; overflow: visible; }
+.agenda-group-person:nth-child(1) { left: 0; }
+.agenda-group-person:nth-child(2) { left: 36%; }
+.agenda-group-person:nth-child(3) { left: 18%; top: 6%; }
+.agenda-group-img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
 .agenda-photo-img { position: relative; display: block; width: 118%; height: 118%; max-width: none; margin: -9% 0 0 -18%; object-fit: contain; object-position: center bottom; }
 .agenda-portrait { position: relative; display: block; overflow: hidden; clip-path: polygon(26% 0, 100% 0, 100% 100%, 0 100%); background: linear-gradient(160deg, var(--panel-accent), var(--panel)); }
 .agenda-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: "Source Serif 4", Georgia, serif; font-size: 28px; color: var(--panel-ink); }
@@ -2335,8 +2337,7 @@ button.sponsor-strip-tile { cursor: pointer; }
   .agenda-card { min-height: 96px; padding: 11px 12px; }
   .agenda-photo { flex-basis: 78px; width: 78px; height: 78px; }
   .agenda-card--keynote .agenda-photo { flex-basis: 96px; width: 96px; height: 96px; }
-  .agenda-photo--pair { flex-basis: 62px; width: 62px; height: 70px; }
-  .agenda-photo--pair:last-child { margin-left: -16px; }
+  .agenda-photo--group { flex-basis: 108px; width: 108px; height: 78px; }
   .agenda-card-name { font-size: 16px; }
   .agenda-card--keynote .agenda-card-name { font-size: 18px; }
   .agenda-break { padding: 9px 12px; }
