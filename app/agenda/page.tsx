@@ -2,75 +2,60 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Compass } from "@phosphor-icons/react/dist/ssr";
 import { PrintButton } from "@/components/print-button";
-import { schedule, type Session } from "@/lib/content";
+import { AgendaView } from "@/components/agenda-view";
+import { schedule, speakers } from "@/lib/content";
 import { conferenceWindow, formatEventWindow } from "@/lib/event";
 
 const eventLine = formatEventWindow(conferenceWindow);
+const hasProgram = schedule.length > 0;
 
 export const metadata: Metadata = {
   title: "Agenda | COMPASS",
-  description: eventLine
-    ? `Program updates and a printable agenda for COMPASS at the Faculty of Medicine, BSNU. ${eventLine}.`
-    : "Program updates and a printable agenda for COMPASS at the Faculty of Medicine, BSNU. Conference date and times to be announced.",
-};
-
-const kindLabels: Record<Session["kind"], string> = {
-  keynote: "Keynote",
-  panel: "Panel",
-  workshop: "Workshop",
-  session: "Session",
-  break: "Break",
-  social: "Social",
+  description: hasProgram
+    ? `Your guide to the day: sessions, speakers and halls in one place. ${eventLine ?? "Programme announced."}`
+    : eventLine
+      ? `Program updates and a printable agenda for COMPASS at the Faculty of Medicine, BSNU. ${eventLine}.`
+      : "Program updates and a printable agenda for COMPASS at the Faculty of Medicine, BSNU. Conference date and times to be announced.",
 };
 
 export default function AgendaPage() {
-  const days = [...new Set(schedule.map((session) => session.day))];
-
   return (
     <main id="main-content" className="page-shell">
       <header className="page-heading">
         <h1 className="reveal">Agenda</h1>
-        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>Your guide to COMPASS, with sessions and timings in one place once the program is confirmed.</p>
+        <p className="reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>
+          {hasProgram
+            ? "Your guide to the day: sessions, speakers and halls in one place."
+            : "Your guide to COMPASS, with sessions and timings in one place once the program is confirmed."}
+        </p>
       </header>
 
       <div className="page-body reveal" style={{ "--reveal-delay": "80ms" } as React.CSSProperties}>
         <div>
           <p className="status-line">{eventLine ?? "Conference date and time: to be announced"}</p>
           <p className="print-only">COMPASS · Faculty of Medicine, BSNU</p>
-          <PrintButton />
+          <div className="agenda-actions no-print">
+            <PrintButton />
+            <a
+              className="button agenda-download"
+              href="/AGENDA.pdf"
+              download="COMPASS-Conference-Agenda.pdf"
+            >
+              Download the agenda (PDF)
+            </a>
+          </div>
         </div>
         <aside className="margin-note">
-          <p>A downloadable agenda will be published here once the program is confirmed.</p>
+          <p>
+            {hasProgram
+              ? "Times are in Cairo time. Any changes will be announced on this site."
+              : "A downloadable agenda will be published here once the program is confirmed."}
+          </p>
         </aside>
       </div>
 
-      {schedule.length > 0 ? (
-        <div className="agenda-list">
-          {days.map((day, index) => (
-            <section key={day ?? "unscheduled"} aria-labelledby={`agenda-day-${index}`}>
-              <h2 id={`agenda-day-${index}`} className="section-heading">{day ?? "Date TBD"}</h2>
-              <ol className="agenda-list">
-                {schedule.filter((session) => session.day === day).map((session) => (
-                  <li key={session.id} className="agenda-item">
-                    <p className="session-time">{session.time ?? "Time TBD"}</p>
-                    <article>
-                      <h3>{session.title}</h3>
-                      <p className="status-line">{kindLabels[session.kind]}</p>
-                      <p>{session.location ?? "Room to be announced"}</p>
-                      {session.description && <p>{session.description}</p>}
-                      {session.speakers.length > 0 && (
-                        <p>
-                          {session.speakers.join(", ")} · {" "}
-                          <Link href="/speakers" className="text-link">Speaker details</Link>
-                        </p>
-                      )}
-                    </article>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ))}
-        </div>
+      {hasProgram ? (
+        <AgendaView sessions={schedule} speakers={speakers} />
       ) : (
         <section className="empty-state reveal" aria-labelledby="agenda-coming-soon">
           <Compass className="empty-mark" size={64} weight="light" aria-hidden="true" />
