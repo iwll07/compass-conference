@@ -197,11 +197,11 @@ const regText = (await page.locator("main").textContent()) ?? "";
 check("registration heading exists", regText.includes("Your place at COMPASS starts here."));
 check("registration has no external Tally links", await page.locator('main a[href*="tally.so"]').count() === 0);
 
-// 5. Empty states are intentional on agenda/posters (speakers are announced)
-for (const route of ["/agenda/", "/posters/"]) {
-  await page.goto(BASE + route, { waitUntil: "networkidle" });
+// 5. Posters still has an intentional empty state; the agenda is now published.
+{
+  await page.goto(BASE + "/posters/", { waitUntil: "networkidle" });
   const main = (await page.locator("main").textContent())?.toLowerCase() ?? "";
-  check(`${route} has intentional empty state`, main.includes("coming soon") || main.includes("to be announced"), main.slice(0, 80));
+  check("/posters/ has intentional empty state", main.includes("coming soon") || main.includes("to be announced"), main.slice(0, 80));
 }
 
 await page.goto(BASE + "/sponsors/", { waitUntil: "networkidle" });
@@ -231,6 +231,30 @@ const agendaStatus = (await page.locator(".page-body .status-line").first().text
 check("agenda status line shows 24 November 2026", agendaStatus === "24 November 2026, 09:00–17:00 Africa/Cairo", String(agendaStatus));
 const agendaMeta = (await page.locator('meta[name="description"]').getAttribute("content")) ?? "";
 check("agenda meta description shows 24 November 2026", agendaMeta.includes("24 November 2026, 09:00–17:00 Africa/Cairo"), agendaMeta.slice(0, 140));
+check("agenda intro names the new program", ((await page.locator(".page-heading p").first().textContent()) ?? "").includes("Your guide to the day: sessions, speakers and halls in one place."));
+check("agenda shows 22 program entries", (await page.locator(".agenda-card, .agenda-break, .agenda-event").count()) === 22, `${await page.locator(".agenda-card, .agenda-break, .agenda-event").count()}`);
+check("agenda shows 20 time slots", (await page.locator(".agenda-row").count()) === 20, `${await page.locator(".agenda-row").count()}`);
+check("agenda has one break bar", (await page.locator(".agenda-break").count()) === 1);
+check("agenda has 12 speaker cards", (await page.locator(".agenda-card").count()) === 12);
+const agendaText = (await page.locator(".agenda-program").textContent()) ?? "";
+check("agenda shows both Arabic talk titles", agendaText.includes("رسالة إلى طبيب المستقبل") && agendaText.includes("حكايات ولازم تتحكي"));
+check("agenda names the seven opening speakers", ["Tarek Ali", "Rasha Tawfiq", "Ahmed Osama", "Doaa Hamdy", "Emad El-Banna", "Hani Hamed", "Ahmed M. Gaber"].every((name) => agendaText.includes(name)));
+check("agenda speaker names link to speaker anchors", (await page.locator('.agenda-card a[href="/speakers/#wael-el-shaer"]').count()) === 1);
+// Portraits are lazy-loaded; walk the page so all of them decode before checking.
+await page.evaluate(async () => {
+  const step = Math.max(200, Math.floor(window.innerHeight * 0.8));
+  for (let y = 0; y <= document.body.scrollHeight; y += step) {
+    window.scrollTo(0, y);
+    await new Promise((resolve) => setTimeout(resolve, 60));
+  }
+});
+await page.waitForFunction(
+  () => [...document.querySelectorAll(".agenda-photo-img")].every((img) => img.complete && img.naturalWidth > 0),
+  { timeout: 15000 }
+);
+const pdfLink = page.locator('a.agenda-download[href="/AGENDA.pdf"]');
+check("agenda links the uploaded PDF as a download", (await pdfLink.count()) === 1 && (await pdfLink.getAttribute("download")) === "COMPASS-Conference-Agenda.pdf");
+check("agenda photos are 480px squares", (await page.$$eval(".agenda-photo-img", (imgs) => imgs.every((img) => img.naturalWidth === 480 && img.naturalHeight === 480))) === true);
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 // Event-strip place link: the arrow affordance is present and it is still a valid external link
 const place = page.locator("a.event-place");
