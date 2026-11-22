@@ -148,7 +148,7 @@ function SessionCard({
       {panel ? (
         // Every PNG in the strip, arranged 2 + 2 + 3 for the seven guests.
         <div className="agenda-panel-strip" aria-hidden="true">
-          {[people.slice(0, 2), people.slice(2, 4), people.slice(4)].map(
+          {[people.slice(0, 4), people.slice(4)].map(
             (row, rowIndex) =>
               row.length > 0 ? (
                 <div className="agenda-panel-row" key={rowIndex}>
