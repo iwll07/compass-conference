@@ -20,6 +20,8 @@ export type Session = {
   hall: string | null;
   /** Speaker ids; empty for event bars. */
   speakers: string[];
+  /** Optional sponsor mark shown on an event bar, e.g. the Sim Era session. */
+  logo?: string | null;
   description: string | null;
 };
 
@@ -105,6 +107,7 @@ export const schedule: Session[] = [
     kind: "social",
     hall: null,
     speakers: [],
+    logo: "/sim-era-logo.png",
     description: null,
   },
   {
@@ -171,17 +174,6 @@ export const schedule: Session[] = [
     description: null,
   },
   {
-    id: "keynote-speakers-session",
-    day: "2026-11-24",
-    start: "11:00",
-    end: "12:20",
-    title: "Keynote Speakers Session",
-    kind: "social",
-    hall: null,
-    speakers: [],
-    description: null,
-  },
-  {
     id: "keynote-osama-abdelhay",
     day: "2026-11-24",
     start: "11:00",
@@ -237,17 +229,6 @@ export const schedule: Session[] = [
     description: null,
   },
   {
-    id: "student-presentation-session",
-    day: "2026-11-24",
-    start: "13:20",
-    end: "14:40",
-    title: "Student Presentation Session",
-    kind: "social",
-    hall: null,
-    speakers: [],
-    description: null,
-  },
-  {
     id: "preeclampsia-statin-metformin-vitamin-d",
     day: "2026-11-24",
     start: "13:20",
@@ -288,7 +269,7 @@ export const schedule: Session[] = [
     start: "14:20",
     end: "14:40",
     title: "Artificial Intelligence: Revolution Or Risk",
-    kind: "panel",
+    kind: "session",
     hall: null,
     speakers: ["abdelrahman", "lobna"],
     description: null,

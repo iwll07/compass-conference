@@ -232,8 +232,8 @@ check("agenda status line shows 24 November 2026", agendaStatus === "24 November
 const agendaMeta = (await page.locator('meta[name="description"]').getAttribute("content")) ?? "";
 check("agenda meta description shows 24 November 2026", agendaMeta.includes("24 November 2026, 09:00–17:00 Africa/Cairo"), agendaMeta.slice(0, 140));
 check("agenda intro names the new program", ((await page.locator(".page-heading p").first().textContent()) ?? "").includes("Your guide to the day: sessions, speakers and halls in one place."));
-check("agenda shows 21 program entries", (await page.locator(".agenda-card, .agenda-break, .agenda-event").count()) === 21, `${await page.locator(".agenda-card, .agenda-break, .agenda-event").count()}`);
-check("agenda shows 19 time slots", (await page.locator(".agenda-row").count()) === 19, `${await page.locator(".agenda-row").count()}`);
+check("agenda shows 19 program entries", (await page.locator(".agenda-card, .agenda-break, .agenda-event").count()) === 19, `${await page.locator(".agenda-card, .agenda-break, .agenda-event").count()}`);
+check("agenda shows 17 time slots", (await page.locator(".agenda-row").count()) === 17, `${await page.locator(".agenda-row").count()}`);
 check("agenda has one break bar", (await page.locator(".agenda-break").count()) === 1);
 check("agenda has 12 speaker cards", (await page.locator(".agenda-card").count()) === 12);
 const agendaText = (await page.locator(".agenda-program").textContent()) ?? "";
@@ -255,6 +255,8 @@ await page.waitForFunction(
 const pdfLink = page.locator('a.agenda-download[href="/AGENDA.pdf"]');
 check("agenda links the uploaded PDF as a download", (await pdfLink.count()) === 1 && (await pdfLink.getAttribute("download")) === "COMPASS-Conference-Agenda.pdf");
 check("agenda photos are 480px squares", (await page.$$eval(".agenda-photo-img", (imgs) => imgs.every((img) => img.naturalWidth === 480 && img.naturalHeight === 480))) === true);
+check("agenda shows the Sim Era logo in its session", (await page.locator(".agenda-event").filter({ hasText: "Sim-Era For Medical Systems" }).locator(".agenda-event-logo").count()) === 1);
+check("agenda drops the Keynote and Student block headers", ["Keynote Speakers Session", "Student Presentation Session"].every((title) => !agendaText.includes(title)));
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 // Event-strip place link: the arrow affordance is present and it is still a valid external link
 const place = page.locator("a.event-place");

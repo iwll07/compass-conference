@@ -248,6 +248,15 @@ function SessionBlock({
       <div className="agenda-event" style={gridStyle} dir="auto">
         <span>{session.title}</span>
         {hallName && <span className="agenda-event-hall">{hallName}</span>}
+        {session.logo && (
+          <Image
+            src={session.logo}
+            alt=""
+            width={320}
+            height={320}
+            className="agenda-event-logo"
+          />
+        )}
       </div>
     );
   }
