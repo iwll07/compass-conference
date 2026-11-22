@@ -144,14 +144,24 @@ function SessionCard({
           </p>
         )}
       </div>
-      {people.length > 1 ? (
+      {people.length > 3 ? (
         <div className="agenda-portraits" aria-hidden="true">
           {people.slice(0, 3).map((person) => (
             <SpeakerPhoto key={person.id} speaker={person} className="agenda-portrait" />
           ))}
-          {people.length > 3 && (
-            <span className="agenda-portrait-more">+{people.length - 3}</span>
-          )}
+          <span className="agenda-portrait-more">+{people.length - 3}</span>
+        </div>
+      ) : people.length > 1 ? (
+        // Up to three presenters get the same slanted photos as single talks;
+        // the strip is wider and the cut-outs overlap slightly at the shoulders.
+        <div className="agenda-photos" aria-hidden="true">
+          {people.map((person) => (
+            <SpeakerPhoto
+              key={person.id}
+              speaker={person}
+              className="agenda-photo agenda-photo--pair"
+            />
+          ))}
         </div>
       ) : people[0] ? (
         <SpeakerPhoto speaker={people[0]} className="agenda-photo" />

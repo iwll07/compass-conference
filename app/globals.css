@@ -2309,9 +2309,18 @@ button.sponsor-strip-tile { cursor: pointer; }
 .agenda-people { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .agenda-people li { display: flex; flex-direction: column; gap: 2px; font-family: "Source Serif 4", Georgia, serif; font-size: 15px; }
 .agenda-person-role { font-family: "Public Sans", Arial, sans-serif; font-size: 11px; color: var(--panel-muted); }
-.agenda-photo, .agenda-portrait { position: relative; display: block; flex: 0 0 96px; width: 96px; align-self: stretch; overflow: hidden; clip-path: polygon(26% 0, 100% 0, 100% 100%, 0 100%); background: linear-gradient(160deg, var(--panel-accent), var(--panel)); }
-.agenda-card--keynote .agenda-photo { flex-basis: 150px; width: 150px; }
-.agenda-photo-img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.agenda-photo { position: relative; display: block; flex: 0 0 96px; width: 96px; height: 100px; align-self: center; overflow: visible; }
+/* The slant is decoration behind the cut-out, not a crop: transparent PNGs may
+   spill past the plate (an arm, a shoulder) instead of being sliced off. */
+.agenda-photo::before { content: ""; position: absolute; inset: 0; clip-path: polygon(26% 0, 100% 0, 100% 100%, 0 100%); background: linear-gradient(160deg, var(--panel-accent), var(--panel)); }
+.agenda-card--keynote .agenda-photo { flex-basis: 150px; width: 150px; height: 140px; }
+.agenda-photos { display: flex; flex: 0 0 auto; align-items: center; }
+.agenda-photo--pair { flex-basis: 78px; width: 78px; height: 96px; }
+.agenda-photo--pair:first-child::before { clip-path: polygon(0 0, 74% 0, 100% 100%, 0 100%); }
+.agenda-photo--pair:last-child { margin-left: -20px; }
+.agenda-photo--pair:last-child::before { clip-path: polygon(0 0, 100% 0, 100% 100%, 26% 100%); }
+.agenda-photo-img { position: relative; display: block; width: 118%; height: 118%; max-width: none; margin: -9% 0 0 -18%; object-fit: contain; object-position: center bottom; }
+.agenda-portrait { position: relative; display: block; overflow: hidden; clip-path: polygon(26% 0, 100% 0, 100% 100%, 0 100%); background: linear-gradient(160deg, var(--panel-accent), var(--panel)); }
 .agenda-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: "Source Serif 4", Georgia, serif; font-size: 28px; color: var(--panel-ink); }
 .agenda-portraits { display: flex; flex: 0 0 auto; align-items: flex-end; }
 .agenda-portrait { flex-basis: 40px; width: 40px; height: 40px; margin-left: -12px; border: 2px solid var(--panel); border-radius: 50%; }
@@ -2324,8 +2333,10 @@ button.sponsor-strip-tile { cursor: pointer; }
   .agenda-time .agenda-time-end { margin-top: 0; }
   .agenda-row-body { display: flex; flex-direction: column; }
   .agenda-card { min-height: 96px; padding: 11px 12px; }
-  .agenda-photo { flex-basis: 78px; width: 78px; }
-  .agenda-card--keynote .agenda-photo { flex-basis: 96px; width: 96px; }
+  .agenda-photo { flex-basis: 78px; width: 78px; height: 78px; }
+  .agenda-card--keynote .agenda-photo { flex-basis: 96px; width: 96px; height: 96px; }
+  .agenda-photo--pair { flex-basis: 62px; width: 62px; height: 70px; }
+  .agenda-photo--pair:last-child { margin-left: -16px; }
   .agenda-card-name { font-size: 16px; }
   .agenda-card--keynote .agenda-card-name { font-size: 18px; }
   .agenda-break { padding: 9px 12px; }
@@ -2351,7 +2362,7 @@ button.sponsor-strip-tile { cursor: pointer; }
   .agenda-item { grid-template-columns: 32mm 1fr; padding: 6mm 0; }
   h2, h3 { break-after: avoid; }
   /* Agenda program: plain black-on-white, no photos, one day per page. */
-  .agenda-actions, .agenda-day-tabs, .agenda-hall-filters, .agenda-photo, .agenda-portraits { display: none !important; }
+  .agenda-actions, .agenda-day-tabs, .agenda-hall-filters, .agenda-photo, .agenda-photos, .agenda-portraits { display: none !important; }
   .agenda-day { break-before: page; }
   .agenda-day:first-of-type { break-before: auto; }
   .agenda-row { break-inside: avoid; }

@@ -232,8 +232,8 @@ check("agenda status line shows 24 November 2026", agendaStatus === "24 November
 const agendaMeta = (await page.locator('meta[name="description"]').getAttribute("content")) ?? "";
 check("agenda meta description shows 24 November 2026", agendaMeta.includes("24 November 2026, 09:00–17:00 Africa/Cairo"), agendaMeta.slice(0, 140));
 check("agenda intro names the new program", ((await page.locator(".page-heading p").first().textContent()) ?? "").includes("Your guide to the day: sessions, speakers and halls in one place."));
-check("agenda shows 22 program entries", (await page.locator(".agenda-card, .agenda-break, .agenda-event").count()) === 22, `${await page.locator(".agenda-card, .agenda-break, .agenda-event").count()}`);
-check("agenda shows 20 time slots", (await page.locator(".agenda-row").count()) === 20, `${await page.locator(".agenda-row").count()}`);
+check("agenda shows 21 program entries", (await page.locator(".agenda-card, .agenda-break, .agenda-event").count()) === 21, `${await page.locator(".agenda-card, .agenda-break, .agenda-event").count()}`);
+check("agenda shows 19 time slots", (await page.locator(".agenda-row").count()) === 19, `${await page.locator(".agenda-row").count()}`);
 check("agenda has one break bar", (await page.locator(".agenda-break").count()) === 1);
 check("agenda has 12 speaker cards", (await page.locator(".agenda-card").count()) === 12);
 const agendaText = (await page.locator(".agenda-program").textContent()) ?? "";
@@ -426,16 +426,14 @@ check("print: footer hidden", await page.locator(".site-footer").isHidden());
 check("print: print button hidden", await page.locator(".no-print").first().isHidden());
 await page.emulateMedia({ media: "screen" });
 
-// 7b. Agenda "Download agenda" is dimmed and inert (program not confirmed yet)
-const dl = page.locator(".print-button-disabled");
-check("agenda download affordance exists", await dl.count() === 1);
-check("agenda button reads 'Download agenda'", (await dl.textContent())?.trim() === "Download agenda", (await dl.textContent())?.trim());
-check("agenda button is a span, not a <button>", await dl.evaluate((el) => el.tagName.toLowerCase()) === "span");
-check("agenda button is aria-disabled", await dl.getAttribute("aria-disabled") === "true");
-check("agenda button is not focusable", await dl.evaluate((el) => el.tabIndex) === -1);
-check("agenda button is dimmed", (await dl.evaluate((el) => getComputedStyle(el).opacity)) === "0.55");
+// 7b. Agenda offers the uploaded PDF as a real download, with no inert placeholder.
+const dl = page.locator("a.agenda-download");
+check("agenda download link exists", await dl.count() === 1);
+check("agenda download reads 'Download the agenda (PDF)'", ((await dl.textContent()) ?? "").trim() === "Download the agenda (PDF)", ((await dl.textContent()) ?? "").trim());
+check("agenda download points at the uploaded PDF", await dl.getAttribute("href") === "/AGENDA.pdf");
+check("agenda download has a filename", await dl.getAttribute("download") === "COMPASS-Conference-Agenda.pdf");
+check("the inert download placeholder is gone", await page.locator(".print-button-disabled").count() === 0);
 check("no clickable button remains on the agenda", await page.locator(".page-body button").count() === 0);
-check("agenda no longer promises a print/PDF", ((await page.locator("main").textContent()) ?? "").includes("save this agenda as a PDF") === false);
 
 // 8. Theme: dark palette is a distinct token set, not inversion
 const themeProbe = await page.evaluate(() => {

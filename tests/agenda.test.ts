@@ -126,8 +126,8 @@ test("agenda validation rejects duplicate speaker ids", () => {
 });
 
 test("agenda PDF program: ids, day, hall and the seven opening speakers", () => {
-  assert.equal(schedule.length, 22);
-  assert.equal(new Set(schedule.map((s) => s.id)).size, 22);
+  assert.equal(schedule.length, 21);
+  assert.equal(new Set(schedule.map((s) => s.id)).size, 21);
   assert.deepEqual([...new Set(schedule.map((s) => s.day))], ["2026-11-24"]);
   assert.ok(schedule.every((s) => s.hall === null));
   const speeches = schedule.find((s) => s.id === "opening-speeches");

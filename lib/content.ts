@@ -75,17 +75,6 @@ export const schedule: Session[] = [
     description: null,
   },
   {
-    id: "pre-opening-session",
-    day: "2026-11-24",
-    start: "09:15",
-    end: "10:00",
-    title: "Pre-Opening Presentation Session",
-    kind: "social",
-    hall: null,
-    speakers: [],
-    description: null,
-  },
-  {
     id: "dna-origami-nanorobotics",
     day: "2026-11-24",
     start: "09:15",

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Compass } from "@phosphor-icons/react/dist/ssr";
-import { PrintButton } from "@/components/print-button";
 import { AgendaView } from "@/components/agenda-view";
 import { schedule, speakers } from "@/lib/content";
 import { conferenceWindow, formatEventWindow } from "@/lib/event";
@@ -35,7 +34,6 @@ export default function AgendaPage() {
           <p className="status-line">{eventLine ?? "Conference date and time: to be announced"}</p>
           <p className="print-only">COMPASS · Faculty of Medicine, BSNU</p>
           <div className="agenda-actions no-print">
-            <PrintButton />
             <a
               className="button agenda-download"
               href="/AGENDA.pdf"
