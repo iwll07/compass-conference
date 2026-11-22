@@ -8,7 +8,9 @@ import { honoreeGroups } from "../lib/honorees";
 
 test("speakers data: the twelve confirmed speaker cards are listed in order", () => {
   assert.deepEqual(
-    speakers.map((speaker) => speaker.id),
+    speakers
+      .filter((speaker) => speaker.group === "grand" || speaker.group === "student")
+      .map((speaker) => speaker.id),
     [
       "wael-el-shaer",
       "wael-sakr",
@@ -109,7 +111,8 @@ test("speakers data: no invented biography, session or link copy", () => {
 });
 
 test("speakers photos: portrait variants exist, are 560x720, and stay under 70KB", async () => {
-  for (const speaker of speakers) {
+  // Agenda-only guests use square /speakers/ portraits, checked in agenda.test.ts.
+  for (const speaker of speakers.filter((s) => s.group !== "other")) {
     const photos = [speaker.photoUrl, speaker.coPhotoUrl].filter(
       (url): url is string => Boolean(url)
     );
