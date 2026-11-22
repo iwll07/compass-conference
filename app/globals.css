@@ -2322,10 +2322,11 @@ button.sponsor-strip-tile { cursor: pointer; }
 .agenda-group-person:nth-child(3) { left: 18%; top: 6%; }
 .agenda-group-img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
 /* Panels: every PNG in a slanted strip, large enough to read each face. */
-.agenda-panel-strip { display: flex; flex-wrap: wrap; align-content: center; align-items: center; gap: 8px; flex: 0 0 auto; max-width: 560px; }
-.agenda-panel-photo { position: relative; display: block; width: 72px; height: 92px; overflow: visible; }
-.agenda-panel-photo::before { content: ""; position: absolute; inset: 0; clip-path: polygon(26% 0, 100% 0, 100% 100%, 0 100%); background: linear-gradient(160deg, var(--panel-accent), var(--panel)); }
-.agenda-panel-img { position: relative; display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
+.agenda-panel-strip { display: flex; flex-direction: column; gap: 2px; flex: 0 0 auto; align-items: center; }
+.agenda-panel-row { display: flex; align-items: flex-end; justify-content: center; }
+.agenda-panel-person { position: relative; display: block; width: 86px; height: 104px; margin-left: -16px; overflow: visible; }
+.agenda-panel-person:first-child { margin-left: 0; }
+.agenda-panel-img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
 .agenda-photo-img { position: relative; display: block; width: 118%; height: 118%; max-width: none; margin: -9% 0 0 -18%; object-fit: contain; object-position: center bottom; }
 .agenda-portrait { position: relative; display: block; overflow: hidden; clip-path: polygon(26% 0, 100% 0, 100% 100%, 0 100%); background: linear-gradient(160deg, var(--panel-accent), var(--panel)); }
 .agenda-initials { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: "Source Serif 4", Georgia, serif; font-size: 28px; color: var(--panel-ink); }
@@ -2345,7 +2346,7 @@ button.sponsor-strip-tile { cursor: pointer; }
   .agenda-photo--group { flex-basis: 108px; width: 108px; height: 78px; }
   .agenda-card--many { flex-wrap: wrap; }
   .agenda-panel-strip { width: 100%; max-width: none; }
-  .agenda-panel-photo { width: 52px; height: 66px; }
+  .agenda-panel-person { width: 64px; height: 78px; margin-left: -12px; }
   .agenda-card-name { font-size: 16px; }
   .agenda-card--keynote .agenda-card-name { font-size: 18px; }
   .agenda-break { padding: 9px 12px; }
@@ -2371,7 +2372,7 @@ button.sponsor-strip-tile { cursor: pointer; }
   .agenda-item { grid-template-columns: 32mm 1fr; padding: 6mm 0; }
   h2, h3 { break-after: avoid; }
   /* Agenda program: plain black-on-white, no photos, one day per page. */
-  .agenda-actions, .agenda-day-tabs, .agenda-hall-filters, .agenda-photo, .agenda-photos, .agenda-portraits, .agenda-panel-strip, .agenda-panel-photo { display: none !important; }
+  .agenda-actions, .agenda-day-tabs, .agenda-hall-filters, .agenda-photo, .agenda-photos, .agenda-portraits, .agenda-panel-strip, .agenda-panel-row, .agenda-panel-person { display: none !important; }
   .agenda-day { break-before: page; }
   .agenda-day:first-of-type { break-before: auto; }
   .agenda-row { break-inside: avoid; }

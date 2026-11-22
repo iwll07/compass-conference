@@ -146,30 +146,36 @@ function SessionCard({
         )}
       </div>
       {panel ? (
-        // Panels keep every PNG in the slanted strip, enlarged so faces are
-        // readable instead of being squeezed into small circles.
+        // Every PNG in the strip, arranged 2 + 2 + 3 for the seven guests.
         <div className="agenda-panel-strip" aria-hidden="true">
-          {people.map((person) => {
-            const photo = photoFor(person);
-            return (
-              <span key={person.id} className="agenda-panel-photo">
-                {photo ? (
-                  <Image
-                    src={photo}
-                    alt=""
-                    width={480}
-                    height={480}
-                    sizes="72px"
-                    className="agenda-panel-img"
-                  />
-                ) : (
-                  <span className="agenda-initials">
-                    {getSpeakerInitials(person.name)}
-                  </span>
-                )}
-              </span>
-            );
-          })}
+          {[people.slice(0, 2), people.slice(2, 4), people.slice(4)].map(
+            (row, rowIndex) =>
+              row.length > 0 ? (
+                <div className="agenda-panel-row" key={rowIndex}>
+                  {row.map((person) => {
+                    const photo = photoFor(person);
+                    return (
+                      <span key={person.id} className="agenda-panel-person">
+                        {photo ? (
+                          <Image
+                            src={photo}
+                            alt=""
+                            width={480}
+                            height={480}
+                            sizes="96px"
+                            className="agenda-panel-img"
+                          />
+                        ) : (
+                          <span className="agenda-initials">
+                            {getSpeakerInitials(person.name)}
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : null
+          )}
         </div>
       ) : people.length > 1 ? (
         // Two or three presenters share ONE wider slanted strip.
