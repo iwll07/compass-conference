@@ -106,11 +106,6 @@ function SessionCard({
                 ) : (
                   <span dir="auto">{person.name}</span>
                 )}
-                {(person.role || person.affiliation) && (
-                  <span className="agenda-person-role" dir="auto">
-                    {[person.role, person.affiliation].filter(Boolean).join(" · ")}
-                  </span>
-                )}
               </li>
             ))}
           </ul>
