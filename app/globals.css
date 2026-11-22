@@ -2312,7 +2312,8 @@ button.sponsor-strip-tile { cursor: pointer; }
 .agenda-photo { position: relative; display: block; flex: 0 0 156px; width: 156px; align-self: stretch; margin: -14px -14px -14px 4px; overflow: hidden; }
 /* The plate runs from corner to corner of the card; the cut-out sits inside it. */
 .agenda-photo::before { content: ""; position: absolute; inset: 0; clip-path: polygon(18% 0, 100% 0, 100% 100%, 0 100%); background: linear-gradient(160deg, var(--panel-accent), var(--panel)); }
-.agenda-card--keynote .agenda-photo { flex-basis: 206px; width: 206px; }
+.agenda-card--keynote .agenda-photo { flex-basis: 320px; width: 320px; }
+.agenda-card--keynote .agenda-photo::before { clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 100%); }
 /* Two or three presenters share one wider slanted strip. */
 .agenda-photo--group { flex-basis: 216px; width: 216px; }
 .agenda-group-person { position: absolute; top: 0; width: 58%; height: 100%; overflow: visible; }
@@ -2341,7 +2342,7 @@ button.sponsor-strip-tile { cursor: pointer; }
   .agenda-row-body { display: flex; flex-direction: column; }
   .agenda-card { min-height: 96px; padding: 11px 12px; }
   .agenda-photo { flex-basis: 116px; width: 116px; margin: -11px -12px -11px 4px; }
-  .agenda-card--keynote .agenda-photo { flex-basis: 142px; width: 142px; }
+  .agenda-card--keynote .agenda-photo { flex-basis: 180px; width: 180px; }
   .agenda-photo--group { flex-basis: 164px; width: 164px; }
   .agenda-card--many { flex-wrap: wrap; }
   .agenda-panel-strip { width: 100%; max-width: none; }
