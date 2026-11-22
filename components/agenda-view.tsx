@@ -84,11 +84,12 @@ function SessionCard({
     .filter((person): person is Speaker => Boolean(person));
   const keynote = session.kind === "keynote";
   const many = people.length > 1;
+  const panel = people.length > 3;
   const label = `${kindLabels[session.kind]}${hallName ? ` · ${hallName}` : ""}`;
 
   return (
     <article
-      className={`agenda-card${keynote ? " agenda-card--keynote" : ""}`}
+      className={`agenda-card${keynote ? " agenda-card--keynote" : ""}${panel ? " agenda-card--many" : ""}`}
       aria-labelledby={headingId}
       style={{ gridColumn }}
     >
@@ -144,12 +145,31 @@ function SessionCard({
           </p>
         )}
       </div>
-      {people.length > 3 ? (
-        // Panels show every speaker, not just the first three.
-        <div className="agenda-portraits" aria-hidden="true">
-          {people.map((person) => (
-            <SpeakerPhoto key={person.id} speaker={person} className="agenda-portrait" />
-          ))}
+      {panel ? (
+        // Panels keep every PNG in the slanted strip, enlarged so faces are
+        // readable instead of being squeezed into small circles.
+        <div className="agenda-panel-strip" aria-hidden="true">
+          {people.map((person) => {
+            const photo = photoFor(person);
+            return (
+              <span key={person.id} className="agenda-panel-photo">
+                {photo ? (
+                  <Image
+                    src={photo}
+                    alt=""
+                    width={480}
+                    height={480}
+                    sizes="72px"
+                    className="agenda-panel-img"
+                  />
+                ) : (
+                  <span className="agenda-initials">
+                    {getSpeakerInitials(person.name)}
+                  </span>
+                )}
+              </span>
+            );
+          })}
         </div>
       ) : people.length > 1 ? (
         // Two or three presenters share ONE wider slanted strip.
