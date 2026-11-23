@@ -71,11 +71,9 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .button-secondary { background: transparent; color: var(--ink); border-color: var(--line); }
 .hero-register-disabled { opacity: 0.85; cursor: default; user-select: none; pointer-events: none; }
 /* Hero vote call, rendered under the registration call only while the contest
-   is open or closed (see components/hero-vote-cta.tsx). Dimmed harder than the
-   registration badge: "Voting closed" is a statement of fact, not a call that
-   is merely not open yet, and it should not compete with the live call above. */
+   is open or closed (see components/hero-vote-cta.tsx). Both states are live
+   links to /vote/; the closed state points straight at the results. */
 .hero-vote-cta { display: flex; justify-content: center; }
-.hero-vote-disabled { opacity: 0.6; cursor: default; user-select: none; pointer-events: none; }
 /* Hero text colour for the Discover COMPASS text link: --hero-ink (white over
    the scrim) rather than the page's default --ink, which is dark on light. */
 .hero-link { color: var(--hero-ink); }

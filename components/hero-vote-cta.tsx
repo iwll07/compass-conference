@@ -10,9 +10,9 @@ import { useVotingSettings } from "@/lib/voting-status";
  *
  * It renders nothing until the contest is open or closed, so the hero never
  * advertises a ballot that cannot be cast. While open it is a real link to
- * /vote/; once closed it becomes an inert, dimmed badge reading "Voting closed"
- * — the same shape as the registration call's closed state — so the hero stops
- * offering a vote without the row collapsing to nothing.
+ * /vote/ in both states. While open it invites a vote; once closed it becomes
+ * a live link to the published results, so the CTA stays useful instead of
+ * turning into a dead, dimmed badge.
  *
  * useVotingSettings() is cache-first and hydration-safe: the server snapshot is
  * "soon" (nothing rendered), so the markup matches during hydration and the
@@ -25,16 +25,12 @@ export function HeroVoteCta() {
 
   return (
     <div className="hero-vote-cta" suppressHydrationWarning>
-      {status === "open" ? (
-        <Link className="button hover-lift" href="/vote/">
-          Vote for the best presentation
-          <ArrowRightIcon size={18} aria-hidden="true" />
-        </Link>
-      ) : (
-        <span className="button hero-vote-disabled" aria-disabled="true">
-          Voting closed
-        </span>
-      )}
+      <Link className="button hover-lift" href="/vote/">
+        {status === "open"
+          ? "Vote for the best presentation"
+          : "Voting closed — view results"}
+        <ArrowRightIcon size={18} aria-hidden="true" />
+      </Link>
     </div>
   );
 }

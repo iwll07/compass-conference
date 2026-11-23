@@ -119,31 +119,23 @@ async function createPage({ status, cached = null, theme = "light", viewport = {
     (await link.getAttribute("href")) === "/vote/"
   );
 
-  // ---- Hero call, closed: dimmed and inert, still says what happened ----
+  // ---- Hero call, closed: a live link to the published results ----
   const heroCta = page.locator(".hero-vote-cta");
   check("closed: hero vote call is present", (await heroCta.count()) === 1);
   check(
-    "closed: hero call is a badge, not a link",
-    (await heroCta.locator("a").count()) === 0 &&
-      (await heroCta.locator(".hero-vote-disabled").count()) === 1
+    "closed: hero call is a real link to the ballot",
+    (await heroCta.locator("a").count()) === 1 &&
+      (await heroCta.locator("a").getAttribute("href")) === "/vote/"
   );
   check(
-    "closed: hero badge says voting closed",
+    "closed: hero call invites viewing the results",
     (await heroCta.textContent())?.replace(/\s+/g, " ").trim() ===
-      "Voting closed"
+      "Voting closed — view results"
   );
   check(
-    "closed: hero badge is inert",
-    (await heroCta.locator(".hero-vote-disabled").getAttribute("aria-disabled")) ===
-      "true"
-  );
-  check(
-    "closed: hero badge is dimmed",
-    Number(
-      await heroCta
-        .locator(".hero-vote-disabled")
-        .evaluate((el) => getComputedStyle(el).opacity)
-    ) < 0.7
+    "closed: hero call is not dimmed or inert",
+    Number(await heroCta.locator("a").evaluate((el) => getComputedStyle(el).opacity)) === 1 &&
+      (await heroCta.locator("a").getAttribute("aria-disabled")) === null
   );
 
   await context.close();
