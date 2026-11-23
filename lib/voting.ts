@@ -18,10 +18,10 @@ export const VOTE_STORAGE_KEY = "compass-vote";
 const VOTE_RESULT_MESSAGES: Record<VoteResultCode, string> = {
   ok: "Your vote has been recorded. Thank you for taking part.",
   closed: "Voting is closed.",
-  invalid: "Check the phone number and try again.",
+  invalid: "Check the email address and try again.",
   not_registered:
-    "We couldn't verify this phone number. Use the number you registered with.",
-  already_voted: "This number has already voted. Thank you.",
+    "Use the email that had the attendance QR sent to.",
+  already_voted: "This email has already voted. Thank you.",
 };
 
 /**

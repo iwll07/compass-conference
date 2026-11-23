@@ -211,14 +211,16 @@ async function shot(page, name, width, theme) {
   await page.waitForSelector(".vote-dialog[open]");
   check("dialog: shows chosen presentation", (await page.locator(".vote-dialog-title").innerText()).includes("From screen taps to mental health"));
   check(
-    "dialog: phone input receives focus",
+    "dialog: email input receives focus",
     await page.evaluate(() =>
-      document.activeElement?.matches(".vote-phone-row input")
+      document.activeElement?.matches(".vote-email-row input")
     )
   );
   check(
-    "dialog: fixed +20 prefix",
-    (await page.locator(".vote-phone-prefix").innerText()).trim() === "+20"
+    "dialog: explains which email to use",
+    (await page.locator(".vote-dialog-note").innerText()).includes(
+      "Use the email that had the attendance QR sent to."
+    )
   );
   check(
     "dialog: warns votes cannot be changed",
@@ -227,24 +229,24 @@ async function shot(page, name, width, theme) {
     )
   );
 
-  const input = page.locator(".vote-phone-row input");
+  const input = page.locator(".vote-email-row input");
   const submit = page.locator(".vote-dialog-submit");
 
-  // Empty phone → invalid message, dialog stays open.
+  // Empty email → invalid message, dialog stays open.
   await submit.click();
   check(
-    "dialog: empty phone shows invalid message",
+    "dialog: empty email shows invalid message",
     (await page.locator(".vote-dialog-error").innerText()) ===
-      "Check the phone number and try again."
+      "Check the email address and try again."
   );
 
   // Each server code maps to its message; the input value is retained.
-  await input.fill("1012345678");
+  await input.fill("voter@example.com");
   for (const [code, expected] of [
-    ["not_registered", "We couldn't verify this phone number. Use the number you registered with."],
-    ["already_voted", "This number has already voted. Thank you."],
+    ["not_registered", "Use the email that had the attendance QR sent to."],
+    ["already_voted", "This email has already voted. Thank you."],
     ["closed", "Voting is closed."],
-    ["invalid", "Check the phone number and try again."],
+    ["invalid", "Check the email address and try again."],
   ]) {
     vote.code = code;
     await submit.click();
@@ -253,7 +255,7 @@ async function shot(page, name, width, theme) {
       expected
     );
     check(`dialog: ${code} message`, (await page.locator(".vote-dialog-error").innerText()) === expected);
-    check(`dialog: ${code} keeps the phone value`, (await input.inputValue()) === "1012345678");
+    check(`dialog: ${code} keeps the email value`, (await input.inputValue()) === "voter@example.com");
   }
 
   // Network failure → retry message, no stuck spinner, still open.

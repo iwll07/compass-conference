@@ -2114,9 +2114,8 @@ button.sponsor-strip-tile { cursor: pointer; }
 .vote-dialog-presenter { font-size: 13px; line-height: 1.5; color: var(--muted); }
 .vote-dialog-form { display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin-top: 10px; }
 .vote-dialog-form label { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
-.vote-phone-row { display: flex; width: 100%; }
-.vote-phone-prefix { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; background: var(--surface); color: var(--muted); border: 1px solid var(--line); border-right: 0; border-radius: 2px 0 0 2px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; user-select: none; }
-.vote-phone-row input { flex: 1; min-width: 0; min-height: 48px; padding: 11px 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 0 2px 2px 0; font-size: 16px; font-variant-numeric: tabular-nums; }
+.vote-email-row { width: 100%; }
+.vote-email-row input { width: 100%; min-width: 0; min-height: 48px; padding: 11px 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 2px; font-size: 16px; }
 .vote-dialog-note { font-size: 12px; line-height: 1.5; color: var(--muted); }
 .vote-dialog-error { padding: 11px 13px; border: 1px solid var(--line); color: var(--ink); font-size: 13px; line-height: 1.5; }
 .vote-dialog-submit { justify-content: center; width: 100%; margin-top: 6px; }

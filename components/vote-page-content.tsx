@@ -7,7 +7,6 @@ import type { CSSProperties } from "react";
 import Image from "next/image";
 import { TrophyIcon, XIcon } from "@phosphor-icons/react";
 import { getInitials } from "@/lib/honorees";
-import { normalizeEgyptianPhone } from "@/lib/registration";
 import { votingCandidates, type VotingCandidate } from "@/lib/voting-candidates";
 import { CompassRose } from "@/components/compass-rose";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -123,17 +122,17 @@ export function VotePageContent() {
   const [resultsVersion, setResultsVersion] = useState(0);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const phoneRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const sendingRef = useRef(false);
 
   const dialogTitleId = useId();
-  const phoneId = useId();
+  const emailId = useId();
   const noteId = useId();
   const errorId = useId();
 
@@ -182,7 +181,7 @@ export function VotePageContent() {
     if (!dialog || !selected) return;
     if (!dialog.open) {
       dialog.showModal();
-      phoneRef.current?.focus();
+      emailRef.current?.focus();
     }
   }, [selected]);
 
@@ -200,7 +199,7 @@ export function VotePageContent() {
     trigger: HTMLButtonElement
   ): void {
     triggerRef.current = trigger;
-    setPhone("");
+    setEmail("");
     setError(null);
     setSelectedId(candidate.id);
   }
@@ -213,7 +212,7 @@ export function VotePageContent() {
     const trigger = triggerRef.current;
     triggerRef.current = null;
     setSelectedId(null);
-    setPhone("");
+    setEmail("");
     setError(null);
     setSending(false);
     sendingRef.current = false;
@@ -235,8 +234,8 @@ export function VotePageContent() {
     event.preventDefault();
     if (sendingRef.current || !selected) return;
 
-    const normalized = normalizeEgyptianPhone(phone);
-    if (!normalized) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       setError(mapVoteResult("invalid"));
       return;
     }
@@ -246,7 +245,7 @@ export function VotePageContent() {
     setError(null);
 
     try {
-      const code = await castVote(selected.id, normalized);
+      const code = await castVote(selected.id, normalizedEmail);
 
       if (code === "ok") {
         try {
@@ -500,31 +499,26 @@ export function VotePageContent() {
             </p>
 
             <form className="vote-dialog-form" onSubmit={handleSubmit}>
-              <label htmlFor={phoneId}>
-                Phone number you registered with
-              </label>
-              <div className="vote-phone-row">
-                <span className="vote-phone-prefix" aria-hidden="true">
-                  +20
-                </span>
+              <label htmlFor={emailId}>Email address</label>
+              <div className="vote-email-row">
                 <input
-                  id={phoneId}
-                  ref={phoneRef}
-                  type="tel"
-                  inputMode="numeric"
-                  autoComplete="tel-national"
-                  placeholder="10 1234 5678"
-                  value={phone}
+                  id={emailId}
+                  ref={emailRef}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={email}
                   disabled={sending}
                   aria-describedby={error ? `${noteId} ${errorId}` : noteId}
                   onChange={(event) => {
-                    setPhone(event.target.value);
+                    setEmail(event.target.value);
                     if (error) setError(null);
                   }}
                 />
               </div>
               <p id={noteId} className="vote-dialog-note">
-                Votes can&apos;t be changed.
+                Use the email that had the attendance QR sent to. Votes can&apos;t be changed.
               </p>
 
               {error && (

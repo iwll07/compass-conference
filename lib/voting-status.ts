@@ -208,7 +208,7 @@ export async function fetchVotingResults(): Promise<VotingResults | null> {
  */
 export async function castVote(
   candidateId: string,
-  phone: string
+  email: string
 ): Promise<string> {
   const supabase = getSupabase();
   if (!supabase) {
@@ -217,7 +217,7 @@ export async function castVote(
 
   const { data, error } = await supabase.rpc("cast_vote", {
     p_candidate_id: candidateId,
-    p_phone: phone,
+    p_email: email,
   });
 
   if (error) {

@@ -23,17 +23,14 @@ test("mapVoteResult: every cast_vote code maps to the agreed message", () => {
     "Your vote has been recorded. Thank you for taking part."
   );
   assert.equal(mapVoteResult("closed"), "Voting is closed.");
-  assert.equal(
-    mapVoteResult("invalid"),
-    "Check the phone number and try again."
-  );
+  assert.equal(mapVoteResult("invalid"), "Check the email address and try again.");
   assert.equal(
     mapVoteResult("not_registered"),
-    "We couldn't verify this phone number. Use the number you registered with."
+    "Use the email that had the attendance QR sent to."
   );
   assert.equal(
     mapVoteResult("already_voted"),
-    "This number has already voted. Thank you."
+    "This email has already voted. Thank you."
   );
 });
 
